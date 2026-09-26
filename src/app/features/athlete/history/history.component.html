@@ -1,62 +1,13 @@
 <div class="px-5 py-4 animate-fade-in pb-6" [class.opacity-60]="loading()">
 
-  <h2 class="font-display font-black text-2xl text-white mb-1">Histórico</h2>
-  <p class="text-text-secondary text-sm mb-5 capitalize">{{ getMonthName() }}</p>
+  <h2 class="font-display font-black text-2xl text-on-surface mb-1">Histórico</h2>
 
-  <!-- Stats -->
-  <div class="grid grid-cols-3 gap-3 mb-5">
-    <div class="bg-surface rounded-xl p-4 text-center">
-      <p class="text-primary text-3xl mb-1">🔥 {{ streak() }}</p>
-      <p class="text-white font-bold text-sm">dias de streak</p>
-    </div>
-    <div class="bg-surface rounded-xl p-4 text-center">
-      <p class="font-display font-black text-3xl text-white">{{ monthCompletion() }}%</p>
-      <p class="text-text-secondary text-sm mt-0.5">conclusão mensal</p>
-    </div>
-    <div class="bg-surface rounded-xl p-4 text-center">
-      <p class="font-display font-black text-3xl text-white">{{ fmtDuration(avgSessionSeconds()) }}</p>
-      <p class="text-text-secondary text-sm mt-0.5">tempo médio</p>
-    </div>
-  </div>
-
-  <!-- Calendar -->
-  <div class="bg-surface rounded-xl p-4 mb-5">
-    <!-- Day Headers -->
-    <div class="grid grid-cols-7 gap-1 mb-2">
-      @for (d of weekDays; track d) {
-        <div class="text-center text-text-muted text-xs font-medium py-1">{{ d }}</div>
-      }
-    </div>
-    <!-- Days -->
-    <div class="grid grid-cols-7 gap-1">
-      @for (day of calendar(); track day.date) {
-        <div
-          class="aspect-square flex items-center justify-center rounded text-xs font-medium transition-all"
-          [class.bg-primary]="day.completed"
-          [class.text-white]="day.completed"
-          [class.bg-surface-high]="!day.completed && day.hasWorkout"
-          [class.text-text-muted]="!day.completed && day.hasWorkout"
-          [class.text-surface-high]="!day.hasWorkout">
-          {{ day.hasWorkout ? day.date : '' }}
-        </div>
-      }
-    </div>
-  </div>
-
-  <!-- Legend -->
-  <div class="flex gap-4 text-xs text-text-secondary mb-5">
-    <span class="flex items-center gap-1.5">
-      <span class="w-3 h-3 bg-primary rounded-sm"></span> Concluído
-    </span>
-    <span class="flex items-center gap-1.5">
-      <span class="w-3 h-3 bg-surface-high rounded-sm"></span> Treino agendado
-    </span>
-  </div>
+  <app-workout-history-calendar [logs]="logs()" [avgSessionSeconds]="avgSessionSeconds()" />
 
   <!-- AI Insight -->
-  <div class="bg-tertiary/10 border border-tertiary/30 rounded-xl p-4">
+  <div class="bg-tertiary/10 border border-tertiary/30 rounded-xl p-4 mt-4">
     <p class="text-tertiary text-xs font-semibold uppercase tracking-wide mb-2">Insight da IA Coach</p>
-    <p class="text-white text-sm leading-relaxed">
+    <p class="text-on-surface text-sm leading-relaxed">
       Sua recuperação na terça foi abaixo do ideal. Reduz a carga de cardio hoje em 15%.
     </p>
   </div>
