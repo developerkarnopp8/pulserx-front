@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import {
-  Student, TrainingPlan, Session, Exercise, WorkoutLog,
+  Student, TrainingPlan, TrainingCategory, PlanScope, Session, Exercise, WorkoutLog,
   ExerciseLibraryItem, Payment, PaymentSummary, SkipReason, SkipDecision,
   Movement, PersonalRecord, AppNotification,
   WorkoutSessionRecord, SessionTimeSummary, SessionTimeDetail, CoachAvgDuration,
@@ -66,7 +66,9 @@ interface RawWeek {
 
 interface RawPlan {
   id: string;
-  studentId: string;
+  studentId: string | null;
+  category?: TrainingCategory;
+  scope?: PlanScope;
   coachId: string;
   month: number;
   startDate: string;
@@ -220,6 +222,21 @@ export class ApiService {
   createPlan(studentId: string, title: string, month: number, startDate: string): Observable<TrainingPlan> {
     return this.http
       .post<RawPlan>(`${this.base}/training-plans`, { studentId, title, month, startDate })
+      .pipe(map(p => this.mapPlan(p)));
+  }
+
+  /** Coach: planos compartilhados (Core/LPO) — pertencem ao coach, valem pra todos os alunos com a categoria */
+  getSharedPlans(category?: TrainingCategory): Observable<TrainingPlan[]> {
+    const query = category ? `?category=${encodeURIComponent(category)}` : '';
+    return this.http
+      .get<RawPlan[]>(`${this.base}/training-plans/shared${query}`)
+      .pipe(map(list => list.map(p => this.mapPlan(p))));
+  }
+
+  /** Coach: cria plano compartilhado (só CORE ou LPO — Performance é sempre individual) */
+  createSharedPlan(category: 'CORE' | 'LPO', title: string, month: number, startDate: string): Observable<TrainingPlan> {
+    return this.http
+      .post<RawPlan>(`${this.base}/training-plans/shared`, { category, title, month, startDate })
       .pipe(map(p => this.mapPlan(p)));
   }
 
@@ -490,7 +507,9 @@ export class ApiService {
   private mapPlan(p: RawPlan): TrainingPlan {
     return {
       id:        p.id,
-      studentId: p.studentId,
+      studentId: p.studentId ?? null,
+      category:  p.category ?? 'PERFORMANCE',
+      scope:     p.scope ?? 'INDIVIDUAL',
       coachId:   p.coachId,
       month:     p.month,
       startDate: p.startDate,

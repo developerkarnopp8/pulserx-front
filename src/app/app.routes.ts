@@ -33,6 +33,11 @@ export const routes: Routes = [
           import('./features/coach/plans/plans.component').then(m => m.PlansComponent)
       },
       {
+        path: 'plan-builder/shared/:planId',
+        loadComponent: () =>
+          import('./features/coach/plan-builder/plan-builder.component').then(m => m.PlanBuilderComponent),
+      },
+      {
         path: 'plan-builder/:studentId',
         loadComponent: () =>
           import('./features/coach/plan-builder/plan-builder.component').then(m => m.PlanBuilderComponent),

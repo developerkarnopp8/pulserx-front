@@ -4,7 +4,13 @@
   <header class="px-4 md:px-8 py-4 md:py-5 flex items-center justify-between flex-shrink-0 gap-3 flex-wrap">
     <div class="flex items-center gap-4">
       <div>
-        <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-0.5">Plano de Treino</p>
+        <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-0.5">
+          @if (isShared && plan(); as sharedPlan) {
+            Plano compartilhado · {{ categoryLabel[sharedPlan.category] }} — vale para todos os alunos com este plano
+          } @else {
+            Plano de Treino
+          }
+        </p>
         @if (loading()) {
           <div class="h-4 w-40 bg-surface-container rounded-sm animate-pulse"></div>
         } @else {
@@ -26,7 +32,7 @@
           Publicado
         </span>
       }
-      @if (plan()) {
+      @if (plan() && !isShared) {
         <button type="button" (click)="exportCurrentMonthPdf()"
           class="px-4 py-2 rounded-sm border border-outline-variant/30 text-on-surface-variant hover:text-on-surface hover:border-outline font-headline text-xs uppercase tracking-wider transition-all flex items-center gap-1.5">
           <span class="material-symbols-outlined text-[14px]">picture_as_pdf</span>
@@ -86,6 +92,7 @@
     </div>
   }
 
+  @if (!isShared) {
   <!-- Recordes de Força -->
   <div class="px-4 md:px-8 pb-4 flex-shrink-0">
     <div class="bg-surface-container-low rounded-md">
@@ -235,6 +242,8 @@
     </div>
   </div>
 
+  }
+
   @if (loading()) {
     <div class="flex-1 flex items-center justify-center">
       <span class="material-symbols-outlined text-outline text-[40px] animate-pulse-subtle">fitness_center</span>
@@ -274,11 +283,13 @@
 
     <!-- Week Tabs sidebar -->
     <aside class="w-full md:w-40 flex md:flex-col gap-2 md:gap-0 border-b md:border-b-0 md:border-r border-outline-variant/10 flex-shrink-0 py-3 md:py-4 px-3 md:px-2 overflow-x-auto md:overflow-y-auto">
+      @if (!isShared) {
       <button type="button" (click)="exportCurrentWeekPdf()"
         class="w-auto md:w-full flex items-center gap-1.5 px-4 py-2 mb-0 md:mb-2 flex-shrink-0 whitespace-nowrap text-outline hover:text-on-surface font-headline text-[10px] uppercase tracking-wider transition-colors">
         <span class="material-symbols-outlined text-[14px]">picture_as_pdf</span>
         <span class="hidden md:inline">Exportar Semana</span>
       </button>
+      }
       @for (week of plan()!.weeks; track week.id; let i = $index) {
         <button type="button"
           (click)="selectedWeek.set(i)"

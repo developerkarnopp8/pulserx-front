@@ -46,9 +46,21 @@ export interface Week {
   days: TrainingDay[];
 }
 
+export type TrainingCategory = 'CORE' | 'LPO' | 'PERFORMANCE';
+export type PlanScope = 'SHARED' | 'INDIVIDUAL';
+
+export const TRAINING_CATEGORY_LABEL: Record<TrainingCategory, string> = {
+  CORE: 'Core',
+  LPO: 'LPO',
+  PERFORMANCE: 'Performance',
+};
+
 export interface TrainingPlan {
   id: string;
-  studentId: string;
+  /** null em plano compartilhado (Core/LPO): pertence ao coach, não a um aluno */
+  studentId: string | null;
+  category: TrainingCategory;
+  scope: PlanScope;
   coachId: string;
   month: number;
   startDate: string;
