@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+    branches: ["**"]
+  push:
+    branches: ["main"]
+
+jobs:
+  test-build:
+    name: Testes e build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+      # Sem lint configurado ainda (nenhum @angular-eslint instalado) — não incluir
+      # um step "Lint" aqui até existir de verdade, pra não fingir uma checagem que
+      # não roda nada.
+      - run: npm test -- --watch=false
+      - run: npm run build
+
+  seguranca-dependencias:
+    name: Segurança — dependências (SCA)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      # --omit=dev: hoje as vulnerabilidades restantes (vite/launch-editor, específicas
+      # de Windows) são só em devDependencies do dev-server, não afetam o build de produção.
+      - run: npm audit --omit=dev --audit-level=high
+
+  codeql:
+    name: Segurança — CodeQL (SAST)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+      - uses: github/codeql-action/analyze@v3
