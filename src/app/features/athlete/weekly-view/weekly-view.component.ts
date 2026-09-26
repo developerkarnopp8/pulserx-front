@@ -1,9 +1,10 @@
-import { Component, ElementRef, OnInit, ViewChild, signal } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { TrainingPlan, TrainingDay } from '../../../core/models';
+import { TrainingPlan, TrainingDay, TrainingCategory, TRAINING_CATEGORY_LABEL } from '../../../core/models';
+import { categoriesOf, currentWeekNumber, defaultCategory, pickPlan } from '../../../shared/utils/plan-selection';
 import { PlanCalendarModalComponent } from '../../../shared/components/plan-calendar-modal/plan-calendar-modal.component';
 import { toLocalDateKey } from '../../../shared/utils/date-key';
 import { exportWeekToPdf, exportMonthToPdf } from '../../../shared/utils/plan-pdf-export';
@@ -20,6 +21,12 @@ export class WeeklyViewComponent implements OnInit {
   selectedWeek = signal(0);
   selectedDay = signal<TrainingDay | null>(null);
   allPlans = signal<TrainingPlan[]>([]);
+  categories = signal<TrainingCategory[]>([]);
+  selectedCategory = signal<TrainingCategory | null>(null);
+  readonly categoryLabel = TRAINING_CATEGORY_LABEL;
+  /** Só os planos da categoria aberta — o calendário não mistura Core com Performance. */
+  plansOfCategory = computed(() => this.allPlans().filter(p => p.category === this.selectedCategory()));
+  private student: { currentMonth: number; currentWeek: number } = { currentMonth: 1, currentWeek: 1 };
   workoutDates = signal<Set<string>>(new Set());
   showCalendarModal = signal(false);
 
@@ -32,21 +39,11 @@ export class WeeklyViewComponent implements OnInit {
       next: student => {
         this.api.getPlansByStudent(student.id).subscribe({
           next: plans => {
+            this.student = student;
             this.allPlans.set(plans);
-            if (!plans.length) return;
-            const plan = plans.find(p => p.month === student.currentMonth) ?? plans[0];
-            this.plan.set(plan);
-
-            const weekIndex = plan.weeks.findIndex(w => w.weekNumber === student.currentWeek);
-            this.selectedWeek.set(weekIndex >= 0 ? weekIndex : 0);
-
-            const week = plan.weeks.at(weekIndex >= 0 ? weekIndex : 0);
-            const today = week?.days.find(d => d.dayIndex === new Date().getDay());
-            const initialDay = today ?? week?.days[0] ?? null;
-            this.selectedDay.set(initialDay);
-            if (initialDay) {
-              setTimeout(() => this.scrollDayIntoView(initialDay.id));
-            }
+            this.categories.set(categoriesOf(plans));
+            const category = defaultCategory(plans);
+            if (category) this.selectCategory(category);
           },
         });
         this.api.getWorkoutHistory(500).subscribe(logs => {
@@ -57,6 +54,26 @@ export class WeeklyViewComponent implements OnInit {
         });
       },
     });
+  }
+
+  /** Abre o plano da categoria (Performance / Core / LPO) na semana e no dia de hoje. */
+  selectCategory(category: TrainingCategory): void {
+    const plan = pickPlan(this.allPlans(), category, this.student.currentMonth);
+    if (!plan) return;
+    this.selectedCategory.set(category);
+    this.plan.set(plan);
+
+    const weekNumber = currentWeekNumber(plan, this.student.currentWeek);
+    const weekIndex = plan.weeks.findIndex(w => w.weekNumber === weekNumber);
+    this.selectedWeek.set(weekIndex >= 0 ? weekIndex : 0);
+
+    const week = plan.weeks.at(weekIndex >= 0 ? weekIndex : 0);
+    const today = week?.days.find(d => d.dayIndex === new Date().getDay());
+    const initialDay = today ?? week?.days[0] ?? null;
+    this.selectedDay.set(initialDay);
+    if (initialDay) {
+      setTimeout(() => this.scrollDayIntoView(initialDay.id));
+    }
   }
 
   selectDay(day: TrainingDay, event?: Event): void {

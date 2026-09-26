@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Session } from '../../../core/models';
+import { todaySessions } from '../../../shared/utils/plan-selection';
 
 const WATER_TAP_ML = 250;
 
@@ -50,11 +51,7 @@ export class HomeComponent implements OnInit {
         this.api.getPlansByStudent(student.id).subscribe({
           next: plans => {
             if (!plans.length) return;
-            const plan = plans.find(p => p.month === student.currentMonth) ?? plans[0];
-            const week = plan.weeks.find(w => w.weekNumber === student.currentWeek) ?? plan.weeks[0];
-            const dayIndex = new Date().getDay();
-            const day = week?.days.find(d => d.dayIndex === dayIndex) ?? week?.days[0];
-            this.todaySessions.set(day?.sessions ?? []);
+            this.todaySessions.set(todaySessions(plans, student));
           },
         });
       },

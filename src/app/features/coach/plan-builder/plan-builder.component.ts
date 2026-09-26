@@ -2,7 +2,7 @@ import { Component, OnInit, OnChanges, signal, computed, Input } from '@angular/
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
-import { TrainingPlan, Exercise, Session, SessionType, ExerciseLibraryItem, TrainingDay, PersonalRecord, SessionTimeSummary, SessionTimeDetail } from '../../../core/models';
+import { TrainingPlan, TRAINING_CATEGORY_LABEL, Exercise, Session, SessionType, ExerciseLibraryItem, TrainingDay, PersonalRecord, SessionTimeSummary, SessionTimeDetail } from '../../../core/models';
 import { PlanCalendarModalComponent } from '../../../shared/components/plan-calendar-modal/plan-calendar-modal.component';
 import { exportWeekToPdf, exportMonthToPdf } from '../../../shared/utils/plan-pdf-export';
 import { formatDurationShort } from '../../../shared/utils/format-duration';
@@ -17,10 +17,14 @@ type DrawerMode = 'add' | 'edit';
   styleUrl: './plan-builder.component.scss'
 })
 export class PlanBuilderComponent implements OnInit, OnChanges {
-  @Input() studentId!: string;
+  @Input() studentId?: string;       // ausente no plano compartilhado (Core/LPO), que pertence ao coach
   @Input() planId?: string;          // opcional: pula direto para um plano específico
 
   loadError = signal(false);
+
+  /** Plano compartilhado: aberto só por planId, sem aluno — esconde o que é do aluno (recordes, tempo, PDF). */
+  get isShared(): boolean { return !this.studentId && !!this.planId; }
+  readonly categoryLabel = TRAINING_CATEGORY_LABEL;
 
   plan          = signal<TrainingPlan | null>(null);
   loading       = signal(true);
@@ -99,7 +103,7 @@ export class PlanBuilderComponent implements OnInit, OnChanges {
 
   loadSessionTime(sessionId: string): void {
     if (this.sessionTimeDetails()[sessionId]) return;
-    this.api.getStudentSessionDetail(this.studentId, sessionId).subscribe(d =>
+    this.api.getStudentSessionDetail(this.studentId!, sessionId).subscribe(d =>
       this.sessionTimeDetails.update(m => ({ ...m, [sessionId]: d })));
   }
 
@@ -229,7 +233,10 @@ export class PlanBuilderComponent implements OnInit, OnChanges {
   // ngOnChanges cobre tanto o carregamento inicial quanto a reutilização
   // do componente quando o Angular muda studentId ou planId via router
   ngOnChanges(): void {
-    if (!this.studentId) return;
+    if (!this.studentId) {
+      if (this.planId) this.loadSharedPlan(this.planId);
+      return;
+    }
     this.plan.set(null);
     this.studentCurrentWeek.set(null);
     this.loading.set(true);
@@ -249,14 +256,14 @@ export class PlanBuilderComponent implements OnInit, OnChanges {
     const p = this.plan();
     const week = this.currentWeek();
     if (!p || !week) return;
-    this.api.getStudentWorkoutHistory(this.studentId).subscribe(logs =>
+    this.api.getStudentWorkoutHistory(this.studentId!).subscribe(logs =>
       exportWeekToPdf(p, week.weekNumber, this.studentName(), logs));
   }
 
   exportCurrentMonthPdf(): void {
     const p = this.plan();
     if (!p) return;
-    this.api.getStudentWorkoutHistory(this.studentId).subscribe(logs =>
+    this.api.getStudentWorkoutHistory(this.studentId!).subscribe(logs =>
       exportMonthToPdf(p, this.studentName(), logs));
   }
 
@@ -287,6 +294,21 @@ export class PlanBuilderComponent implements OnInit, OnChanges {
     this.api.getLibrary().subscribe(items => this.libraryItems.set(items));
   }
 
+  private loadSharedPlan(planId: string): void {
+    this.plan.set(null);
+    this.loadError.set(false);
+    this.loading.set(true);
+    this.api.getPlanById(planId).subscribe({
+      next: plan => {
+        this.plan.set(plan);
+        this.allPlans.set([plan]);
+        this.selectedWeek.set(0);
+        this.loading.set(false);
+      },
+      error: () => { this.loading.set(false); this.loadError.set(true); },
+    });
+  }
+
   private loadPlan(): void {
     if (this.planId) {
       this.api.getPlanById(this.planId).subscribe({
@@ -299,7 +321,7 @@ export class PlanBuilderComponent implements OnInit, OnChanges {
   }
 
   private loadByStudent(): void {
-    this.api.getPlansByStudent(this.studentId).subscribe({
+    this.api.getPlansByStudent(this.studentId!).subscribe({
       next: plans => {
         if (!plans.length) { this.loading.set(false); return; }
 

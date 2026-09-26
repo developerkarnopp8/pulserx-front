@@ -29,6 +29,24 @@
     }
   </div>
 
+  <!-- Categoria do plano (Performance / Core / LPO) — só aparece com mais de uma -->
+  @if (categories().length > 1) {
+    <div class="flex gap-2 mb-4 overflow-x-auto pb-1 no-scrollbar" role="tablist" aria-label="Categoria do treino">
+      @for (cat of categories(); track cat) {
+        <button type="button" role="tab" [attr.aria-selected]="selectedCategory() === cat"
+          (click)="selectCategory(cat)"
+          class="flex-shrink-0 px-4 py-2 rounded-sm text-xs font-headline font-bold uppercase tracking-wider transition-all duration-200 border"
+          [class.bg-primary-fixed]="selectedCategory() === cat"
+          [class.text-on-primary-fixed]="selectedCategory() === cat"
+          [class.border-transparent]="selectedCategory() === cat"
+          [class.border-outline-variant/30]="selectedCategory() !== cat"
+          [class.text-on-surface-variant]="selectedCategory() !== cat">
+          {{ categoryLabel[cat] }}
+        </button>
+      }
+    </div>
+  }
+
   <!-- Week Selector — horizontal scroll pills -->
   <div class="flex gap-2 mb-5 overflow-x-auto pb-1 no-scrollbar">
     @for (week of plan()?.weeks ?? []; track week.id; let i = $index) {
@@ -142,7 +160,7 @@
 
 @if (showCalendarModal()) {
   <app-plan-calendar-modal
-    [plans]="allPlans()"
+    [plans]="plansOfCategory()"
     [workoutDates]="workoutDates()"
     (daySelected)="onCalendarDaySelected($event)"
     (closed)="showCalendarModal.set(false)" />
