@@ -2,17 +2,19 @@ import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
-import { ApiService } from '../../../core/services/api.service';
-import { ExerciseLibraryItem } from '../../../core/models';
+import { ApiService, WorkoutLogEntry } from '../../../core/services/api.service';
+import { ExerciseLibraryItem, Student } from '../../../core/models';
+import { WorkoutHistoryCalendarComponent } from '../../../shared/components/workout-history-calendar/workout-history-calendar.component';
 
 type DrawerMode = 'add' | 'edit';
+type LibraryTab = 'exercises' | 'history';
 
 const CATEGORIES = ['LPO', 'Força', 'Ginástica', 'Metcon', 'Resistência', 'Mobilidade', 'Core', 'Outro'];
 
 @Component({
   selector: 'app-library',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, WorkoutHistoryCalendarComponent],
   templateUrl: './library.component.html',
   styleUrl: './library.component.scss',
 })
@@ -28,6 +30,15 @@ export class LibraryComponent implements OnInit {
   saving        = signal(false);
 
   expandedCategories = signal<Set<string>>(new Set());
+
+  // ── Aba "Histórico por Aluno" ────────────────────────────────────────────
+  activeTab            = signal<LibraryTab>('exercises');
+  students              = signal<Student[]>([]);
+  studentsLoading        = signal(false);
+  selectedStudentId      = signal<string | null>(null);
+  studentLogs            = signal<WorkoutLogEntry[]>([]);
+  studentAvgSessionSeconds = signal(0);
+  studentHistoryLoading  = signal(false);
 
   form!: FormGroup;
 
@@ -167,5 +178,49 @@ export class LibraryComponent implements OnInit {
     if (item.reps) parts.push(item.reps);
     if (item.duration) parts.push(item.duration);
     return parts.join(' ') || '—';
+  }
+
+  // ── Aba "Histórico por Aluno" ────────────────────────────────────────────
+
+  selectTab(tab: LibraryTab): void {
+    this.activeTab.set(tab);
+    if (tab === 'history' && this.students().length === 0 && !this.studentsLoading()) {
+      this.loadStudents();
+    }
+  }
+
+  private loadStudents(): void {
+    this.studentsLoading.set(true);
+    this.api.getStudents().subscribe({
+      next: list => {
+        this.students.set(list);
+        this.studentsLoading.set(false);
+      },
+      error: () => this.studentsLoading.set(false),
+    });
+  }
+
+  selectStudent(studentId: string): void {
+    this.selectedStudentId.set(studentId || null);
+    this.studentLogs.set([]);
+    this.studentAvgSessionSeconds.set(0);
+    if (!studentId) return;
+
+    this.studentHistoryLoading.set(true);
+    this.api.getStudentWorkoutHistory(studentId).subscribe({
+      next: logs => {
+        this.studentLogs.set(logs);
+        this.studentHistoryLoading.set(false);
+      },
+      error: () => this.studentHistoryLoading.set(false),
+    });
+    this.api.getStudentSessionSummary(studentId).subscribe({
+      next: summary => this.studentAvgSessionSeconds.set(summary.avgElapsedSeconds),
+      error: () => {},
+    });
+  }
+
+  get selectedStudent(): Student | null {
+    return this.students().find(s => s.id === this.selectedStudentId()) ?? null;
   }
 }

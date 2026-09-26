@@ -5,14 +5,42 @@
     <div>
       <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-1">Coach</p>
       <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface tracking-tighter leading-none">BIBLIOTECA</h2>
-      <p class="text-on-surface-variant text-sm mt-1">Seus exercícios salvos para reutilizar nos planos.</p>
+      <p class="text-on-surface-variant text-sm mt-1">
+        {{ activeTab() === 'exercises' ? 'Seus exercícios salvos para reutilizar nos planos.' : 'Calendário e evolução de cada aluno.' }}
+      </p>
     </div>
-    <button type="button" (click)="openAdd()"
-      class="flex items-center gap-2 bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-5 py-3 rounded-sm uppercase tracking-tighter text-xs transition-all">
-      <span class="material-symbols-outlined text-[16px]">add</span>
-      Novo Exercício
-    </button>
+    @if (activeTab() === 'exercises') {
+      <button type="button" (click)="openAdd()"
+        class="flex items-center gap-2 bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-5 py-3 rounded-sm uppercase tracking-tighter text-xs transition-all">
+        <span class="material-symbols-outlined text-[16px]">add</span>
+        Novo Exercício
+      </button>
+    }
   </header>
+
+  <!-- Tabs -->
+  <div class="px-4 md:px-8 mb-4 flex-shrink-0" role="tablist" aria-label="Seções da Biblioteca">
+    <div class="flex gap-1 border-b border-outline-variant/20">
+      <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'exercises'" (click)="selectTab('exercises')"
+        class="px-4 py-2.5 font-headline font-black text-xs uppercase tracking-tighter transition-colors border-b-2"
+        [class.text-primary-fixed]="activeTab() === 'exercises'"
+        [class.border-primary-fixed]="activeTab() === 'exercises'"
+        [class.text-outline]="activeTab() !== 'exercises'"
+        [class.border-transparent]="activeTab() !== 'exercises'">
+        Exercícios
+      </button>
+      <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'history'" (click)="selectTab('history')"
+        class="px-4 py-2.5 font-headline font-black text-xs uppercase tracking-tighter transition-colors border-b-2"
+        [class.text-primary-fixed]="activeTab() === 'history'"
+        [class.border-primary-fixed]="activeTab() === 'history'"
+        [class.text-outline]="activeTab() !== 'history'"
+        [class.border-transparent]="activeTab() !== 'history'">
+        Histórico por Aluno
+      </button>
+    </div>
+  </div>
+
+  @if (activeTab() === 'exercises') {
 
   <!-- Search -->
   <div class="px-4 md:px-8 mb-4 flex-shrink-0">
@@ -107,6 +135,38 @@
       }
     }
   </div>
+
+  } @else {
+
+  <!-- Aba Histórico por Aluno -->
+  <div class="flex-1 px-4 md:px-8 pb-8 overflow-y-auto">
+    <div class="mb-5 max-w-sm">
+      <label class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">Aluno</label>
+      <select title="Selecionar aluno" [value]="selectedStudentId() ?? ''"
+        (change)="selectStudent($any($event.target).value)"
+        class="w-full bg-surface-container text-on-surface rounded-sm px-3 py-2.5 text-sm appearance-none cursor-pointer">
+        <option value="">{{ studentsLoading() ? 'Carregando alunos...' : 'Selecione um aluno' }}</option>
+        @for (s of students(); track s.id) {
+          <option [value]="s.id">{{ s.name }}</option>
+        }
+      </select>
+    </div>
+
+    @if (!selectedStudentId()) {
+      <div class="flex flex-col items-center justify-center h-64 gap-4">
+        <span class="material-symbols-outlined text-outline text-[56px]">calendar_month</span>
+        <p class="text-on-surface-variant text-sm">Selecione um aluno para ver o histórico de treinos.</p>
+      </div>
+    } @else if (studentHistoryLoading()) {
+      <div class="flex items-center justify-center h-40">
+        <span class="material-symbols-outlined text-outline text-[40px] animate-pulse-subtle">calendar_month</span>
+      </div>
+    } @else {
+      <app-workout-history-calendar [logs]="studentLogs()" [avgSessionSeconds]="studentAvgSessionSeconds()" />
+    }
+  </div>
+
+  }
 </div>
 
 <!-- Drawer: Add / Edit -->
