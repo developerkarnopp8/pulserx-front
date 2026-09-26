@@ -7,6 +7,20 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - "dependencias"
+    # Majors do Angular/TypeScript precisam de upgrade coordenado (`ng update`, pacotes
+    # @angular/* em lockstep) — um PR isolado de um pacote falha no CI (peer dependency
+    # entre core/common/forms/platform-browser/animations) e vira ruído. Ignorados aqui
+    # até existir um upgrade dedicado; minor/patch seguem normalmente.
+    ignore:
+      - dependency-name: "@angular/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+    # Um PR só pra todos os minor/patch — todos mexem no package-lock.json, então PRs
+    # separados ficam em conflito entre si assim que o primeiro é mergeado.
+    groups:
+      minor-e-patch:
+        update-types: ["minor", "patch"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
