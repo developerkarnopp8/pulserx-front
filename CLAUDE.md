@@ -4,6 +4,8 @@
 
 > **Rename (2026-09-26):** o projeto se chamava AEVONFIT/AevonFit; agora é **PulseRx** (repo `pulserx-front`). Cobriu textos de UI, chaves de `localStorage` (`pulserx_token`/`pulserx_user`/`pulserx_notif_banner_dismissed` — sessões antigas são deslogadas no próximo deploy) e este `CLAUDE.md`. **Domínio (`environment.prod.ts`, `index.html` canonical/OG/Twitter) continua `aevonfit.aevon.online`** até uma migração dedicada da VPS. **`@aevonfit.com` como domínio de e-mail (placeholder de login, mock `db.json`) é mantido de propósito** — é só o domínio de e-mail interno, não faz parte da marca do produto; não renomear.
 
+> **CI/CD (2026-09-26):** `.github/workflows/ci.yml` (testes + build + `npm audit --omit=dev` + CodeQL) e `.github/dependabot.yml`. Sem lint (nenhum `@angular-eslint` instalado — não incluir step de lint até existir de verdade). **`dependabot.yml` ignora majors de `@angular/*` e `typescript`** (Angular 22, TS 7): PR isolado de um pacote falha no CI por conflito de peer dependency entre core/common/forms/platform-browser/animations; o upgrade precisa ser coordenado via `ng update`. **TEMPORÁRIO: remover o `ignore` junto com o upgrade dedicado do Angular.** Minor/patch vêm agrupados num PR só.
+
 ## Visão Geral
 
 **PulseRx** é uma plataforma SaaS para gestão de academias. O frontend é construído em Angular 21 e consome dados mock (json-server) — o backend real NestJS será integrado posteriormente.
