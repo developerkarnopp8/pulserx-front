@@ -11,7 +11,7 @@ jobs:
     name: Testes e build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:
@@ -29,7 +29,7 @@ jobs:
     name: Segurança — dependências (SCA)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -46,7 +46,7 @@ jobs:
       security-events: write
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: github/codeql-action/init@v3
         with:
           languages: javascript-typescript
