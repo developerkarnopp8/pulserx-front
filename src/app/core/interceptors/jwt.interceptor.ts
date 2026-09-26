@@ -1,7 +1,7 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = localStorage.getItem('aevonfit_token');
+  const token = localStorage.getItem('pulserx_token');
   if (token && !req.url.includes('/auth/login')) {
     req = req.clone({
       setHeaders: { Authorization: `Bearer ${token}` },

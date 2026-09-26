@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 
-const DISMISS_KEY = 'aevonfit_notif_banner_dismissed';
+const DISMISS_KEY = 'pulserx_notif_banner_dismissed';
 
 @Component({
   selector: 'app-notification-permission-banner',

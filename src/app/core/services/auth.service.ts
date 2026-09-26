@@ -6,8 +6,8 @@ import { User, UserRole } from '../models';
 import { SocketService } from './socket.service';
 import { environment } from '../../../environments/environment';
 
-const TOKEN_KEY = 'aevonfit_token';
-const USER_KEY  = 'aevonfit_user';
+const TOKEN_KEY = 'pulserx_token';
+const USER_KEY  = 'pulserx_user';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
