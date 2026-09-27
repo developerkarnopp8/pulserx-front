@@ -1,0 +1,48 @@
+<div class="px-5 py-4 animate-fade-in">
+
+  <div class="mb-5">
+    <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-1">Meu Plano</p>
+    <h2 class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none">Assinatura</h2>
+  </div>
+
+  @if (loading()) {
+    <div class="h-32 bg-surface-container-low rounded-md animate-pulse"></div>
+  } @else if (errorMsg()) {
+    <div role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-3 text-error text-sm">{{ errorMsg() }}</div>
+  } @else if (data(); as d) {
+    @if (d.subscription; as sub) {
+      <div class="bg-surface-container-low rounded-md p-5 mb-5">
+        <div class="flex items-center justify-between mb-1">
+          <p class="text-on-surface font-headline font-black text-xl">{{ sub.plan.name }}</p>
+          <span class="text-[10px] font-headline uppercase tracking-widest px-2 py-1 rounded-sm"
+            [class.bg-primary-fixed/15]="sub.status === 'ACTIVE' || sub.status === 'TRIALING'"
+            [class.text-primary-fixed]="sub.status === 'ACTIVE' || sub.status === 'TRIALING'"
+            [class.bg-error/15]="sub.status === 'PAST_DUE' || sub.status === 'CANCELED'"
+            [class.text-error]="sub.status === 'PAST_DUE' || sub.status === 'CANCELED'">
+            {{ statusLabel[sub.status] }}
+          </span>
+        </div>
+        <p class="text-outline text-sm">{{ fmtPrice(sub.plan.priceCents) }}/mês</p>
+        @if (sub.status === 'TRIALING' && sub.trialEndsAt) {
+          <p class="text-outline text-xs mt-2">Teste até {{ sub.trialEndsAt | date:'dd/MM/yyyy' }}</p>
+        }
+      </div>
+    } @else {
+      <div class="bg-surface-container-low rounded-md p-5 mb-5">
+        <p class="text-on-surface-variant text-sm">Você ainda não tem um plano de assinatura. Fale com seu coach.</p>
+      </div>
+    }
+
+    <div>
+      <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-2">Categorias liberadas hoje</p>
+      <div class="flex flex-wrap gap-2">
+        @for (cat of d.categories; track cat) {
+          <span class="text-xs font-headline uppercase tracking-wider bg-primary-fixed/10 text-primary-fixed px-3 py-1.5 rounded-sm">{{ categoryLabel[cat] }}</span>
+        } @empty {
+          <p class="text-on-surface-variant text-sm">Nenhuma categoria liberada no momento.</p>
+        }
+      </div>
+    </div>
+  }
+
+</div>
