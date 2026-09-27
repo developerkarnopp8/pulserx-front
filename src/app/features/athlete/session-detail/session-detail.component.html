@@ -80,10 +80,12 @@
           <div class="flex-1">
             <div class="flex items-center gap-2 mb-1.5">
               @if (ex.youtubeUrl) {
-                <a [href]="ex.youtubeUrl" target="_blank" rel="noopener"
+                <button type="button" (click)="toggleVideo(ex.id)"
+                  [attr.aria-expanded]="expandedVideoId() === ex.id"
+                  [attr.aria-label]="'Ver demonstração de ' + ex.name"
                   class="text-primary-fixed hover:text-primary transition-colors">
-                  <span class="material-symbols-outlined text-[18px]">play_circle</span>
-                </a>
+                  <span class="material-symbols-outlined text-[18px]">{{ expandedVideoId() === ex.id ? 'expand_less' : 'play_circle' }}</span>
+                </button>
               }
               <h3 class="text-on-surface font-headline font-bold text-sm">{{ ex.name }}</h3>
             </div>
@@ -114,6 +116,12 @@
             }
           </button>
         </div>
+
+        @if (ex.youtubeUrl && expandedVideoId() === ex.id) {
+          <div class="mt-3">
+            <app-youtube-embed [url]="ex.youtubeUrl" />
+          </div>
+        }
 
         <!-- Coach Notes callout -->
         @if (ex.coachNotes) {

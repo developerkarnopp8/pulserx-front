@@ -9,6 +9,14 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/auth/login/login.component').then(m => m.LoginComponent)
   },
+  // Acesso do admin (dono): nunca linkado na UI pública — não aparece como opção na tela de
+  // login normal, só quem sabe esta URL entra.
+  {
+    path: 'login/root',
+    loadComponent: () =>
+      import('./features/auth/login/login.component').then(m => m.LoginComponent),
+    data: { rootOnly: true },
+  },
 
   {
     path: 'coach',

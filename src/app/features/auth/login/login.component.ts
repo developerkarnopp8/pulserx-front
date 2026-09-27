@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserRole } from '../../../core/models';
 
@@ -18,17 +18,32 @@ export class LoginComponent {
   error = signal('');
   loading = signal(false);
 
+  readonly highlights = [
+    { icon: 'calendar_month', label: 'Planos por categoria — Core, LPO e Performance' },
+    { icon: 'forum', label: 'Chat em tempo real com o aluno' },
+    { icon: 'monitoring', label: 'Métricas reais de execução e progresso' },
+  ];
+
+  /** /login/root — acesso do admin, nunca linkado na UI pública (ver app.routes.ts). */
+  rootOnly = signal(false);
+
   form!: FormGroup;
 
   constructor(
     private fb: FormBuilder,
     private auth: AuthService,
     private router: Router,
+    route: ActivatedRoute,
   ) {
     this.form = this.fb.group({
       email:    ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(4)]],
     });
+
+    if (route.snapshot.data['rootOnly']) {
+      this.rootOnly.set(true);
+      this.selectedRole.set('admin');
+    }
   }
 
   setRole(role: UserRole): void {

@@ -21,6 +21,35 @@ function build(apiOver: Record<string, unknown> = {}) {
   return { component, api, router };
 }
 
+describe('PlansComponent — alunos', () => {
+  it('carrega os alunos do coach autenticado', () => {
+    const { component, api } = build({ getStudents: vi.fn().mockReturnValue(of([{ id: 's1', name: 'Ana' }])) });
+    component.ngOnInit();
+    expect(api.getStudents).toHaveBeenCalledWith('coach-1');
+    expect(component.students().map((s: any) => s.id)).toEqual(['s1']);
+    expect(component.loading()).toBe(false);
+  });
+
+  it('erro ao carregar alunos libera o loading', () => {
+    const { component } = build({ getStudents: vi.fn().mockReturnValue(throwError(() => new Error('x'))) });
+    component.ngOnInit();
+    expect(component.loading()).toBe(false);
+  });
+
+  it('sem usuário autenticado: não chama a API de alunos', () => {
+    const { component, api } = build();
+    (component as any).auth = { currentUser: () => null };
+    component.ngOnInit();
+    expect(api.getStudents).not.toHaveBeenCalled();
+  });
+
+  it('getInitials pega as duas primeiras iniciais em maiúsculo', () => {
+    const { component } = build();
+    expect(component.getInitials('Ana Paula Silva')).toBe('AP');
+    expect(component.getInitials('gustavo')).toBe('G');
+  });
+});
+
 describe('PlansComponent — planos compartilhados', () => {
   it('carrega os alunos e os planos compartilhados do coach', () => {
     const { component, api } = build();

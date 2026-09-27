@@ -104,10 +104,12 @@
                   </div>
                   <div class="flex items-center gap-1 flex-shrink-0">
                     @if (item.youtubeUrl) {
-                      <a [href]="item.youtubeUrl" target="_blank" rel="noopener"
+                      <button type="button" (click)="toggleVideo(item.id)"
+                        [attr.aria-expanded]="expandedVideoId() === item.id"
+                        [attr.aria-label]="'Ver demonstração de ' + item.name"
                         class="w-6 h-6 flex items-center justify-center text-primary-fixed hover:text-primary transition-colors">
-                        <span class="material-symbols-outlined text-[18px]">play_circle</span>
-                      </a>
+                        <span class="material-symbols-outlined text-[18px]">{{ expandedVideoId() === item.id ? 'expand_less' : 'play_circle' }}</span>
+                      </button>
                     }
                     <button type="button" (click)="openEdit(item)"
                       class="w-6 h-6 flex items-center justify-center text-outline hover:text-on-surface transition-colors rounded-sm hover:bg-surface-container">
@@ -119,6 +121,9 @@
                     </button>
                   </div>
                 </div>
+                @if (item.youtubeUrl && expandedVideoId() === item.id) {
+                  <app-youtube-embed [url]="item.youtubeUrl" />
+                }
                 @if (item.notes) {
                   <p class="text-outline text-xs italic border-l-2 border-primary-fixed/30 pl-2">{{ item.notes }}</p>
                 }

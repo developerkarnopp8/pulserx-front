@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ApiService, WorkoutLogEntry } from '../../../core/services/api.service';
 import { ExerciseLibraryItem, Student } from '../../../core/models';
 import { WorkoutHistoryCalendarComponent } from '../../../shared/components/workout-history-calendar/workout-history-calendar.component';
+import { YoutubeEmbedComponent } from '../../../shared/components/youtube-embed/youtube-embed.component';
 
 type DrawerMode = 'add' | 'edit';
 type LibraryTab = 'exercises' | 'history';
@@ -14,7 +15,7 @@ const CATEGORIES = ['LPO', 'Força', 'Ginástica', 'Metcon', 'Resistência', 'Mo
 @Component({
   selector: 'app-library',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, WorkoutHistoryCalendarComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, WorkoutHistoryCalendarComponent, YoutubeEmbedComponent],
   templateUrl: './library.component.html',
   styleUrl: './library.component.scss',
 })
@@ -30,6 +31,11 @@ export class LibraryComponent implements OnInit {
   saving        = signal(false);
 
   expandedCategories = signal<Set<string>>(new Set());
+  expandedVideoId = signal<string | null>(null);
+
+  toggleVideo(id: string): void {
+    this.expandedVideoId.update(current => current === id ? null : id);
+  }
 
   // ── Aba "Histórico por Aluno" ────────────────────────────────────────────
   activeTab            = signal<LibraryTab>('exercises');
