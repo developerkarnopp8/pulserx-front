@@ -11,95 +11,302 @@
     </div>
   } @else if (profile(); as p) {
 
-    <!-- Banner -->
-    @if (p.bannerUrl) {
-      <div class="w-full h-56 md:h-80 relative">
-        <img [src]="p.bannerUrl" alt="" class="w-full h-full object-cover" />
-        <div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent"></div>
+    <!-- Nav -->
+    <nav class="sticky top-0 z-20 bg-surface/95 backdrop-blur border-b border-surface-container-low">
+      <div class="max-w-5xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
+        <span class="font-headline font-black text-lg text-on-surface tracking-tighter">{{ p.coachName }}</span>
+        <div class="hidden md:flex items-center gap-6 text-xs font-headline uppercase tracking-widest text-on-surface-variant">
+          @if (p.plans.length > 0) { <a href="#planos" class="hover:text-primary-fixed">Planos</a> }
+          @if (p.testimonials.length > 0) { <a href="#depoimentos" class="hover:text-primary-fixed">Depoimentos</a> }
+          <a href="#sobre" class="hover:text-primary-fixed">Sobre</a>
+          @if (p.faqItems.length > 0) { <a href="#faq" class="hover:text-primary-fixed">Dúvidas</a> }
+        </div>
+        <a href="#contato" class="bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-4 py-2 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px] flex items-center">
+          Começar agora
+        </a>
       </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="relative">
+      @if (p.bannerUrl) {
+        <div class="absolute inset-0 h-[420px] overflow-hidden">
+          <img [src]="p.bannerUrl" alt="" class="w-full h-full object-cover opacity-40" />
+          <div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/70 to-surface/30"></div>
+        </div>
+      }
+      <div class="relative max-w-5xl mx-auto px-5 pt-16 pb-14 md:pt-24 md:pb-20">
+        <p class="text-[10px] font-headline uppercase tracking-widest text-primary-fixed mb-3">Metodologia de alta performance</p>
+        <h1 class="font-headline font-black text-4xl md:text-6xl text-on-surface tracking-tighter leading-[0.95] mb-5 max-w-3xl">
+          {{ p.headline || ('Treine com precisão tática ao lado de ' + p.coachName) }}
+        </h1>
+        <p class="text-on-surface-variant text-base md:text-lg leading-relaxed max-w-2xl mb-8 whitespace-pre-line">
+          {{ p.subheadline || p.bio || 'Periodização real, acompanhamento próximo e um método construído pra evolução consistente.' }}
+        </p>
+        <div class="flex flex-wrap items-center gap-3">
+          <a href="#contato" class="bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-6 py-3.5 rounded-sm uppercase tracking-tighter text-sm transition-all min-h-[44px] flex items-center">
+            Garantir minha vaga
+          </a>
+          @if (p.plans.length > 0) {
+            <a href="#planos" class="border border-outline-variant hover:border-primary-fixed text-on-surface font-headline font-black px-6 py-3.5 rounded-sm uppercase tracking-tighter text-sm transition-all min-h-[44px] flex items-center">
+              Ver planos
+            </a>
+          }
+        </div>
+      </div>
+    </header>
+
+    <!-- Vídeo de demonstração -->
+    @if (p.videoUrl) {
+      <section class="max-w-3xl mx-auto px-5 pb-16">
+        <app-youtube-embed [url]="p.videoUrl"></app-youtube-embed>
+      </section>
     }
 
-    <div class="max-w-2xl mx-auto px-5 py-8 md:py-12" [class.-mt-16]="p.bannerUrl">
-
-      <h1 class="font-headline font-black text-3xl md:text-4xl text-on-surface tracking-tighter mb-3">{{ p.coachName }}</h1>
-
-      @if (p.bio) {
-        <p class="text-on-surface-variant text-sm md:text-base leading-relaxed whitespace-pre-line mb-8">{{ p.bio }}</p>
+    <!-- Sobre o coach -->
+    <section id="sobre" class="max-w-5xl mx-auto px-5 py-16 grid grid-cols-1 md:grid-cols-[280px_1fr] gap-8 items-start">
+      @if (p.photoUrl) {
+        <img [src]="p.photoUrl" alt="{{ p.coachName }}" class="w-full aspect-square object-cover rounded-md" />
       }
-
-      @if (p.plans.length > 0) {
-        <section class="mb-10">
-          <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-3">Planos</p>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            @for (plan of p.plans; track plan.id) {
-              <div class="bg-surface-container-low rounded-md p-4">
-                <p class="text-on-surface font-headline font-bold text-lg">{{ plan.name }}</p>
-                @if (plan.description) {
-                  <p class="text-on-surface-variant text-sm mt-1">{{ plan.description }}</p>
-                }
-                <div class="flex flex-wrap gap-1.5 mt-2">
-                  @for (cat of plan.categories; track cat) {
-                    <span class="text-[10px] font-headline uppercase tracking-wider bg-primary-fixed/10 text-primary-fixed px-2 py-1 rounded-sm">{{ categoryLabel[cat] }}</span>
-                  }
-                </div>
-                <p class="text-on-surface font-headline font-black text-xl mt-3">
-                  {{ plan.isFree ? 'Grátis' : (fmtPrice(plan.priceCents) + '/mês') }}
-                </p>
+      <div>
+        @if (p.achievementBadge) {
+          <span class="inline-block text-[10px] font-headline uppercase tracking-widest bg-primary-fixed/10 text-primary-fixed px-3 py-1.5 rounded-sm mb-4">{{ p.achievementBadge }}</span>
+        }
+        <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface tracking-tighter mb-4">Sobre {{ p.coachName }}</h2>
+        @if (p.quote) {
+          <blockquote class="border-l-2 border-primary-fixed pl-4 text-on-surface-variant text-base md:text-lg leading-relaxed mb-6 whitespace-pre-line">
+            "{{ p.quote }}"
+          </blockquote>
+        }
+        @if (p.bio) {
+          <p class="text-on-surface-variant text-sm leading-relaxed mb-6 whitespace-pre-line">{{ p.bio }}</p>
+        }
+        @if (p.yearsExperience || p.athletesCount) {
+          <div class="flex flex-wrap gap-4">
+            @if (p.yearsExperience) {
+              <div class="bg-surface-container-low rounded-md px-5 py-3">
+                <p class="text-on-surface font-headline font-black text-xl">+{{ p.yearsExperience }} anos</p>
+                <p class="text-outline text-[10px] uppercase tracking-widest">Experiência</p>
+              </div>
+            }
+            @if (p.athletesCount) {
+              <div class="bg-surface-container-low rounded-md px-5 py-3">
+                <p class="text-on-surface font-headline font-black text-xl">{{ p.athletesCount }}+</p>
+                <p class="text-outline text-[10px] uppercase tracking-widest">Atletas preparados</p>
               </div>
             }
           </div>
-        </section>
-      }
+        }
+      </div>
+    </section>
 
-      <!-- CTA / formulário de contato -->
-      @if (!showLeadForm() && !sent()) {
-        <button type="button" (click)="showLeadForm.set(true)"
-          class="w-full bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-6 py-4 rounded-sm uppercase tracking-tighter text-sm transition-all min-h-[44px]">
-          Quero treinar com {{ p.coachName }}
-        </button>
-      }
-
-      @if (sent()) {
-        <div role="status" class="bg-surface-container-low rounded-md p-5 text-center">
-          <p class="text-on-surface font-headline font-bold">Mensagem enviada!</p>
-          <p class="text-on-surface-variant text-sm mt-1">{{ p.coachName }} vai entrar em contato em breve.</p>
+    <!-- Diferenciais (conteúdo fixo do método, igual pra todo coach) -->
+    <section class="bg-surface-container-low/40 py-16">
+      <div class="max-w-5xl mx-auto px-5">
+        <p class="text-[10px] font-headline uppercase tracking-widest text-primary-fixed mb-2">Engenharia do desempenho</p>
+        <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface tracking-tighter mb-8">Como funciona o acompanhamento</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-surface-container-low rounded-md p-5">
+            <span class="material-symbols-outlined text-primary-fixed text-[28px] mb-3 block">calendar_month</span>
+            <p class="font-headline font-bold text-sm text-on-surface mb-1">Periodização cíclica</p>
+            <p class="text-on-surface-variant text-xs leading-relaxed">Macrociclos divididos em fases de acúmulo, força e pico, sem estagnar o progresso.</p>
+          </div>
+          <div class="bg-surface-container-low rounded-md p-5">
+            <span class="material-symbols-outlined text-primary-fixed text-[28px] mb-3 block">fitness_center</span>
+            <p class="font-headline font-bold text-sm text-on-surface mb-1">Cargas adaptativas</p>
+            <p class="text-on-surface-variant text-xs leading-relaxed">Registre seu PR e o plano recalcula a carga certa pra cada sessão.</p>
+          </div>
+          <div class="bg-surface-container-low rounded-md p-5">
+            <span class="material-symbols-outlined text-primary-fixed text-[28px] mb-3 block">smart_display</span>
+            <p class="font-headline font-bold text-sm text-on-surface mb-1">Vídeo por exercício</p>
+            <p class="text-on-surface-variant text-xs leading-relaxed">Demonstração de cada movimento, pra treinar com técnica correta mesmo à distância.</p>
+          </div>
+          <div class="bg-surface-container-low rounded-md p-5">
+            <span class="material-symbols-outlined text-primary-fixed text-[28px] mb-3 block">smartphone</span>
+            <p class="font-headline font-bold text-sm text-on-surface mb-1">No seu bolso</p>
+            <p class="text-on-surface-variant text-xs leading-relaxed">Treino, histórico e recordes acessíveis pelo app, a qualquer hora.</p>
+          </div>
         </div>
-      }
+      </div>
+    </section>
 
-      @if (showLeadForm() && !sent()) {
-        <form [formGroup]="leadForm" (ngSubmit)="sendLead()" class="bg-surface-container-low rounded-md p-5 flex flex-col gap-4">
-          <p class="text-on-surface font-headline font-bold text-sm">Deixe seu contato</p>
-
-          @if (errorMsg()) {
-            <p role="alert" class="text-error text-sm">{{ errorMsg() }}</p>
+    <!-- Planos -->
+    @if (p.plans.length > 0) {
+      <section id="planos" class="max-w-5xl mx-auto px-5 py-16">
+        <p class="text-[10px] font-headline uppercase tracking-widest text-primary-fixed mb-2">Matrículas abertas</p>
+        <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface tracking-tighter mb-8">Escolha seu plano</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          @for (plan of p.plans; track plan.id; let i = $index) {
+            <div class="rounded-md p-5 flex flex-col"
+              [class.bg-surface-container-low]="!isFeaturedPlan(i, p.plans.length)"
+              [class.bg-primary-fixed/10]="isFeaturedPlan(i, p.plans.length)"
+              [class.border]="isFeaturedPlan(i, p.plans.length)"
+              [class.border-primary-fixed]="isFeaturedPlan(i, p.plans.length)">
+              @if (isFeaturedPlan(i, p.plans.length)) {
+                <span class="self-start text-[10px] font-headline uppercase tracking-widest bg-primary-fixed text-on-primary-fixed px-2 py-1 rounded-sm mb-3">Mais completo</span>
+              }
+              <p class="text-on-surface font-headline font-black text-lg mb-1">{{ plan.name }}</p>
+              @if (plan.description) {
+                <p class="text-on-surface-variant text-sm mb-4">{{ plan.description }}</p>
+              }
+              <div class="flex flex-wrap gap-1.5 mb-4">
+                @for (cat of plan.categories; track cat) {
+                  <span class="text-[10px] font-headline uppercase tracking-wider bg-surface-container text-on-surface-variant px-2 py-1 rounded-sm">{{ categoryLabel[cat] }}</span>
+                }
+              </div>
+              <p class="text-on-surface font-headline font-black text-2xl mt-auto mb-4">
+                {{ plan.isFree ? 'Grátis' : (fmtPrice(plan.priceCents) + '/mês') }}
+              </p>
+              <a href="#contato" class="text-center bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-4 py-3 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px] flex items-center justify-center">
+                Assinar {{ plan.name }}
+              </a>
+            </div>
           }
+        </div>
+      </section>
+    }
 
-          <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
-            Nome
-            <input type="text" formControlName="name"
-              class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
-          </label>
-          <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
-            E-mail
-            <input type="email" formControlName="email"
-              class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
-          </label>
-          <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
-            Telefone (opcional)
-            <input type="tel" formControlName="phone"
-              class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
-          </label>
-          <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
-            Mensagem (opcional)
-            <textarea formControlName="message" rows="3"
-              class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal"></textarea>
-          </label>
-          <button type="submit" [disabled]="sending()"
-            class="bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black px-6 py-3 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px]">
-            {{ sending() ? 'Enviando...' : 'Enviar' }}
-          </button>
-        </form>
-      }
-    </div>
+    <!-- Depoimentos -->
+    @if (p.testimonials.length > 0) {
+      <section id="depoimentos" class="bg-surface-container-low/40 py-16">
+        <div class="max-w-5xl mx-auto px-5">
+          <div class="flex items-center justify-between flex-wrap gap-4 mb-8">
+            <div>
+              <p class="text-[10px] font-headline uppercase tracking-widest text-primary-fixed mb-2">Resultados comprovados</p>
+              <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface tracking-tighter">O que dizem os atletas</h2>
+            </div>
+            @if (p.npsScore || p.completionRate) {
+              <div class="flex gap-6">
+                @if (p.npsScore) {
+                  <div>
+                    <p class="text-primary-fixed font-headline font-black text-2xl">{{ p.npsScore }}</p>
+                    <p class="text-outline text-[10px] uppercase tracking-widest">NPS</p>
+                  </div>
+                }
+                @if (p.completionRate) {
+                  <div>
+                    <p class="text-primary-fixed font-headline font-black text-2xl">{{ p.completionRate }}%</p>
+                    <p class="text-outline text-[10px] uppercase tracking-widest">Conclusão de ciclos</p>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            @for (t of p.testimonials; track t.id) {
+              <div class="bg-surface-container-low rounded-md p-5">
+                <p class="text-primary-fixed text-sm mb-2">{{ '★'.repeat(t.rating) }}</p>
+                <p class="text-on-surface-variant text-sm leading-relaxed mb-4">"{{ t.content }}"</p>
+                <p class="text-on-surface font-headline font-bold text-sm">{{ t.authorName }}</p>
+                @if (t.authorRole) { <p class="text-outline text-xs">{{ t.authorRole }}</p> }
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- Garantia -->
+    <section class="max-w-5xl mx-auto px-5 py-10">
+      <div class="bg-surface-container-low rounded-md p-6 flex items-center gap-4">
+        <span class="material-symbols-outlined text-primary-fixed text-[36px]">verified_user</span>
+        <div>
+          <p class="text-[10px] font-headline uppercase tracking-widest text-primary-fixed mb-1">Sem risco pra você</p>
+          <p class="text-on-surface font-headline font-bold">Não gostou nos primeiros dias? A gente resolve.</p>
+          <p class="text-on-surface-variant text-sm mt-1">Entre em contato pelo formulário abaixo antes de assinar e tire todas as dúvidas com {{ p.coachName }}.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    @if (p.faqItems.length > 0) {
+      <section id="faq" class="max-w-3xl mx-auto px-5 py-16">
+        <p class="text-[10px] font-headline uppercase tracking-widest text-primary-fixed mb-2">Tire suas dúvidas</p>
+        <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface tracking-tighter mb-8">Perguntas frequentes</h2>
+        <div class="flex flex-col gap-2">
+          @for (f of p.faqItems; track f.id) {
+            <details class="bg-surface-container-low rounded-md px-5 py-4">
+              <summary class="font-headline font-bold text-sm text-on-surface uppercase tracking-wide cursor-pointer">{{ f.question }}</summary>
+              <p class="text-on-surface-variant text-sm mt-3 leading-relaxed">{{ f.answer }}</p>
+            </details>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- CTA final / formulário de contato -->
+    <section id="contato" class="bg-gradient-to-b from-surface-container-low/40 to-surface py-16">
+      <div class="max-w-2xl mx-auto px-5">
+        <div class="text-center mb-8">
+          <p class="text-[10px] font-headline uppercase tracking-widest text-primary-fixed mb-2">A hora de começar é agora</p>
+          <h2 class="font-headline font-black text-2xl md:text-4xl text-on-surface tracking-tighter">Comece a treinar com {{ p.coachName }}</h2>
+        </div>
+
+        @if (!showLeadForm() && !sent()) {
+          <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <button type="button" (click)="showLeadForm.set(true)"
+              class="bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-6 py-4 rounded-sm uppercase tracking-tighter text-sm transition-all min-h-[44px]">
+              Quero treinar com {{ p.coachName }}
+            </button>
+            @if (whatsappLink) {
+              <a [href]="whatsappLink" target="_blank" rel="noopener"
+                class="text-center border border-outline-variant hover:border-primary-fixed text-on-surface font-headline font-black px-6 py-4 rounded-sm uppercase tracking-tighter text-sm transition-all min-h-[44px] flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">chat</span> Falar no WhatsApp
+              </a>
+            }
+          </div>
+        }
+
+        @if (sent()) {
+          <div role="status" class="bg-surface-container-low rounded-md p-6 text-center">
+            <p class="text-on-surface font-headline font-bold">Mensagem enviada!</p>
+            <p class="text-on-surface-variant text-sm mt-1">{{ p.coachName }} vai entrar em contato em breve.</p>
+          </div>
+        }
+
+        @if (showLeadForm() && !sent()) {
+          <form [formGroup]="leadForm" (ngSubmit)="sendLead()" class="bg-surface-container-low rounded-md p-5 flex flex-col gap-4">
+            <p class="text-on-surface font-headline font-bold text-sm">Deixe seu contato</p>
+
+            @if (errorMsg()) {
+              <p role="alert" class="text-error text-sm">{{ errorMsg() }}</p>
+            }
+
+            <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+              Nome
+              <input type="text" formControlName="name"
+                class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+            </label>
+            <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+              E-mail
+              <input type="email" formControlName="email"
+                class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+            </label>
+            <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+              Telefone (opcional)
+              <input type="tel" formControlName="phone"
+                class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+            </label>
+            <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+              Mensagem (opcional)
+              <textarea formControlName="message" rows="3"
+                class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal"></textarea>
+            </label>
+            <button type="submit" [disabled]="sending()"
+              class="bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black px-6 py-3 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px]">
+              {{ sending() ? 'Enviando...' : 'Enviar' }}
+            </button>
+          </form>
+        }
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-surface-container-low py-8">
+      <div class="max-w-5xl mx-auto px-5 flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
+        <p class="text-on-surface-variant text-xs">{{ p.coachName }} · Treino de alta performance</p>
+        <p class="text-outline text-[10px] uppercase tracking-widest">Powered by PulseRx</p>
+      </div>
+    </footer>
   }
 </div>

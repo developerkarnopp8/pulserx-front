@@ -5,11 +5,12 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ApiService } from '../../../core/services/api.service';
 import { PublicCoachProfile, TRAINING_CATEGORY_LABEL } from '../../../core/models';
 import { formatCents } from '../../../shared/utils/currency';
+import { YoutubeEmbedComponent } from '../../../shared/components/youtube-embed/youtube-embed.component';
 
 @Component({
   selector: 'app-coach-landing',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, YoutubeEmbedComponent],
   templateUrl: './coach-landing.component.html',
 })
 export class CoachLandingComponent implements OnInit {
@@ -45,6 +46,17 @@ export class CoachLandingComponent implements OnInit {
       next: profile => { this.profile.set(profile); this.loading.set(false); },
       error: () => { this.loading.set(false); this.notFound.set(true); },
     });
+  }
+
+  get whatsappLink(): string | null {
+    const number = this.profile()?.whatsappNumber;
+    if (!number) return null;
+    return `https://wa.me/${number.replace(/\D/g, '')}`;
+  }
+
+  /** Plano do meio numa lista de 3 é destacado visualmente — puramente decorativo, sem campo novo no back. */
+  isFeaturedPlan(index: number, total: number): boolean {
+    return total === 3 && index === 1;
   }
 
   sendLead(): void {

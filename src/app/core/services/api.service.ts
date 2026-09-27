@@ -7,7 +7,8 @@ import {
   Movement, PersonalRecord, AppNotification,
   WorkoutSessionRecord, SessionTimeSummary, SessionTimeDetail, CoachAvgDuration,
   SubscriptionPlan, Subscription, MySubscription, CoachContract, PlatformSettings, FreeConfig,
-  CoachProfile, PublicCoachProfile, CreateLeadInput,
+  CoachProfile, UpdateCoachProfileInput, PublicCoachProfile, CreateLeadInput,
+  Testimonial, UpsertTestimonialInput, FaqItem, UpsertFaqItemInput,
 } from '../models';
 import { environment } from '../../../environments/environment';
 
@@ -662,8 +663,8 @@ export class ApiService {
     return this.http.get<CoachProfile | null>(`${this.base}/coach-profile`);
   }
 
-  upsertCoachProfile(slug: string, bio?: string): Observable<CoachProfile> {
-    return this.http.put<CoachProfile>(`${this.base}/coach-profile`, { slug, bio });
+  upsertCoachProfile(dto: UpdateCoachProfileInput): Observable<CoachProfile> {
+    return this.http.put<CoachProfile>(`${this.base}/coach-profile`, dto);
   }
 
   publishCoachProfile(published: boolean): Observable<CoachProfile> {
@@ -674,6 +675,48 @@ export class ApiService {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<CoachProfile>(`${this.base}/coach-profile/banner`, formData);
+  }
+
+  uploadCoachPhoto(file: File): Observable<CoachProfile> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<CoachProfile>(`${this.base}/coach-profile/photo`, formData);
+  }
+
+  // ── Depoimentos ──────────────────────────────────────────────────────────
+
+  getCoachTestimonials(): Observable<Testimonial[]> {
+    return this.http.get<Testimonial[]>(`${this.base}/coach-profile/testimonials`);
+  }
+
+  createTestimonial(dto: UpsertTestimonialInput): Observable<Testimonial> {
+    return this.http.post<Testimonial>(`${this.base}/coach-profile/testimonials`, dto);
+  }
+
+  updateTestimonial(id: string, dto: UpsertTestimonialInput): Observable<Testimonial> {
+    return this.http.patch<Testimonial>(`${this.base}/coach-profile/testimonials/${id}`, dto);
+  }
+
+  deleteTestimonial(id: string): Observable<{ removed: boolean }> {
+    return this.http.delete<{ removed: boolean }>(`${this.base}/coach-profile/testimonials/${id}`);
+  }
+
+  // ── FAQ ──────────────────────────────────────────────────────────────────
+
+  getCoachFaqItems(): Observable<FaqItem[]> {
+    return this.http.get<FaqItem[]>(`${this.base}/coach-profile/faq`);
+  }
+
+  createFaqItem(dto: UpsertFaqItemInput): Observable<FaqItem> {
+    return this.http.post<FaqItem>(`${this.base}/coach-profile/faq`, dto);
+  }
+
+  updateFaqItem(id: string, dto: UpsertFaqItemInput): Observable<FaqItem> {
+    return this.http.patch<FaqItem>(`${this.base}/coach-profile/faq/${id}`, dto);
+  }
+
+  deleteFaqItem(id: string): Observable<{ removed: boolean }> {
+    return this.http.delete<{ removed: boolean }>(`${this.base}/coach-profile/faq/${id}`);
   }
 
   /** Visitante (sem auth): landing page pública do coach */
