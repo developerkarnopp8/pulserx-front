@@ -1,0 +1,76 @@
+<div class="flex flex-col h-full overflow-hidden animate-fade-in">
+
+  <header class="px-4 md:px-8 py-4 md:py-6 flex-shrink-0">
+    <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-1">Coach Dashboard</p>
+    <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface tracking-tighter leading-none">MINHA PÁGINA</h2>
+    <p class="text-on-surface-variant text-sm mt-1">Uma página pública com seu banner, sua bio e seus planos — quem visitar pode mandar contato, sem precisar criar conta.</p>
+  </header>
+
+  <div class="flex-1 px-4 md:px-8 pb-8 overflow-y-auto max-w-2xl">
+
+    @if (loading()) {
+      <div class="h-64 bg-surface-container-low rounded-md animate-pulse"></div>
+    } @else {
+
+      @if (errorMsg()) {
+        <p role="alert" class="text-error text-sm mb-3">{{ errorMsg() }}</p>
+      }
+      @if (successMsg()) {
+        <p role="status" class="text-primary-fixed text-sm mb-3">{{ successMsg() }}</p>
+      }
+
+      @if (profile(); as p) {
+        <div class="bg-surface-container-low rounded-md p-4 mb-5 flex items-center justify-between gap-3 flex-wrap">
+          <div class="min-w-0">
+            <p class="text-[10px] font-headline uppercase tracking-widest text-outline mb-1">Link público</p>
+            <p class="text-on-surface text-sm truncate">{{ publicUrlOrigin }}/c/{{ p.slug }}</p>
+          </div>
+          <button type="button" (click)="togglePublish()" [disabled]="publishing()"
+            class="font-headline font-black px-4 py-2.5 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px] disabled:opacity-60"
+            [class.bg-primary-fixed]="!p.published" [class.text-on-primary-fixed]="!p.published"
+            [class.bg-surface-container]="p.published" [class.text-on-surface]="p.published">
+            {{ publishing() ? '...' : (p.published ? 'Despublicar' : 'Publicar') }}
+          </button>
+        </div>
+      }
+
+      <!-- Banner -->
+      <section class="mb-6">
+        <p class="text-[10px] font-headline uppercase tracking-widest text-outline mb-2">Banner</p>
+        @if (profile()?.bannerUrl) {
+          <img [src]="profile()!.bannerUrl" alt="Banner da página" class="w-full h-40 object-cover rounded-md mb-3" />
+        }
+        <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onBannerFileSelected($event)"
+          class="text-on-surface-variant text-sm" />
+        @if (selectedBannerFile()) {
+          <button type="button" (click)="uploadBanner()" [disabled]="uploadingBanner()"
+            class="ml-3 bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black px-4 py-2 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px]">
+            {{ uploadingBanner() ? 'Enviando...' : 'Enviar banner' }}
+          </button>
+        }
+      </section>
+
+      <!-- Slug + bio -->
+      <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-4">
+        <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+          Endereço da página (letras minúsculas, números e hífen)
+          <input type="text" formControlName="slug" placeholder="ex.: luan-treinador"
+            class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+          @if (form.get('slug')?.touched && form.get('slug')?.invalid) {
+            <span role="alert" class="text-error text-xs normal-case tracking-normal">Use só letras minúsculas, números e hífen (3 a 60 caracteres).</span>
+          }
+        </label>
+        <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+          Sobre você
+          <textarea formControlName="bio" rows="5" maxlength="1000" placeholder="Conte sobre sua metodologia, experiência..."
+            class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal"></textarea>
+        </label>
+        <button type="submit" [disabled]="saving()"
+          class="self-start bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black px-6 py-2.5 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px]">
+          {{ saving() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </form>
+    }
+
+  </div>
+</div>
