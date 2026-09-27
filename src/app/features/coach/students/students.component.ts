@@ -1,10 +1,11 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Student } from '../../../core/models';
+import { Student, SubscriptionPlan, Subscription, TRAINING_CATEGORY_LABEL } from '../../../core/models';
+import { formatCents } from '../../../shared/utils/currency';
 import { formatDurationShort } from '../../../shared/utils/format-duration';
 
 type ModalMode = 'add' | 'edit';
@@ -12,7 +13,7 @@ type ModalMode = 'add' | 'edit';
 @Component({
   selector: 'app-students',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule, FormsModule],
   templateUrl: './students.component.html',
   styleUrl: './students.component.scss'
 })
@@ -29,6 +30,19 @@ export class StudentsComponent implements OnInit {
   deleting      = signal<string | null>(null);
   errorMsg      = signal('');
   editingId     = signal<string | null>(null);
+
+  // ── Assinatura (atribuir plano ao aluno) ──────────────────────────────────
+  subscriptionPlans   = signal<SubscriptionPlan[]>([]);
+  plansLoaded         = signal(false);
+  showSubscriptionModal = signal(false);
+  subscriptionTarget  = signal<Student | null>(null);
+  currentSubscription = signal<Subscription | null>(null);
+  loadingSubscription = signal(false);
+  selectedPlanId      = signal('');
+  assigning           = signal(false);
+  subscriptionError   = signal('');
+  readonly fmtPrice = formatCents;
+  readonly categoryLabel = TRAINING_CATEGORY_LABEL;
 
   filtered = computed(() =>
     this.students().filter(s =>
@@ -78,6 +92,64 @@ export class StudentsComponent implements OnInit {
       const map: Record<string, number> = {};
       for (const b of r.byStudent) map[b.studentId] = b.avgSeconds;
       this.avgByStudent.set(map);
+    });
+  }
+
+  openSubscriptionModal(student: Student): void {
+    this.subscriptionTarget.set(student);
+    this.subscriptionError.set('');
+    this.selectedPlanId.set('');
+    this.showSubscriptionModal.set(true);
+
+    if (!this.plansLoaded()) {
+      this.api.getSubscriptionPlans().subscribe(plans => {
+        this.subscriptionPlans.set(plans);
+        this.plansLoaded.set(true);
+      });
+    }
+
+    this.loadingSubscription.set(true);
+    this.currentSubscription.set(null);
+    this.api.getStudentSubscription(student.id).subscribe({
+      next: sub => {
+        this.currentSubscription.set(sub);
+        this.selectedPlanId.set(sub?.plan.id ?? '');
+        this.loadingSubscription.set(false);
+      },
+      error: () => { this.loadingSubscription.set(false); this.subscriptionError.set('Não foi possível carregar a assinatura do aluno.'); },
+    });
+  }
+
+  closeSubscriptionModal(): void {
+    this.showSubscriptionModal.set(false);
+    this.subscriptionTarget.set(null);
+    this.assigning.set(false);
+  }
+
+  assignPlan(): void {
+    const student = this.subscriptionTarget();
+    const planId = this.selectedPlanId();
+    if (!student || !planId) return;
+    this.assigning.set(true);
+    this.subscriptionError.set('');
+    this.api.assignSubscription(student.id, { planId }).subscribe({
+      next: sub => { this.currentSubscription.set(sub); this.assigning.set(false); },
+      error: err => {
+        const msg = err?.error?.message;
+        this.subscriptionError.set(Array.isArray(msg) ? msg[0] : (msg ?? 'Não foi possível atribuir o plano.'));
+        this.assigning.set(false);
+      },
+    });
+  }
+
+  removePlan(): void {
+    const student = this.subscriptionTarget();
+    if (!student) return;
+    if (!confirm('Remover a assinatura deste aluno? Ele volta a ficar sem plano.')) return;
+    this.assigning.set(true);
+    this.api.removeSubscription(student.id).subscribe({
+      next: () => { this.currentSubscription.set(null); this.selectedPlanId.set(''); this.assigning.set(false); },
+      error: () => { this.subscriptionError.set('Não foi possível remover a assinatura.'); this.assigning.set(false); },
     });
   }
 

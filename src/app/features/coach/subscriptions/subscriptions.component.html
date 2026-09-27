@@ -1,0 +1,164 @@
+<div class="px-4 md:px-8 py-6 animate-fade-in">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+    <div>
+      <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-1">Coach</p>
+      <h2 class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none">Assinaturas</h2>
+      <p class="text-on-surface-variant text-sm mt-1">Planos que os alunos podem assinar. Ative e defina o preço quando estiver pronto para cobrar.</p>
+    </div>
+    <button type="button" (click)="openAdd()"
+      class="bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black text-xs uppercase tracking-tighter px-5 py-3 rounded-sm flex items-center gap-2 transition-all min-h-[44px]">
+      <span class="material-symbols-outlined text-[18px]">add</span>
+      Novo Plano
+    </button>
+  </div>
+
+  @if (errorMsg()) {
+    <div role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-3 text-error text-sm mb-4">
+      {{ errorMsg() }}
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      @for (i of [1,2,3,4]; track i) {
+        <div class="h-40 bg-surface-container-low rounded-md animate-pulse"></div>
+      }
+    </div>
+  } @else if (plans().length === 0) {
+    <p class="text-on-surface-variant text-sm">Nenhum plano ainda.</p>
+  } @else {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      @for (plan of plans(); track plan.id) {
+        <div class="bg-surface-container-low rounded-md p-5 flex flex-col gap-3">
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <p class="text-on-surface font-headline font-bold text-base truncate">{{ plan.name }}</p>
+              @if (plan.description) {
+                <p class="text-outline text-xs mt-0.5">{{ plan.description }}</p>
+              }
+            </div>
+            @if (plan.isFree) {
+              <span class="flex-shrink-0 text-[9px] font-headline uppercase tracking-widest bg-tertiary/20 text-tertiary px-2 py-1 rounded-sm">Grátis</span>
+            }
+          </div>
+
+          <p class="font-headline font-black text-2xl text-primary-fixed">{{ fmtPrice(plan.priceCents) }}<span class="text-xs text-outline font-normal">/mês</span></p>
+
+          <div class="flex flex-wrap gap-1.5">
+            @for (cat of plan.categories; track cat) {
+              <span class="text-[10px] font-headline uppercase tracking-wider bg-surface-container px-2 py-1 rounded-sm text-on-surface-variant">{{ categoryLabel[cat] }}</span>
+            } @empty {
+              <span class="text-[10px] text-outline">Sem categoria liberada</span>
+            }
+          </div>
+
+          <div class="flex items-center justify-between mt-auto pt-3 border-t border-outline-variant/10">
+            <button type="button" (click)="toggleActive(plan)"
+              class="flex items-center gap-2 text-[11px] font-headline uppercase tracking-wider transition-colors min-h-[44px]"
+              [class.text-primary-fixed]="plan.active"
+              [class.text-outline]="!plan.active">
+              <span class="w-8 h-4.5 rounded-full relative transition-colors"
+                [class.bg-primary-fixed]="plan.active"
+                [class.bg-surface-container]="!plan.active">
+                <span class="absolute top-0.5 w-3.5 h-3.5 rounded-full bg-on-primary-fixed transition-all"
+                  [class.left-[16px]]="plan.active"
+                  [class.left-0.5]="!plan.active"></span>
+              </span>
+              {{ plan.active ? 'Ativo' : 'Inativo' }}
+            </button>
+            <button type="button" (click)="openEdit(plan)"
+              class="text-[11px] font-headline uppercase tracking-wider text-outline hover:text-on-surface transition-colors min-h-[44px] px-2">
+              Editar
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Modal: Novo/Editar Plano -->
+  @if (showModal()) {
+    <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 animate-fade-in p-4"
+         (click)="closeModal()">
+      <div class="bg-surface-container-low rounded-md w-full max-w-md p-6 animate-slide-up max-h-[90vh] overflow-y-auto"
+           (click)="$event.stopPropagation()">
+
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="font-headline font-black text-xl text-on-surface tracking-tighter">{{ modalMode() === 'add' ? 'Novo Plano' : 'Editar Plano' }}</h3>
+          <button type="button" (click)="closeModal()"
+            class="w-8 h-8 rounded-sm bg-surface-container flex items-center justify-center text-outline hover:text-on-surface transition-colors">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+          <div class="mb-4">
+            <label class="block text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-1.5">Nome *</label>
+            <input formControlName="name" type="text" maxlength="80"
+              class="w-full bg-surface-container text-on-surface rounded-sm px-4 py-3 text-sm min-h-[44px]"/>
+            @if (form.get('name')?.invalid && form.get('name')?.touched) {
+              <p class="text-error text-xs mt-1">Nome entre 2 e 80 caracteres.</p>
+            }
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-1.5">Descrição</label>
+            <input formControlName="description" type="text" maxlength="300"
+              class="w-full bg-surface-container text-on-surface rounded-sm px-4 py-3 text-sm min-h-[44px]"/>
+          </div>
+
+          <div class="mb-4 flex items-center gap-3">
+            <input formControlName="isFree" type="checkbox" id="plan-is-free" class="w-5 h-5 accent-primary-fixed"/>
+            <label for="plan-is-free" class="text-sm text-on-surface">Plano gratuito (sem cobrança)</label>
+          </div>
+
+          @if (!form.get('isFree')?.value) {
+            <div class="mb-4">
+              <label class="block text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-1.5">Preço mensal (R$) *</label>
+              <input formControlName="priceReais" type="number" min="0" step="0.01"
+                class="w-full bg-surface-container text-on-surface rounded-sm px-4 py-3 text-sm min-h-[44px]"/>
+            </div>
+          }
+
+          <div class="mb-4" formGroupName="categories">
+            <p class="block text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-2">Categorias liberadas</p>
+            <div class="flex flex-wrap gap-4">
+              @for (cat of categories; track cat) {
+                <label class="flex items-center gap-2 text-sm text-on-surface">
+                  <input type="checkbox" [formControlName]="cat" class="w-5 h-5 accent-primary-fixed"/>
+                  {{ categoryLabel[cat] }}
+                </label>
+              }
+            </div>
+          </div>
+
+          <div class="mb-6 flex items-center gap-3">
+            <input formControlName="active" type="checkbox" id="plan-active" class="w-5 h-5 accent-primary-fixed"/>
+            <label for="plan-active" class="text-sm text-on-surface">Ativo (aparece para atribuir a alunos)</label>
+          </div>
+
+          @if (formError()) {
+            <div role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-2 text-error text-xs mb-4">
+              {{ formError() }}
+            </div>
+          }
+
+          <div class="flex gap-3">
+            <button type="button" (click)="closeModal()"
+              class="flex-1 py-3 rounded-sm border border-outline-variant/30 text-on-surface-variant hover:text-on-surface font-headline text-xs uppercase tracking-wider transition-all min-h-[44px]">
+              Cancelar
+            </button>
+            <button type="submit" [disabled]="saving()"
+              class="flex-1 py-3 rounded-sm bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black text-xs uppercase tracking-tighter transition-all min-h-[44px]">
+              {{ saving() ? 'Salvando...' : 'Salvar' }}
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  }
+
+</div>

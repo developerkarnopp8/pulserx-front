@@ -54,6 +54,11 @@ export const routes: Routes = [
           import('./features/coach/financial/financial.component').then(m => m.FinancialComponent)
       },
       {
+        path: 'subscriptions',
+        loadComponent: () =>
+          import('./features/coach/subscriptions/subscriptions.component').then(m => m.CoachSubscriptionsComponent)
+      },
+      {
         path: 'messages',
         loadComponent: () =>
           import('./features/coach/messages/messages.component').then(m => m.CoachMessagesComponent)
@@ -102,6 +107,11 @@ export const routes: Routes = [
         path: 'messages',
         loadComponent: () =>
           import('./features/athlete/messages/messages.component').then(m => m.AthleteMessagesComponent)
+      },
+      {
+        path: 'subscription',
+        loadComponent: () =>
+          import('./features/athlete/subscription/subscription.component').then(m => m.AthleteSubscriptionComponent)
       }
     ]
   },

@@ -1,7 +1,8 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
+import { PlatformSettings } from '../../../core/models';
 
 interface Coach {
   id: string;
@@ -14,7 +15,7 @@ interface Coach {
 @Component({
   selector: 'app-coaches',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './coaches.component.html',
   styleUrl: './coaches.component.scss',
 })
@@ -27,6 +28,18 @@ export class CoachesComponent implements OnInit {
   togglingId   = signal<string | null>(null);
   resettingId  = signal<string | null>(null);
   revealedPassword = signal<{ email: string; password: string } | null>(null);
+
+  // ── Contrato (% da plataforma) ─────────────────────────────────────────────
+  contractTargetId = signal<string | null>(null);
+  contractFeePercent = signal(0);
+  savingContractId = signal<string | null>(null);
+  contractError = signal('');
+
+  // ── Bloqueio por assinatura (platform settings) ────────────────────────────
+  platformSettings = signal<PlatformSettings | null>(null);
+  loadingSettings = signal(false);
+  updatingSettings = signal(false);
+  settingsError = signal('');
 
   form!: FormGroup;
 
@@ -42,6 +55,63 @@ export class CoachesComponent implements OnInit {
 
   ngOnInit(): void {
     this.load();
+    this.loadPlatformSettings();
+  }
+
+  private loadPlatformSettings(): void {
+    this.loadingSettings.set(true);
+    this.api.getPlatformSettings().subscribe({
+      next: s => { this.platformSettings.set(s); this.loadingSettings.set(false); },
+      error: () => { this.loadingSettings.set(false); this.settingsError.set('Não foi possível carregar as configurações da plataforma.'); },
+    });
+  }
+
+  toggleEnforcement(): void {
+    const current = this.platformSettings();
+    if (!current) return;
+    const enable = !current.enforceSubscriptionAccess;
+    this.settingsError.set('');
+
+    if (enable && current.studentsWithoutAccess > 0) {
+      const ok = confirm(
+        `${current.studentsWithoutAccess} aluno(s) ainda não têm plano ativo e ficariam SEM acesso ao ligar o bloqueio. Ligar mesmo assim?`,
+      );
+      if (!ok) return;
+    }
+
+    this.updatingSettings.set(true);
+    this.api.setPlatformSettings(enable, enable).subscribe({
+      next: s => { this.platformSettings.set(s); this.updatingSettings.set(false); },
+      error: err => {
+        const msg = err?.error?.message;
+        this.settingsError.set(Array.isArray(msg) ? msg[0] : (msg ?? 'Não foi possível atualizar a configuração.'));
+        this.updatingSettings.set(false);
+      },
+    });
+  }
+
+  openContract(coach: Coach): void {
+    if (this.contractTargetId() === coach.id) { this.contractTargetId.set(null); return; }
+    this.contractTargetId.set(coach.id);
+    this.contractError.set('');
+    this.contractFeePercent.set(0);
+    this.api.getCoachContract(coach.id).subscribe({
+      next: c => this.contractFeePercent.set(c.platformFeePercent),
+      error: () => this.contractError.set('Não foi possível carregar o contrato.'),
+    });
+  }
+
+  saveContract(coach: Coach): void {
+    this.savingContractId.set(coach.id);
+    this.contractError.set('');
+    this.api.setCoachContract(coach.id, this.contractFeePercent()).subscribe({
+      next: () => { this.savingContractId.set(null); this.contractTargetId.set(null); },
+      error: err => {
+        const msg = err?.error?.message;
+        this.contractError.set(Array.isArray(msg) ? msg[0] : (msg ?? 'Não foi possível salvar o contrato.'));
+        this.savingContractId.set(null);
+      },
+    });
   }
 
   private load(): void {

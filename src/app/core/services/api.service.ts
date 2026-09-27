@@ -6,6 +6,7 @@ import {
   ExerciseLibraryItem, Payment, PaymentSummary, SkipReason, SkipDecision,
   Movement, PersonalRecord, AppNotification,
   WorkoutSessionRecord, SessionTimeSummary, SessionTimeDetail, CoachAvgDuration,
+  SubscriptionPlan, Subscription, MySubscription, CoachContract, PlatformSettings, FreeConfig,
 } from '../models';
 import { environment } from '../../../environments/environment';
 
@@ -592,5 +593,64 @@ export class ApiService {
     return this.http.patch<{ id: string; aiImportEnabled: boolean }>(
       `${this.base}/admin/coaches/${id}`, { aiImportEnabled },
     );
+  }
+  // ── Subscription plans (catálogo do coach) ────────────────────────────────
+
+  /** Coach: catálogo próprio. Admin: informe coachId para o catálogo de um coach específico. */
+  getSubscriptionPlans(coachId?: string): Observable<SubscriptionPlan[]> {
+    const query = coachId ? `?coachId=${encodeURIComponent(coachId)}` : '';
+    return this.http.get<SubscriptionPlan[]>(`${this.base}/subscription-plans${query}`);
+  }
+
+  createSubscriptionPlan(dto: {
+    name: string; description?: string; priceCents: number; categories: TrainingCategory[];
+    isFree?: boolean; freeConfig?: FreeConfig; active?: boolean;
+  }, coachId?: string): Observable<SubscriptionPlan> {
+    const query = coachId ? `?coachId=${encodeURIComponent(coachId)}` : '';
+    return this.http.post<SubscriptionPlan>(`${this.base}/subscription-plans${query}`, dto);
+  }
+
+  updateSubscriptionPlan(id: string, dto: Partial<{
+    name: string; description: string; priceCents: number; categories: TrainingCategory[];
+    isFree: boolean; freeConfig: FreeConfig; active: boolean;
+  }>): Observable<SubscriptionPlan> {
+    return this.http.patch<SubscriptionPlan>(`${this.base}/subscription-plans/${id}`, dto);
+  }
+
+  // ── Subscriptions (atribuição ao aluno) ────────────────────────────────────
+
+  getStudentSubscription(studentId: string): Observable<Subscription | null> {
+    return this.http.get<Subscription | null>(`${this.base}/students/${studentId}/subscription`);
+  }
+
+  assignSubscription(studentId: string, dto: { planId: string; status?: Subscription['status']; trialEndsAt?: string }): Observable<Subscription> {
+    return this.http.put<Subscription>(`${this.base}/students/${studentId}/subscription`, dto);
+  }
+
+  removeSubscription(studentId: string): Observable<{ removed: boolean }> {
+    return this.http.delete<{ removed: boolean }>(`${this.base}/students/${studentId}/subscription`);
+  }
+
+  /** Aluno: a própria assinatura + o que ela libera hoje. */
+  getMySubscription(): Observable<MySubscription> {
+    return this.http.get<MySubscription>(`${this.base}/subscriptions/me`);
+  }
+
+  // ── Admin: contrato do coach e configurações da plataforma ────────────────
+
+  getCoachContract(coachId: string): Observable<CoachContract> {
+    return this.http.get<CoachContract>(`${this.base}/admin/coaches/${coachId}/contract`);
+  }
+
+  setCoachContract(coachId: string, platformFeePercent: number): Observable<CoachContract> {
+    return this.http.put<CoachContract>(`${this.base}/admin/coaches/${coachId}/contract`, { platformFeePercent });
+  }
+
+  getPlatformSettings(): Observable<PlatformSettings> {
+    return this.http.get<PlatformSettings>(`${this.base}/admin/platform-settings`);
+  }
+
+  setPlatformSettings(enforceSubscriptionAccess: boolean, confirmLockout = false): Observable<PlatformSettings> {
+    return this.http.patch<PlatformSettings>(`${this.base}/admin/platform-settings`, { enforceSubscriptionAccess, confirmLockout });
   }
 }

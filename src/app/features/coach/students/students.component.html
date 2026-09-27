@@ -114,10 +114,16 @@
             </div>
 
             <!-- Action -->
-            <a [routerLink]="['/coach/plan-builder', student.id]"
-              class="block text-center text-[11px] font-headline font-bold bg-primary-fixed/10 text-primary-fixed hover:bg-primary-fixed hover:text-on-primary-fixed py-2 rounded-sm transition-all uppercase tracking-wider">
-              Ver Plano
-            </a>
+            <div class="grid grid-cols-2 gap-2">
+              <a [routerLink]="['/coach/plan-builder', student.id]"
+                class="block text-center text-[11px] font-headline font-bold bg-primary-fixed/10 text-primary-fixed hover:bg-primary-fixed hover:text-on-primary-fixed py-2 rounded-sm transition-all uppercase tracking-wider">
+                Ver Plano
+              </a>
+              <button type="button" (click)="openSubscriptionModal(student)"
+                class="text-center text-[11px] font-headline font-bold bg-surface-container text-on-surface-variant hover:text-on-surface py-2 rounded-sm transition-all uppercase tracking-wider">
+                Assinatura
+              </button>
+            </div>
           </div>
         </div>
       }
@@ -257,6 +263,75 @@
         </div>
 
       </form>
+    </div>
+  </div>
+}
+
+<!-- Subscription Modal -->
+@if (showSubscriptionModal()) {
+  <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 animate-fade-in p-4"
+    (click)="closeSubscriptionModal()">
+    <div class="bg-surface-container-low rounded-md p-6 w-full max-w-md animate-slide-up" (click)="$event.stopPropagation()">
+
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h3 class="font-headline font-black text-xl text-on-surface tracking-tighter">Assinatura</h3>
+          <p class="text-outline text-xs mt-0.5">{{ subscriptionTarget()?.name }}</p>
+        </div>
+        <button type="button" (click)="closeSubscriptionModal()"
+          class="w-8 h-8 rounded-sm bg-surface-container flex items-center justify-center text-outline hover:text-on-surface transition-colors">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      @if (loadingSubscription()) {
+        <div class="h-24 bg-surface-container rounded-sm animate-pulse"></div>
+      } @else {
+        @if (currentSubscription(); as sub) {
+          <div class="bg-primary-fixed/10 border border-primary-fixed/20 rounded-sm px-4 py-3 mb-4">
+            <p class="text-on-surface font-headline font-bold text-sm">{{ sub.plan.name }} · {{ fmtPrice(sub.plan.priceCents) }}/mês</p>
+            <p class="text-outline text-xs mt-0.5">Status: {{ sub.status }}</p>
+          </div>
+        } @else {
+          <p class="text-on-surface-variant text-sm mb-4">Este aluno ainda não tem plano de assinatura.</p>
+        }
+
+        <div class="mb-4">
+          <label class="block text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-1.5">Plano</label>
+          <select [ngModel]="selectedPlanId()" (ngModelChange)="selectedPlanId.set($event)" [ngModelOptions]="{standalone: true}"
+            class="w-full bg-surface-container text-on-surface rounded-sm px-4 py-3 text-sm min-h-[44px]">
+            <option value="">Selecione um plano</option>
+            @for (plan of subscriptionPlans(); track plan.id) {
+              <option [value]="plan.id" [disabled]="!plan.active && plan.id !== currentSubscription()?.plan?.id">
+                {{ plan.name }} — {{ fmtPrice(plan.priceCents) }}{{ !plan.active ? ' (inativo)' : '' }}
+              </option>
+            }
+          </select>
+          @if (subscriptionPlans().length === 0 && plansLoaded()) {
+            <p class="text-outline text-xs mt-1.5">Nenhum plano cadastrado ainda — crie em "Assinaturas" no menu.</p>
+          }
+        </div>
+
+        @if (subscriptionError()) {
+          <div role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-2 text-error text-xs mb-4">
+            {{ subscriptionError() }}
+          </div>
+        }
+
+        <div class="flex gap-3">
+          @if (currentSubscription()) {
+            <button type="button" [disabled]="assigning()" (click)="removePlan()"
+              class="flex-1 py-3 rounded-sm border border-error/30 text-error hover:bg-error/10 font-headline text-xs uppercase tracking-wider transition-all min-h-[44px]">
+              Remover
+            </button>
+          }
+          <button type="button" [disabled]="assigning() || !selectedPlanId()" (click)="assignPlan()"
+            class="flex-1 py-3 rounded-sm bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black text-xs uppercase tracking-tighter transition-all min-h-[44px]">
+            {{ assigning() ? 'Salvando...' : (currentSubscription() ? 'Trocar plano' : 'Atribuir') }}
+          </button>
+        </div>
+      }
+
     </div>
   </div>
 }
