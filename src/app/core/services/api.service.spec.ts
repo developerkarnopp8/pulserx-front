@@ -563,3 +563,39 @@ describe('ApiService — planos de assinatura, assinaturas, contrato/plataforma'
     expect(http.patch).toHaveBeenCalledWith(`${BASE}/admin/platform-settings`, { enforceSubscriptionAccess: true, confirmLockout: true });
   });
 });
+
+describe('ApiService — landing page do coach', () => {
+  it('getMyCoachProfile/upsertCoachProfile/publishCoachProfile chamam os endpoints certos', () => {
+    const { service, http } = build();
+    service.getMyCoachProfile();
+    expect(http.get).toHaveBeenCalledWith(`${BASE}/coach-profile`);
+    service.upsertCoachProfile('luan', 'Treinador de CrossFit');
+    expect(http.put).toHaveBeenCalledWith(`${BASE}/coach-profile`, { slug: 'luan', bio: 'Treinador de CrossFit' });
+    service.publishCoachProfile(true);
+    expect(http.patch).toHaveBeenCalledWith(`${BASE}/coach-profile/publish`, { published: true });
+  });
+
+  it('uploadCoachBanner monta FormData com o arquivo', () => {
+    const { service, http } = build();
+    const file = new File(['x'], 'banner.jpg', { type: 'image/jpeg' });
+    service.uploadCoachBanner(file);
+    const call = http.post.mock.calls[0];
+    expect(call[0]).toBe(`${BASE}/coach-profile/banner`);
+    expect((call[1] as FormData).get('file')).toBe(file);
+  });
+
+  it('getPublicCoachProfile/createLead chamam os endpoints certos', () => {
+    const { service, http } = build();
+    service.getPublicCoachProfile('luan');
+    expect(http.get).toHaveBeenCalledWith(`${BASE}/public/coaches/luan`);
+    const lead = { name: 'Ana', email: 'ana@x.com' };
+    service.createLead('luan', lead);
+    expect(http.post).toHaveBeenCalledWith(`${BASE}/public/coaches/luan/leads`, lead);
+  });
+
+  it('cancelMySubscription chama o endpoint certo', () => {
+    const { service, http } = build();
+    service.cancelMySubscription();
+    expect(http.delete).toHaveBeenCalledWith(`${BASE}/subscriptions/me`);
+  });
+});

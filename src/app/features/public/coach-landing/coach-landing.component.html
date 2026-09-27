@@ -1,0 +1,105 @@
+<div class="min-h-screen bg-surface">
+
+  @if (loading()) {
+    <div class="flex items-center justify-center min-h-screen">
+      <span class="material-symbols-outlined text-outline text-[40px] animate-pulse-subtle">fitness_center</span>
+    </div>
+  } @else if (notFound()) {
+    <div class="flex flex-col items-center justify-center min-h-screen px-6 text-center gap-2">
+      <h1 class="font-headline font-black text-2xl text-on-surface">Página não encontrada</h1>
+      <p class="text-on-surface-variant text-sm">Confira se o endereço está certo.</p>
+    </div>
+  } @else if (profile(); as p) {
+
+    <!-- Banner -->
+    @if (p.bannerUrl) {
+      <div class="w-full h-56 md:h-80 relative">
+        <img [src]="p.bannerUrl" alt="" class="w-full h-full object-cover" />
+        <div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent"></div>
+      </div>
+    }
+
+    <div class="max-w-2xl mx-auto px-5 py-8 md:py-12" [class.-mt-16]="p.bannerUrl">
+
+      <h1 class="font-headline font-black text-3xl md:text-4xl text-on-surface tracking-tighter mb-3">{{ p.coachName }}</h1>
+
+      @if (p.bio) {
+        <p class="text-on-surface-variant text-sm md:text-base leading-relaxed whitespace-pre-line mb-8">{{ p.bio }}</p>
+      }
+
+      @if (p.plans.length > 0) {
+        <section class="mb-10">
+          <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-3">Planos</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            @for (plan of p.plans; track plan.id) {
+              <div class="bg-surface-container-low rounded-md p-4">
+                <p class="text-on-surface font-headline font-bold text-lg">{{ plan.name }}</p>
+                @if (plan.description) {
+                  <p class="text-on-surface-variant text-sm mt-1">{{ plan.description }}</p>
+                }
+                <div class="flex flex-wrap gap-1.5 mt-2">
+                  @for (cat of plan.categories; track cat) {
+                    <span class="text-[10px] font-headline uppercase tracking-wider bg-primary-fixed/10 text-primary-fixed px-2 py-1 rounded-sm">{{ categoryLabel[cat] }}</span>
+                  }
+                </div>
+                <p class="text-on-surface font-headline font-black text-xl mt-3">
+                  {{ plan.isFree ? 'Grátis' : (fmtPrice(plan.priceCents) + '/mês') }}
+                </p>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- CTA / formulário de contato -->
+      @if (!showLeadForm() && !sent()) {
+        <button type="button" (click)="showLeadForm.set(true)"
+          class="w-full bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-6 py-4 rounded-sm uppercase tracking-tighter text-sm transition-all min-h-[44px]">
+          Quero treinar com {{ p.coachName }}
+        </button>
+      }
+
+      @if (sent()) {
+        <div role="status" class="bg-surface-container-low rounded-md p-5 text-center">
+          <p class="text-on-surface font-headline font-bold">Mensagem enviada!</p>
+          <p class="text-on-surface-variant text-sm mt-1">{{ p.coachName }} vai entrar em contato em breve.</p>
+        </div>
+      }
+
+      @if (showLeadForm() && !sent()) {
+        <form [formGroup]="leadForm" (ngSubmit)="sendLead()" class="bg-surface-container-low rounded-md p-5 flex flex-col gap-4">
+          <p class="text-on-surface font-headline font-bold text-sm">Deixe seu contato</p>
+
+          @if (errorMsg()) {
+            <p role="alert" class="text-error text-sm">{{ errorMsg() }}</p>
+          }
+
+          <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+            Nome
+            <input type="text" formControlName="name"
+              class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+          </label>
+          <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+            E-mail
+            <input type="email" formControlName="email"
+              class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+          </label>
+          <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+            Telefone (opcional)
+            <input type="tel" formControlName="phone"
+              class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+          </label>
+          <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+            Mensagem (opcional)
+            <textarea formControlName="message" rows="3"
+              class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal"></textarea>
+          </label>
+          <button type="submit" [disabled]="sending()"
+            class="bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black px-6 py-3 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px]">
+            {{ sending() ? 'Enviando...' : 'Enviar' }}
+          </button>
+        </form>
+      }
+    </div>
+  }
+</div>

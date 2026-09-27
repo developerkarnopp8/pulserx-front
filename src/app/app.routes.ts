@@ -70,6 +70,11 @@ export const routes: Routes = [
         path: 'messages',
         loadComponent: () =>
           import('./features/coach/messages/messages.component').then(m => m.CoachMessagesComponent)
+      },
+      {
+        path: 'landing-page',
+        loadComponent: () =>
+          import('./features/coach/landing-page/landing-page.component').then(m => m.LandingPageComponent)
       }
     ]
   },
@@ -137,6 +142,13 @@ export const routes: Routes = [
           import('./features/admin/coaches/coaches.component').then(m => m.CoachesComponent)
       },
     ]
+  },
+
+  // Landing page pública do coach — sem guard, sem shell, qualquer visitante acessa.
+  {
+    path: 'c/:slug',
+    loadComponent: () =>
+      import('./features/public/coach-landing/coach-landing.component').then(m => m.CoachLandingComponent)
   },
 
   { path: '**', redirectTo: 'login' }

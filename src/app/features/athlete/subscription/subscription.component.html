@@ -26,6 +26,15 @@
         @if (sub.status === 'TRIALING' && sub.trialEndsAt) {
           <p class="text-outline text-xs mt-2">Teste até {{ sub.trialEndsAt | date:'dd/MM/yyyy' }}</p>
         }
+        @if (sub.status !== 'CANCELED') {
+          <button type="button" (click)="cancel()" [disabled]="canceling()"
+            class="mt-4 text-error text-xs font-headline uppercase tracking-widest underline disabled:opacity-50">
+            {{ canceling() ? 'Cancelando…' : 'Cancelar assinatura' }}
+          </button>
+        }
+        @if (cancelMsg()) {
+          <p class="text-on-surface-variant text-xs mt-2">{{ cancelMsg() }}</p>
+        }
       </div>
     } @else {
       <div class="bg-surface-container-low rounded-md p-5 mb-5">

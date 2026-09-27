@@ -7,6 +7,7 @@ import {
   Movement, PersonalRecord, AppNotification,
   WorkoutSessionRecord, SessionTimeSummary, SessionTimeDetail, CoachAvgDuration,
   SubscriptionPlan, Subscription, MySubscription, CoachContract, PlatformSettings, FreeConfig,
+  CoachProfile, PublicCoachProfile, CreateLeadInput,
 } from '../models';
 import { environment } from '../../../environments/environment';
 
@@ -652,5 +653,40 @@ export class ApiService {
 
   setPlatformSettings(enforceSubscriptionAccess: boolean, confirmLockout = false): Observable<PlatformSettings> {
     return this.http.patch<PlatformSettings>(`${this.base}/admin/platform-settings`, { enforceSubscriptionAccess, confirmLockout });
+  }
+
+  // ── Landing page do coach ───────────────────────────────────────────────
+
+  /** Coach: o próprio perfil público (null se ainda não configurado) */
+  getMyCoachProfile(): Observable<CoachProfile | null> {
+    return this.http.get<CoachProfile | null>(`${this.base}/coach-profile`);
+  }
+
+  upsertCoachProfile(slug: string, bio?: string): Observable<CoachProfile> {
+    return this.http.put<CoachProfile>(`${this.base}/coach-profile`, { slug, bio });
+  }
+
+  publishCoachProfile(published: boolean): Observable<CoachProfile> {
+    return this.http.patch<CoachProfile>(`${this.base}/coach-profile/publish`, { published });
+  }
+
+  uploadCoachBanner(file: File): Observable<CoachProfile> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<CoachProfile>(`${this.base}/coach-profile/banner`, formData);
+  }
+
+  /** Visitante (sem auth): landing page pública do coach */
+  getPublicCoachProfile(slug: string): Observable<PublicCoachProfile> {
+    return this.http.get<PublicCoachProfile>(`${this.base}/public/coaches/${slug}`);
+  }
+
+  createLead(slug: string, dto: CreateLeadInput): Observable<{ id: string }> {
+    return this.http.post<{ id: string }>(`${this.base}/public/coaches/${slug}/leads`, dto);
+  }
+
+  /** Aluno: cancela a própria assinatura */
+  cancelMySubscription(): Observable<Subscription> {
+    return this.http.delete<Subscription>(`${this.base}/subscriptions/me`);
   }
 }
