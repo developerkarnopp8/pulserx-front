@@ -167,11 +167,9 @@
           </div>
         }
         @if (currentExercise()!.youtubeUrl) {
-          <a [href]="currentExercise()!.youtubeUrl" target="_blank" rel="noopener"
-            class="flex items-center gap-2 text-primary-fixed text-xs font-headline mb-3 transition-opacity active:opacity-60">
-            <span class="material-symbols-outlined text-[16px]">play_circle</span>
-            Ver demonstração
-          </a>
+          <div class="mb-3">
+            <app-youtube-embed [url]="currentExercise()!.youtubeUrl" />
+          </div>
         }
         @if (currentExercise()!.restSeconds) {
           <p class="text-outline text-[10px] font-headline flex items-center gap-1 mb-3">

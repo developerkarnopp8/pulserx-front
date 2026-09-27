@@ -6,13 +6,14 @@ import { Session, Exercise, SkipReason, SkipDecision } from '../../../core/model
 import { SkipReasonModalComponent } from '../../../shared/components/skip-reason-modal/skip-reason-modal.component';
 import { Subject, interval, takeUntil } from 'rxjs';
 import { loadDraft, saveDraft, clearDraft, WorkoutDraft } from '../../../shared/utils/workout-draft';
+import { YoutubeEmbedComponent } from '../../../shared/components/youtube-embed/youtube-embed.component';
 
 type Phase = 'exercise' | 'rest' | 'done';
 
 @Component({
   selector: 'app-active-workout',
   standalone: true,
-  imports: [CommonModule, SkipReasonModalComponent],
+  imports: [CommonModule, SkipReasonModalComponent, YoutubeEmbedComponent],
   templateUrl: './active-workout.component.html',
   styleUrl: './active-workout.component.scss',
 })

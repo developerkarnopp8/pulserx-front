@@ -1,130 +1,151 @@
-<div class="min-h-screen bg-background flex items-center justify-center px-5 relative overflow-hidden animate-fade-in">
+<div class="min-h-screen lg:h-screen bg-background flex flex-col lg:flex-row lg:overflow-hidden animate-fade-in">
 
-  <!-- Gradient blobs -->
-  <div class="absolute inset-0 pointer-events-none overflow-hidden">
-    <div class="absolute -top-48 -left-48 w-[480px] h-[480px] rounded-full bg-primary-fixed/5 blur-3xl"></div>
-    <div class="absolute -bottom-48 -right-48 w-[480px] h-[480px] rounded-full bg-tertiary/5 blur-3xl"></div>
-  </div>
-
-  <div class="w-full max-w-sm relative z-10">
-
-    <!-- Logo -->
-    <div class="text-center mb-10">
-      <h1 class="font-headline font-black text-4xl text-on-surface italic uppercase tracking-tighter">PulseRx</h1>
-      <p class="text-on-surface-variant text-[10px] tracking-[0.3em] mt-1 uppercase font-headline">Performance Dashboard</p>
-      <p class="text-outline text-[9px] tracking-[0.2em] mt-2 uppercase font-headline">by Aevon</p>
+  <!-- Banner (esquerda no desktop, topo no mobile) -->
+  <div class="relative overflow-hidden bg-surface-container-lowest px-8 py-10 lg:py-16 lg:w-[46%] lg:h-full lg:flex lg:flex-col lg:justify-center">
+    <!-- Glow -->
+    <div class="absolute inset-0 pointer-events-none">
+      <div class="absolute -top-32 -left-24 w-[420px] h-[420px] rounded-full bg-primary-fixed/25 blur-[100px]"></div>
+      <div class="absolute bottom-0 right-0 w-[320px] h-[320px] rounded-full bg-tertiary/10 blur-[100px]"></div>
     </div>
+    <!-- Grid pattern -->
+    <div class="banner-grid absolute inset-0 pointer-events-none opacity-[0.07]"></div>
 
-    <!-- Card -->
-    <div class="bg-surface-container-low rounded-md p-8">
-
-      <h2 class="font-headline font-black text-xl text-on-surface mb-1">
-        {{ selectedRole() === 'coach' ? 'Acesso do Treinador' : 'Acesso do Atleta' }}
-      </h2>
-      <p class="text-on-surface-variant text-xs mb-6">Insira suas credenciais para continuar.</p>
-
-      <!-- Role Toggle -->
-      <div class="flex bg-surface-container rounded-sm p-1 mb-6">
-        <button type="button"
-          (click)="setRole('coach')"
-          class="flex-1 py-2 rounded-sm text-[11px] font-headline font-bold uppercase tracking-wider transition-all duration-200"
-          [class.bg-primary-fixed]="selectedRole() === 'coach'"
-          [class.text-on-primary-fixed]="selectedRole() === 'coach'"
-          [class.text-outline]="selectedRole() !== 'coach'">
-          Coach
-        </button>
-        <button type="button"
-          (click)="setRole('athlete')"
-          class="flex-1 py-2 rounded-sm text-[11px] font-headline font-bold uppercase tracking-wider transition-all duration-200"
-          [class.bg-primary-fixed]="selectedRole() === 'athlete'"
-          [class.text-on-primary-fixed]="selectedRole() === 'athlete'"
-          [class.text-outline]="selectedRole() !== 'athlete'">
-          Atleta
-        </button>
-        <button type="button"
-          (click)="setRole('admin')"
-          class="flex-1 py-2 rounded-sm text-[11px] font-headline font-bold uppercase tracking-wider transition-all duration-200"
-          [class.bg-primary-fixed]="selectedRole() === 'admin'"
-          [class.text-on-primary-fixed]="selectedRole() === 'admin'"
-          [class.text-outline]="selectedRole() !== 'admin'">
-          Admin
-        </button>
+    <div class="relative z-10 max-w-md mx-auto lg:mx-0">
+      <div class="flex items-center gap-2 mb-8 lg:mb-14">
+        <span class="w-2 h-2 rounded-full bg-primary-fixed animate-pulse"></span>
+        <p class="text-on-surface-variant text-[10px] tracking-[0.3em] uppercase font-headline">by Aevon</p>
       </div>
 
-      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <h1 class="font-headline font-black text-5xl lg:text-6xl text-on-surface italic uppercase tracking-tighter leading-[0.9]">
+        Pulse<span class="text-primary-fixed">Rx</span>
+      </h1>
+      <p class="text-on-surface-variant text-base lg:text-lg mt-4 max-w-sm hidden lg:block">
+        A plataforma de performance para coaches que treinam com ciência.
+      </p>
 
-        <!-- Email -->
-        <div class="mb-4">
-          <label class="block text-on-surface-variant text-[10px] mb-1.5 tracking-widest uppercase font-headline">E-mail</label>
-          <div class="flex items-center gap-3 bg-surface-container rounded-sm px-4 py-3">
-            <span class="material-symbols-outlined text-outline text-[18px]">alternate_email</span>
-            <input
-              formControlName="email"
-              type="email"
-              placeholder="coach@aevonfit.com"
-              class="flex-1 bg-transparent text-on-surface placeholder:text-outline text-sm"
-            />
+      <div class="hidden lg:flex flex-col gap-4 mt-12">
+        @for (item of highlights; track item.label) {
+          <div class="flex items-center gap-3">
+            <span class="w-9 h-9 rounded-sm bg-primary-fixed/10 flex items-center justify-center flex-shrink-0">
+              <span class="material-symbols-outlined text-primary-fixed text-[18px]">{{ item.icon }}</span>
+            </span>
+            <span class="text-on-surface-variant text-sm font-headline">{{ item.label }}</span>
           </div>
-          @if (hasError('email')) {
-            <p class="text-error text-xs mt-1">E-mail inválido.</p>
-          }
-        </div>
+        }
+      </div>
+    </div>
+  </div>
 
-        <!-- Password -->
-        <div class="mb-6">
-          <label class="block text-on-surface-variant text-[10px] mb-1.5 tracking-widest uppercase font-headline">Senha</label>
-          <div class="flex items-center gap-3 bg-surface-container rounded-sm px-4 py-3">
-            <span class="material-symbols-outlined text-outline text-[18px]">lock</span>
-            <input
-              formControlName="password"
-              [type]="showPassword() ? 'text' : 'password'"
-              placeholder="••••••••"
-              class="flex-1 bg-transparent text-on-surface placeholder:text-outline text-sm"
-            />
+  <!-- Form -->
+  <div class="flex-1 flex items-center justify-center px-5 py-10 lg:py-16 lg:h-full lg:overflow-y-auto">
+    <div class="w-full max-w-sm">
+
+      <!-- Card -->
+      <div class="bg-surface-container-low rounded-md p-8">
+
+        <h2 class="font-headline font-black text-xl text-on-surface mb-1">
+          {{ rootOnly() ? 'Acesso Root' : selectedRole() === 'coach' ? 'Acesso do Treinador' : 'Acesso do Atleta' }}
+        </h2>
+        <p class="text-on-surface-variant text-xs mb-6">Insira suas credenciais para continuar.</p>
+
+        <!-- Role Toggle — Admin não aparece aqui de propósito (só via /login/root, não linkado) -->
+        @if (!rootOnly()) {
+          <div class="flex bg-surface-container rounded-sm p-1 mb-6">
             <button type="button"
-              (click)="showPassword.set(!showPassword())"
-              class="text-outline hover:text-on-surface-variant transition-colors">
-              <span class="material-symbols-outlined text-[18px]">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+              (click)="setRole('coach')"
+              class="flex-1 py-2 rounded-sm text-[11px] font-headline font-bold uppercase tracking-wider transition-all duration-200"
+              [class.bg-primary-fixed]="selectedRole() === 'coach'"
+              [class.text-on-primary-fixed]="selectedRole() === 'coach'"
+              [class.text-outline]="selectedRole() !== 'coach'">
+              Coach
             </button>
-          </div>
-          @if (hasError('password')) {
-            <p class="text-error text-xs mt-1">Senha obrigatória.</p>
-          }
-        </div>
-
-        <!-- Error -->
-        @if (error()) {
-          <div class="bg-error/10 border border-error/30 rounded-sm px-4 py-2 text-error text-xs mb-4 animate-fade-in">
-            {{ error() }}
+            <button type="button"
+              (click)="setRole('athlete')"
+              class="flex-1 py-2 rounded-sm text-[11px] font-headline font-bold uppercase tracking-wider transition-all duration-200"
+              [class.bg-primary-fixed]="selectedRole() === 'athlete'"
+              [class.text-on-primary-fixed]="selectedRole() === 'athlete'"
+              [class.text-outline]="selectedRole() !== 'athlete'">
+              Atleta
+            </button>
           </div>
         }
 
-        <!-- Submit -->
-        <button
-          type="submit"
-          [disabled]="loading()"
-          class="w-full bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black py-4 rounded-sm uppercase tracking-tighter transition-all flex items-center justify-center gap-2 text-sm">
-          @if (loading()) {
-            <span class="material-symbols-outlined text-[18px]">progress_activity</span>
+        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+          <!-- Email -->
+          <div class="mb-4">
+            <label class="block text-on-surface-variant text-[10px] mb-1.5 tracking-widest uppercase font-headline">E-mail</label>
+            <div class="w-full flex items-center gap-3 bg-surface-container rounded-sm px-4 py-3">
+              <span class="material-symbols-outlined text-outline text-[18px] flex-shrink-0">alternate_email</span>
+              <input
+                formControlName="email"
+                type="email"
+                placeholder="coach@aevonfit.com"
+                class="min-w-0 flex-1 bg-transparent text-on-surface placeholder:text-outline text-sm"
+              />
+            </div>
+            @if (hasError('email')) {
+              <p class="text-error text-xs mt-1">E-mail inválido.</p>
+            }
+          </div>
+
+          <!-- Password -->
+          <div class="mb-6">
+            <label class="block text-on-surface-variant text-[10px] mb-1.5 tracking-widest uppercase font-headline">Senha</label>
+            <div class="w-full flex items-center gap-3 bg-surface-container rounded-sm px-4 py-3">
+              <span class="material-symbols-outlined text-outline text-[18px] flex-shrink-0">lock</span>
+              <input
+                formControlName="password"
+                [type]="showPassword() ? 'text' : 'password'"
+                placeholder="••••••••"
+                class="min-w-0 flex-1 bg-transparent text-on-surface placeholder:text-outline text-sm"
+              />
+              <button type="button"
+                (click)="showPassword.set(!showPassword())"
+                class="flex-shrink-0 text-outline hover:text-on-surface-variant transition-colors">
+                <span class="material-symbols-outlined text-[18px]">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+              </button>
+            </div>
+            @if (hasError('password')) {
+              <p class="text-error text-xs mt-1">Senha obrigatória.</p>
+            }
+          </div>
+
+          <!-- Error -->
+          @if (error()) {
+            <div class="bg-error/10 border border-error/30 rounded-sm px-4 py-2 text-error text-xs mb-4 animate-fade-in">
+              {{ error() }}
+            </div>
           }
-          ENTRAR →
-        </button>
 
-      </form>
+          <!-- Submit -->
+          <button
+            type="submit"
+            [disabled]="loading()"
+            class="w-full bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black py-4 rounded-sm uppercase tracking-tighter transition-all flex items-center justify-center gap-2 text-sm">
+            @if (loading()) {
+              <span class="material-symbols-outlined text-[18px]">progress_activity</span>
+            }
+            ENTRAR →
+          </button>
 
-      <p class="text-center text-outline text-xs mt-6">
-        Ainda não possui conta?
-        <button type="button" class="text-primary-fixed hover:underline ml-1 font-headline">Solicitar Acesso</button>
-      </p>
+        </form>
+
+        <p class="text-center text-outline text-xs mt-6">
+          Ainda não possui conta?
+          <button type="button" class="text-primary-fixed hover:underline ml-1 font-headline">Solicitar Acesso</button>
+        </p>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="mt-8 flex justify-center gap-6 text-outline text-[10px] font-headline tracking-widest uppercase">
+        <span>● Online</span>
+        <span>SSL</span>
+        <span>V2.0</span>
+      </div>
 
     </div>
-
-    <!-- Footer -->
-    <div class="mt-8 flex justify-center gap-6 text-outline text-[10px] font-headline tracking-widest uppercase">
-      <span>● Online</span>
-      <span>SSL</span>
-      <span>V2.0</span>
-    </div>
-
   </div>
+
 </div>

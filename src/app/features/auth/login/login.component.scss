@@ -3,3 +3,12 @@ input:focus {
   border-color: var(--color-primary);
   outline: none;
 }
+
+// Grade sutil de fundo do banner — puro CSS, sem asset externo.
+.banner-grid {
+  background-image:
+    linear-gradient(to right, var(--color-on-surface) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-on-surface) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 80% 60% at 30% 30%, black, transparent);
+}

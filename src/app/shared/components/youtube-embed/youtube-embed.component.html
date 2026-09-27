@@ -1,0 +1,25 @@
+@if (videoId(); as id) {
+  <div class="relative w-full aspect-video rounded-sm overflow-hidden bg-surface-container-high">
+    @if (playing()) {
+      <iframe
+        [src]="embedSrc()"
+        class="absolute inset-0 w-full h-full"
+        title="Demonstração do movimento"
+        frameborder="0"
+        allow="autoplay; encrypted-media; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+    } @else {
+      <button type="button" (click)="play()"
+        class="absolute inset-0 w-full h-full group cursor-pointer"
+        [attr.aria-label]="'Assistir demonstração do movimento'">
+        <img [src]="thumbnailUrl()" alt="" class="w-full h-full object-cover opacity-70 group-hover:opacity-90 transition-opacity"/>
+        <span class="absolute inset-0 flex items-center justify-center">
+          <span class="w-14 h-14 rounded-full bg-primary-fixed/90 group-hover:bg-primary-fixed flex items-center justify-center transition-all group-hover:scale-105">
+            <span class="material-symbols-outlined text-on-primary-fixed text-[28px]">play_arrow</span>
+          </span>
+        </span>
+      </button>
+    }
+  </div>
+}

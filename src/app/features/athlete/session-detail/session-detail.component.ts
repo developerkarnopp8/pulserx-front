@@ -5,11 +5,12 @@ import { ApiService } from '../../../core/services/api.service';
 import { Session, Exercise, SkipReason, SkipDecision } from '../../../core/models';
 import { SkipReasonModalComponent } from '../../../shared/components/skip-reason-modal/skip-reason-modal.component';
 import { Subject, interval, takeUntil } from 'rxjs';
+import { YoutubeEmbedComponent } from '../../../shared/components/youtube-embed/youtube-embed.component';
 
 @Component({
   selector: 'app-session-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, SkipReasonModalComponent],
+  imports: [CommonModule, RouterLink, SkipReasonModalComponent, YoutubeEmbedComponent],
   templateUrl: './session-detail.component.html',
   styleUrl: './session-detail.component.scss'
 })
@@ -21,6 +22,11 @@ export class SessionDetailComponent implements OnInit, OnDestroy {
   timerExercise = signal<Exercise | null>(null);
   skipModalOpen = signal(false);
   skipError     = signal('');
+  expandedVideoId = signal<string | null>(null);
+
+  toggleVideo(id: string): void {
+    this.expandedVideoId.update(current => current === id ? null : id);
+  }
 
   private destroy$ = new Subject<void>();
 
