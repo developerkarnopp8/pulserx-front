@@ -12,6 +12,7 @@ const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './landing-page.component.html',
+  styleUrl: './landing-page.component.scss',
 })
 export class LandingPageComponent implements OnInit {
   profile  = signal<CoachProfile | null>(null);
