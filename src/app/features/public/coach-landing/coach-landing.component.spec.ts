@@ -4,7 +4,10 @@ import { CoachLandingComponent } from './coach-landing.component';
 import { PublicCoachProfile } from '../../../core/models';
 
 const profile = (over: Partial<PublicCoachProfile> = {}): PublicCoachProfile => ({
-  coachName: 'Luan', bio: 'Treinador', bannerUrl: null, plans: [], ...over,
+  coachName: 'Luan', bio: 'Treinador', bannerUrl: null, photoUrl: null, headline: null,
+  subheadline: null, quote: null, achievementBadge: null, yearsExperience: null, athletesCount: null,
+  npsScore: null, completionRate: null, whatsappNumber: null, videoUrl: null,
+  plans: [], testimonials: [], faqItems: [], ...over,
 });
 
 function build(apiOver: Record<string, unknown> = {}, slug = 'luan') {
@@ -43,6 +46,36 @@ describe('CoachLandingComponent.ngOnInit', () => {
     component.ngOnInit();
     expect(component.notFound()).toBe(true);
     expect(component.loading()).toBe(false);
+  });
+});
+
+describe('CoachLandingComponent.whatsappLink', () => {
+  it('sem número: null', () => {
+    const { component } = build({}, 'luan');
+    component.ngOnInit();
+    expect(component.whatsappLink).toBeNull();
+  });
+
+  it('com número: monta o link wa.me removendo caracteres não-numéricos', () => {
+    const { component } = build({ getPublicCoachProfile: vi.fn().mockReturnValue(of(profile({ whatsappNumber: '+55 (11) 99999-9999' }))) });
+    component.ngOnInit();
+    expect(component.whatsappLink).toBe('https://wa.me/5511999999999');
+  });
+});
+
+describe('CoachLandingComponent.isFeaturedPlan', () => {
+  it('com exatamente 3 planos, destaca só o do meio (índice 1)', () => {
+    const { component } = build();
+    expect(component.isFeaturedPlan(0, 3)).toBe(false);
+    expect(component.isFeaturedPlan(1, 3)).toBe(true);
+    expect(component.isFeaturedPlan(2, 3)).toBe(false);
+  });
+
+  it('com número de planos diferente de 3, nunca destaca', () => {
+    const { component } = build();
+    expect(component.isFeaturedPlan(1, 2)).toBe(false);
+    expect(component.isFeaturedPlan(1, 4)).toBe(false);
+    expect(component.isFeaturedPlan(0, 1)).toBe(false);
   });
 });
 

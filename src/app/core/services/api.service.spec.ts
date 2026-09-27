@@ -569,19 +569,52 @@ describe('ApiService — landing page do coach', () => {
     const { service, http } = build();
     service.getMyCoachProfile();
     expect(http.get).toHaveBeenCalledWith(`${BASE}/coach-profile`);
-    service.upsertCoachProfile('luan', 'Treinador de CrossFit');
-    expect(http.put).toHaveBeenCalledWith(`${BASE}/coach-profile`, { slug: 'luan', bio: 'Treinador de CrossFit' });
+    const dto = { slug: 'luan', bio: 'Treinador de CrossFit', yearsExperience: 12 };
+    service.upsertCoachProfile(dto);
+    expect(http.put).toHaveBeenCalledWith(`${BASE}/coach-profile`, dto);
     service.publishCoachProfile(true);
     expect(http.patch).toHaveBeenCalledWith(`${BASE}/coach-profile/publish`, { published: true });
   });
 
-  it('uploadCoachBanner monta FormData com o arquivo', () => {
+  it('uploadCoachBanner/uploadCoachPhoto montam FormData com o arquivo', () => {
     const { service, http } = build();
-    const file = new File(['x'], 'banner.jpg', { type: 'image/jpeg' });
-    service.uploadCoachBanner(file);
-    const call = http.post.mock.calls[0];
-    expect(call[0]).toBe(`${BASE}/coach-profile/banner`);
-    expect((call[1] as FormData).get('file')).toBe(file);
+    const bannerFile = new File(['x'], 'banner.jpg', { type: 'image/jpeg' });
+    service.uploadCoachBanner(bannerFile);
+    const bannerCall = http.post.mock.calls[0];
+    expect(bannerCall[0]).toBe(`${BASE}/coach-profile/banner`);
+    expect((bannerCall[1] as FormData).get('file')).toBe(bannerFile);
+
+    const photoFile = new File(['x'], 'photo.jpg', { type: 'image/jpeg' });
+    service.uploadCoachPhoto(photoFile);
+    const photoCall = http.post.mock.calls[1];
+    expect(photoCall[0]).toBe(`${BASE}/coach-profile/photo`);
+    expect((photoCall[1] as FormData).get('file')).toBe(photoFile);
+  });
+
+  it('CRUD de depoimentos chama os endpoints certos', () => {
+    const { service, http } = build();
+    service.getCoachTestimonials();
+    expect(http.get).toHaveBeenCalledWith(`${BASE}/coach-profile/testimonials`);
+    const dto = { authorName: 'Ana', content: 'Ótimo!' };
+    service.createTestimonial(dto);
+    expect(http.post).toHaveBeenCalledWith(`${BASE}/coach-profile/testimonials`, dto);
+    service.updateTestimonial('t1', dto);
+    expect(http.patch).toHaveBeenCalledWith(`${BASE}/coach-profile/testimonials/t1`, dto);
+    service.deleteTestimonial('t1');
+    expect(http.delete).toHaveBeenCalledWith(`${BASE}/coach-profile/testimonials/t1`);
+  });
+
+  it('CRUD de FAQ chama os endpoints certos', () => {
+    const { service, http } = build();
+    service.getCoachFaqItems();
+    expect(http.get).toHaveBeenCalledWith(`${BASE}/coach-profile/faq`);
+    const dto = { question: 'Q?', answer: 'A.' };
+    service.createFaqItem(dto);
+    expect(http.post).toHaveBeenCalledWith(`${BASE}/coach-profile/faq`, dto);
+    service.updateFaqItem('f1', dto);
+    expect(http.patch).toHaveBeenCalledWith(`${BASE}/coach-profile/faq/f1`, dto);
+    service.deleteFaqItem('f1');
+    expect(http.delete).toHaveBeenCalledWith(`${BASE}/coach-profile/faq/f1`);
   });
 
   it('getPublicCoachProfile/createLead chamam os endpoints certos', () => {

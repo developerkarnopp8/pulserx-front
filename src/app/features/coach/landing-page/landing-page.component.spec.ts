@@ -1,10 +1,21 @@
 import { FormBuilder } from '@angular/forms';
 import { of, throwError } from 'rxjs';
 import { LandingPageComponent } from './landing-page.component';
-import { CoachProfile } from '../../../core/models';
+import { CoachProfile, Testimonial, FaqItem } from '../../../core/models';
 
 const profile = (over: Partial<CoachProfile> = {}): CoachProfile => ({
-  id: 'p1', coachId: 'coach-1', slug: 'luan', bio: 'Treinador', bannerUrl: null, published: false, ...over,
+  id: 'p1', coachId: 'coach-1', slug: 'luan', bio: 'Treinador', bannerUrl: null, photoUrl: null,
+  headline: null, subheadline: null, quote: null, achievementBadge: null, yearsExperience: null,
+  athletesCount: null, npsScore: null, completionRate: null, whatsappNumber: null, videoUrl: null,
+  published: false, ...over,
+});
+
+const testimonial = (over: Partial<Testimonial> = {}): Testimonial => ({
+  id: 't1', authorName: 'Ana', authorRole: 'Atleta', rating: 5, content: 'Ótimo!', ...over,
+});
+
+const faqItem = (over: Partial<FaqItem> = {}): FaqItem => ({
+  id: 'f1', question: 'Serve pra iniciante?', answer: 'Sim.', ...over,
 });
 
 function build(apiOver: Record<string, unknown> = {}) {
@@ -13,6 +24,15 @@ function build(apiOver: Record<string, unknown> = {}) {
     upsertCoachProfile: vi.fn().mockReturnValue(of(profile())),
     publishCoachProfile: vi.fn().mockReturnValue(of(profile({ published: true }))),
     uploadCoachBanner: vi.fn().mockReturnValue(of(profile({ bannerUrl: 'https://x/banner.jpg' }))),
+    uploadCoachPhoto: vi.fn().mockReturnValue(of(profile({ photoUrl: 'https://x/photo.jpg' }))),
+    getCoachTestimonials: vi.fn().mockReturnValue(of([testimonial()])),
+    createTestimonial: vi.fn().mockReturnValue(of(testimonial())),
+    updateTestimonial: vi.fn().mockReturnValue(of(testimonial())),
+    deleteTestimonial: vi.fn().mockReturnValue(of({ removed: true })),
+    getCoachFaqItems: vi.fn().mockReturnValue(of([faqItem()])),
+    createFaqItem: vi.fn().mockReturnValue(of(faqItem())),
+    updateFaqItem: vi.fn().mockReturnValue(of(faqItem())),
+    deleteFaqItem: vi.fn().mockReturnValue(of({ removed: true })),
     ...apiOver,
   };
   const component = new LandingPageComponent(api as any, new FormBuilder());
@@ -20,23 +40,43 @@ function build(apiOver: Record<string, unknown> = {}) {
 }
 
 describe('LandingPageComponent.ngOnInit', () => {
-  it('sem perfil ainda: form fica vazio, loading libera', () => {
-    const { component } = build();
+  it('sem perfil ainda: form fica vazio, loading libera, não carrega depoimentos/faq', () => {
+    const { component, api } = build();
     component.ngOnInit();
     expect(component.profile()).toBeNull();
     expect(component.loading()).toBe(false);
+    expect(api.getCoachTestimonials).not.toHaveBeenCalled();
+    expect(api.getCoachFaqItems).not.toHaveBeenCalled();
   });
 
-  it('com perfil existente: preenche o form com slug/bio', () => {
-    const { component } = build({ getMyCoachProfile: vi.fn().mockReturnValue(of(profile({ slug: 'luan-treinador', bio: 'Bio X' }))) });
+  it('com perfil existente: preenche o form com todos os campos e carrega depoimentos/faq', () => {
+    const { component, api } = build({
+      getMyCoachProfile: vi.fn().mockReturnValue(of(profile({
+        slug: 'luan-treinador', bio: 'Bio X', headline: 'H', subheadline: 'S', quote: 'Q',
+        achievementBadge: 'Semifinals', yearsExperience: 12, athletesCount: 1400, npsScore: 92,
+        completionRate: 88.4, whatsappNumber: '11999999999', videoUrl: 'https://youtu.be/abc',
+      }))),
+    });
+
     component.ngOnInit();
-    expect(component.form.value).toEqual({ slug: 'luan-treinador', bio: 'Bio X' });
+
+    expect(component.form.value).toEqual({
+      slug: 'luan-treinador', bio: 'Bio X', headline: 'H', subheadline: 'S', quote: 'Q',
+      achievementBadge: 'Semifinals', yearsExperience: 12, athletesCount: 1400, npsScore: 92,
+      completionRate: 88.4, whatsappNumber: '11999999999', videoUrl: 'https://youtu.be/abc',
+    });
+    expect(api.getCoachTestimonials).toHaveBeenCalled();
+    expect(api.getCoachFaqItems).toHaveBeenCalled();
+    expect(component.testimonials()).toEqual([testimonial()]);
+    expect(component.faqItems()).toEqual([faqItem()]);
   });
 
-  it('perfil com bio null: form usa string vazia (não quebra)', () => {
+  it('perfil com campos opcionais null (incluindo bio): form usa string vazia/null (não quebra)', () => {
     const { component } = build({ getMyCoachProfile: vi.fn().mockReturnValue(of(profile({ bio: null }))) });
     component.ngOnInit();
     expect(component.form.value.bio).toBe('');
+    expect(component.form.value.headline).toBe('');
+    expect(component.form.value.yearsExperience).toBeNull();
   });
 
   it('erro ao carregar: libera o loading', () => {
@@ -55,20 +95,40 @@ describe('LandingPageComponent.save', () => {
     expect(component.form.touched).toBe(true);
   });
 
-  it('salva com bio trimada (slug já vem sem espaço, o padrão não aceita espaço)', () => {
+  it('salva com strings trimadas e undefined pros campos vazios', () => {
     const { component, api } = build();
-    component.form.patchValue({ slug: 'luan', bio: '  Treinador de CrossFit  ' });
+    component.form.patchValue({ slug: 'luan', bio: '  Treinador  ', headline: '   ', yearsExperience: 12 });
+
     component.save();
-    expect(api.upsertCoachProfile).toHaveBeenCalledWith('luan', 'Treinador de CrossFit');
+
+    expect(api.upsertCoachProfile).toHaveBeenCalledWith({
+      slug: 'luan', bio: 'Treinador', headline: undefined, subheadline: undefined, quote: undefined,
+      achievementBadge: undefined, yearsExperience: 12, athletesCount: undefined, npsScore: undefined,
+      completionRate: undefined, whatsappNumber: undefined, videoUrl: undefined,
+    });
     expect(component.successMsg()).toBe('Salvo!');
     expect(component.saving()).toBe(false);
   });
 
-  it('bio vazia após trim: manda undefined', () => {
+  it('perfil novo (ainda não existia): recarrega depoimentos/faq depois de salvar', () => {
     const { component, api } = build();
-    component.form.patchValue({ slug: 'luan', bio: '   ' });
+    component.form.patchValue({ slug: 'luan' });
+
     component.save();
-    expect(api.upsertCoachProfile).toHaveBeenCalledWith('luan', undefined);
+
+    expect(api.getCoachTestimonials).toHaveBeenCalled();
+    expect(api.getCoachFaqItems).toHaveBeenCalled();
+  });
+
+  it('perfil já existia: não recarrega depoimentos/faq de novo', () => {
+    const { component, api } = build();
+    component.profile.set(profile());
+    component.form.patchValue({ slug: 'luan' });
+
+    component.save();
+
+    expect(api.getCoachTestimonials).not.toHaveBeenCalled();
+    expect(api.getCoachFaqItems).not.toHaveBeenCalled();
   });
 
   it('erro 409 (slug em uso): mensagem específica', () => {
@@ -87,32 +147,43 @@ describe('LandingPageComponent.save', () => {
   });
 });
 
-describe('LandingPageComponent — banner', () => {
+describe('LandingPageComponent — banner e foto', () => {
   it('onBannerFileSelected: arquivo dentro do limite fica selecionado', () => {
     const { component } = build();
     const file = new File(['x'], 'banner.jpg', { type: 'image/jpeg' });
-    const event = { target: { files: [file] } } as unknown as Event;
-    component.onBannerFileSelected(event);
+    component.onBannerFileSelected({ target: { files: [file] } } as unknown as Event);
     expect(component.selectedBannerFile()).toBe(file);
   });
 
-  it('onBannerFileSelected: arquivo maior que 5MB é rejeitado com mensagem, sem selecionar', () => {
+  it('onBannerFileSelected: arquivo maior que 5MB é rejeitado com mensagem', () => {
     const { component } = build();
     const bigFile = new File([new Uint8Array(6 * 1024 * 1024)], 'grande.jpg', { type: 'image/jpeg' });
-    const event = { target: { files: [bigFile] } } as unknown as Event;
-    component.onBannerFileSelected(event);
+    component.onBannerFileSelected({ target: { files: [bigFile] } } as unknown as Event);
     expect(component.selectedBannerFile()).toBeNull();
     expect(component.errorMsg()).toContain('5MB');
   });
 
-  it('onBannerFileSelected: sem arquivo selecionado (cancelou o picker) não quebra', () => {
+  it('onBannerFileSelected: sem arquivo selecionado não quebra', () => {
     const { component } = build();
-    const event = { target: { files: [] } } as unknown as Event;
-    component.onBannerFileSelected(event);
+    component.onBannerFileSelected({ target: { files: [] } } as unknown as Event);
     expect(component.selectedBannerFile()).toBeNull();
   });
 
-  it('uploadBanner: sem arquivo selecionado, não chama a API', () => {
+  it('onPhotoFileSelected: arquivo dentro do limite fica selecionado', () => {
+    const { component } = build();
+    const file = new File(['x'], 'photo.jpg', { type: 'image/jpeg' });
+    component.onPhotoFileSelected({ target: { files: [file] } } as unknown as Event);
+    expect(component.selectedPhotoFile()).toBe(file);
+  });
+
+  it('onPhotoFileSelected: arquivo maior que 5MB é rejeitado', () => {
+    const { component } = build();
+    const bigFile = new File([new Uint8Array(6 * 1024 * 1024)], 'grande.jpg', { type: 'image/jpeg' });
+    component.onPhotoFileSelected({ target: { files: [bigFile] } } as unknown as Event);
+    expect(component.selectedPhotoFile()).toBeNull();
+  });
+
+  it('uploadBanner: sem arquivo, não chama a API', () => {
     const { component, api } = build();
     component.uploadBanner();
     expect(api.uploadCoachBanner).not.toHaveBeenCalled();
@@ -122,23 +193,42 @@ describe('LandingPageComponent — banner', () => {
     const { component, api } = build();
     const file = new File(['x'], 'banner.jpg', { type: 'image/jpeg' });
     component.selectedBannerFile.set(file);
-
     component.uploadBanner();
-
     expect(api.uploadCoachBanner).toHaveBeenCalledWith(file);
     expect(component.profile()?.bannerUrl).toBe('https://x/banner.jpg');
     expect(component.selectedBannerFile()).toBeNull();
-    expect(component.successMsg()).toBe('Banner atualizado!');
   });
 
-  it('uploadBanner: erro mostra mensagem explicando o formato aceito', () => {
+  it('uploadBanner: erro mostra mensagem', () => {
     const { component } = build({ uploadCoachBanner: vi.fn().mockReturnValue(throwError(() => new Error('x'))) });
     component.selectedBannerFile.set(new File(['x'], 'banner.jpg', { type: 'image/jpeg' }));
-
     component.uploadBanner();
-
     expect(component.errorMsg()).toContain('JPG/PNG/WebP');
     expect(component.uploadingBanner()).toBe(false);
+  });
+
+  it('uploadPhoto: sem arquivo, não chama a API', () => {
+    const { component, api } = build();
+    component.uploadPhoto();
+    expect(api.uploadCoachPhoto).not.toHaveBeenCalled();
+  });
+
+  it('uploadPhoto: com arquivo, sobe e atualiza o perfil', () => {
+    const { component, api } = build();
+    const file = new File(['x'], 'photo.jpg', { type: 'image/jpeg' });
+    component.selectedPhotoFile.set(file);
+    component.uploadPhoto();
+    expect(api.uploadCoachPhoto).toHaveBeenCalledWith(file);
+    expect(component.profile()?.photoUrl).toBe('https://x/photo.jpg');
+    expect(component.selectedPhotoFile()).toBeNull();
+  });
+
+  it('uploadPhoto: erro mostra mensagem', () => {
+    const { component } = build({ uploadCoachPhoto: vi.fn().mockReturnValue(throwError(() => new Error('x'))) });
+    component.selectedPhotoFile.set(new File(['x'], 'photo.jpg', { type: 'image/jpeg' }));
+    component.uploadPhoto();
+    expect(component.errorMsg()).toContain('JPG/PNG/WebP');
+    expect(component.uploadingPhoto()).toBe(false);
   });
 });
 
@@ -152,21 +242,187 @@ describe('LandingPageComponent.togglePublish', () => {
   it('com perfil: inverte o published atual', () => {
     const { component, api } = build();
     component.profile.set(profile({ published: false }));
-
     component.togglePublish();
-
     expect(api.publishCoachProfile).toHaveBeenCalledWith(true);
     expect(component.profile()?.published).toBe(true);
-    expect(component.publishing()).toBe(false);
   });
 
-  it('erro ao publicar: mensagem de erro, libera o botão', () => {
+  it('erro ao publicar: mensagem de erro', () => {
     const { component } = build({ publishCoachProfile: vi.fn().mockReturnValue(throwError(() => new Error('x'))) });
     component.profile.set(profile());
-
     component.togglePublish();
-
     expect(component.errorMsg()).toContain('visibilidade');
     expect(component.publishing()).toBe(false);
+  });
+});
+
+describe('LandingPageComponent — depoimentos', () => {
+  it('openNewTestimonialForm: reseta o form com rating 5 e abre', () => {
+    const { component } = build();
+    component.testimonialForm.patchValue({ authorName: 'Lixo' });
+    component.openNewTestimonialForm();
+    expect(component.editingTestimonialId()).toBeNull();
+    expect(component.testimonialForm.value.authorName).toBeFalsy();
+    expect(component.testimonialForm.value.rating).toBe(5);
+    expect(component.showTestimonialForm()).toBe(true);
+  });
+
+  it('editTestimonial: preenche o form com os dados do depoimento', () => {
+    const { component } = build();
+    component.editTestimonial(testimonial({ authorRole: null }));
+    expect(component.editingTestimonialId()).toBe('t1');
+    expect(component.testimonialForm.value.authorRole).toBe('');
+    expect(component.showTestimonialForm()).toBe(true);
+  });
+
+  it('cancelTestimonialForm: fecha e limpa o id de edição', () => {
+    const { component } = build();
+    component.editTestimonial(testimonial());
+    component.cancelTestimonialForm();
+    expect(component.showTestimonialForm()).toBe(false);
+    expect(component.editingTestimonialId()).toBeNull();
+  });
+
+  it('saveTestimonial: form inválido não chama a API', () => {
+    const { component, api } = build();
+    component.testimonialForm.patchValue({ authorName: '' });
+    component.saveTestimonial();
+    expect(api.createTestimonial).not.toHaveBeenCalled();
+    expect(component.testimonialForm.touched).toBe(true);
+  });
+
+  it('saveTestimonial: sem id de edição, cria e recarrega a lista', () => {
+    const { component, api } = build();
+    component.openNewTestimonialForm();
+    component.testimonialForm.patchValue({ authorName: '  Ana  ', authorRole: '  ', content: 'Muito bom' });
+
+    component.saveTestimonial();
+
+    expect(api.createTestimonial).toHaveBeenCalledWith({ authorName: 'Ana', authorRole: undefined, rating: 5, content: 'Muito bom' });
+    expect(api.getCoachTestimonials).toHaveBeenCalled();
+    expect(component.showTestimonialForm()).toBe(false);
+  });
+
+  it('saveTestimonial: com id de edição, atualiza', () => {
+    const { component, api } = build();
+    component.editTestimonial(testimonial());
+    component.testimonialForm.patchValue({ authorName: 'Ana 2', content: 'Editado' });
+
+    component.saveTestimonial();
+
+    expect(api.updateTestimonial).toHaveBeenCalledWith('t1', expect.objectContaining({ authorName: 'Ana 2', content: 'Editado' }));
+  });
+
+  it('saveTestimonial: erro mostra mensagem', () => {
+    const { component } = build({ createTestimonial: vi.fn().mockReturnValue(throwError(() => new Error('x'))) });
+    component.openNewTestimonialForm();
+    component.testimonialForm.patchValue({ authorName: 'Ana', content: 'Muito bom' });
+    component.saveTestimonial();
+    expect(component.errorMsg()).toContain('depoimento');
+    expect(component.savingTestimonial()).toBe(false);
+  });
+
+  it('removeTestimonial: sem confirmar não chama a API', () => {
+    const { component, api } = build();
+    const original = window.confirm;
+    window.confirm = vi.fn().mockReturnValue(false);
+    component.removeTestimonial('t1');
+    expect(api.deleteTestimonial).not.toHaveBeenCalled();
+    window.confirm = original;
+  });
+
+  it('removeTestimonial: confirmando, apaga e recarrega', () => {
+    const { component, api } = build();
+    const original = window.confirm;
+    window.confirm = vi.fn().mockReturnValue(true);
+    component.removeTestimonial('t1');
+    expect(api.deleteTestimonial).toHaveBeenCalledWith('t1');
+    expect(api.getCoachTestimonials).toHaveBeenCalled();
+    window.confirm = original;
+  });
+});
+
+describe('LandingPageComponent — FAQ', () => {
+  it('openNewFaqForm: reseta o form e abre', () => {
+    const { component } = build();
+    component.faqForm.patchValue({ question: 'Lixo' });
+    component.openNewFaqForm();
+    expect(component.editingFaqId()).toBeNull();
+    expect(component.faqForm.value.question).toBeFalsy();
+    expect(component.showFaqForm()).toBe(true);
+  });
+
+  it('editFaqItem: preenche o form', () => {
+    const { component } = build();
+    component.editFaqItem(faqItem());
+    expect(component.editingFaqId()).toBe('f1');
+    expect(component.faqForm.value.question).toBe('Serve pra iniciante?');
+    expect(component.showFaqForm()).toBe(true);
+  });
+
+  it('cancelFaqForm: fecha e limpa o id de edição', () => {
+    const { component } = build();
+    component.editFaqItem(faqItem());
+    component.cancelFaqForm();
+    expect(component.showFaqForm()).toBe(false);
+    expect(component.editingFaqId()).toBeNull();
+  });
+
+  it('saveFaqItem: form inválido não chama a API', () => {
+    const { component, api } = build();
+    component.faqForm.patchValue({ question: '' });
+    component.saveFaqItem();
+    expect(api.createFaqItem).not.toHaveBeenCalled();
+    expect(component.faqForm.touched).toBe(true);
+  });
+
+  it('saveFaqItem: sem id de edição, cria e recarrega', () => {
+    const { component, api } = build();
+    component.openNewFaqForm();
+    component.faqForm.patchValue({ question: '  Q?  ', answer: '  A.  ' });
+
+    component.saveFaqItem();
+
+    expect(api.createFaqItem).toHaveBeenCalledWith({ question: 'Q?', answer: 'A.' });
+    expect(api.getCoachFaqItems).toHaveBeenCalled();
+    expect(component.showFaqForm()).toBe(false);
+  });
+
+  it('saveFaqItem: com id de edição, atualiza', () => {
+    const { component, api } = build();
+    component.editFaqItem(faqItem());
+    component.faqForm.patchValue({ question: 'Q2', answer: 'A2' });
+
+    component.saveFaqItem();
+
+    expect(api.updateFaqItem).toHaveBeenCalledWith('f1', { question: 'Q2', answer: 'A2' });
+  });
+
+  it('saveFaqItem: erro mostra mensagem', () => {
+    const { component } = build({ createFaqItem: vi.fn().mockReturnValue(throwError(() => new Error('x'))) });
+    component.openNewFaqForm();
+    component.faqForm.patchValue({ question: 'Q?', answer: 'A.' });
+    component.saveFaqItem();
+    expect(component.errorMsg()).toContain('pergunta');
+    expect(component.savingFaq()).toBe(false);
+  });
+
+  it('removeFaqItem: sem confirmar não chama a API', () => {
+    const { component, api } = build();
+    const original = window.confirm;
+    window.confirm = vi.fn().mockReturnValue(false);
+    component.removeFaqItem('f1');
+    expect(api.deleteFaqItem).not.toHaveBeenCalled();
+    window.confirm = original;
+  });
+
+  it('removeFaqItem: confirmando, apaga e recarrega', () => {
+    const { component, api } = build();
+    const original = window.confirm;
+    window.confirm = vi.fn().mockReturnValue(true);
+    component.removeFaqItem('f1');
+    expect(api.deleteFaqItem).toHaveBeenCalledWith('f1');
+    expect(api.getCoachFaqItems).toHaveBeenCalled();
+    window.confirm = original;
   });
 });

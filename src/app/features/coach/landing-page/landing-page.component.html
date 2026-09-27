@@ -3,10 +3,10 @@
   <header class="px-4 md:px-8 py-4 md:py-6 flex-shrink-0">
     <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-1">Coach Dashboard</p>
     <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface tracking-tighter leading-none">MINHA PÁGINA</h2>
-    <p class="text-on-surface-variant text-sm mt-1">Uma página pública com seu banner, sua bio e seus planos — quem visitar pode mandar contato, sem precisar criar conta.</p>
+    <p class="text-on-surface-variant text-sm mt-1">Uma página pública com seu banner, sua bio, depoimentos e FAQ — quem visitar pode mandar contato, sem precisar criar conta.</p>
   </header>
 
-  <div class="flex-1 px-4 md:px-8 pb-8 overflow-y-auto max-w-2xl">
+  <div class="flex-1 px-4 md:px-8 pb-8 overflow-y-auto max-w-3xl">
 
     @if (loading()) {
       <div class="h-64 bg-surface-container-low rounded-md animate-pulse"></div>
@@ -34,24 +34,38 @@
         </div>
       }
 
-      <!-- Banner -->
-      <section class="mb-6">
-        <p class="text-[10px] font-headline uppercase tracking-widest text-outline mb-2">Banner</p>
-        @if (profile()?.bannerUrl) {
-          <img [src]="profile()!.bannerUrl" alt="Banner da página" class="w-full h-40 object-cover rounded-md mb-3" />
-        }
-        <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onBannerFileSelected($event)"
-          class="text-on-surface-variant text-sm" />
-        @if (selectedBannerFile()) {
-          <button type="button" (click)="uploadBanner()" [disabled]="uploadingBanner()"
-            class="ml-3 bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black px-4 py-2 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px]">
-            {{ uploadingBanner() ? 'Enviando...' : 'Enviar banner' }}
-          </button>
-        }
+      <!-- Banner + Foto -->
+      <section class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <p class="text-[10px] font-headline uppercase tracking-widest text-outline mb-2">Banner (hero)</p>
+          @if (profile()?.bannerUrl) {
+            <img [src]="profile()!.bannerUrl" alt="Banner da página" class="w-full h-32 object-cover rounded-md mb-2" />
+          }
+          <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onBannerFileSelected($event)" class="text-on-surface-variant text-xs" />
+          @if (selectedBannerFile()) {
+            <button type="button" (click)="uploadBanner()" [disabled]="uploadingBanner()"
+              class="block mt-2 bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black px-4 py-2 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px]">
+              {{ uploadingBanner() ? 'Enviando...' : 'Enviar banner' }}
+            </button>
+          }
+        </div>
+        <div>
+          <p class="text-[10px] font-headline uppercase tracking-widest text-outline mb-2">Foto pessoal</p>
+          @if (profile()?.photoUrl) {
+            <img [src]="profile()!.photoUrl" alt="Foto do coach" class="w-32 h-32 object-cover rounded-md mb-2" />
+          }
+          <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onPhotoFileSelected($event)" class="text-on-surface-variant text-xs" />
+          @if (selectedPhotoFile()) {
+            <button type="button" (click)="uploadPhoto()" [disabled]="uploadingPhoto()"
+              class="block mt-2 bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black px-4 py-2 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px]">
+              {{ uploadingPhoto() ? 'Enviando...' : 'Enviar foto' }}
+            </button>
+          }
+        </div>
       </section>
 
-      <!-- Slug + bio -->
-      <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-4">
+      <!-- Formulário principal -->
+      <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-4 mb-10">
         <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
           Endereço da página (letras minúsculas, números e hífen)
           <input type="text" formControlName="slug" placeholder="ex.: luan-treinador"
@@ -60,16 +74,191 @@
             <span role="alert" class="text-error text-xs normal-case tracking-normal">Use só letras minúsculas, números e hífen (3 a 60 caracteres).</span>
           }
         </label>
+
         <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
-          Sobre você
-          <textarea formControlName="bio" rows="5" maxlength="1000" placeholder="Conte sobre sua metodologia, experiência..."
+          Frase de destaque (hero) — opcional, senão usa o texto padrão
+          <input type="text" formControlName="headline" maxlength="200"
+            class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+        </label>
+        <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+          Parágrafo de apoio (hero)
+          <textarea formControlName="subheadline" rows="2" maxlength="500"
             class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal"></textarea>
         </label>
+
+        <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+          Sobre você
+          <textarea formControlName="bio" rows="4" maxlength="1000" placeholder="Conte sobre sua metodologia, experiência..."
+            class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal"></textarea>
+        </label>
+        <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+          Citação em destaque
+          <textarea formControlName="quote" rows="2" maxlength="500"
+            class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal"></textarea>
+        </label>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+            Selo de credencial
+            <input type="text" formControlName="achievementBadge" maxlength="100" placeholder="ex.: Semifinals CrossFit Games"
+              class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+          </label>
+          <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+            Anos de experiência
+            <input type="number" formControlName="yearsExperience" min="0" max="80"
+              class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+          </label>
+          <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+            Atletas atendidos
+            <input type="number" formControlName="athletesCount" min="0"
+              class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+          </label>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+            NPS (0-100) — opcional
+            <input type="number" formControlName="npsScore" min="0" max="100"
+              class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+          </label>
+          <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+            Taxa de conclusão de ciclo (%) — opcional
+            <input type="number" formControlName="completionRate" min="0" max="100" step="0.1"
+              class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+          </label>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+            WhatsApp (com DDI/DDD, só números)
+            <input type="tel" formControlName="whatsappNumber" maxlength="20" placeholder="5511999999999"
+              class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+          </label>
+          <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+            Vídeo de demonstração (link do YouTube)
+            <input type="url" formControlName="videoUrl" maxlength="300" placeholder="https://youtu.be/..."
+              class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+          </label>
+        </div>
+
         <button type="submit" [disabled]="saving()"
           class="self-start bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black px-6 py-2.5 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px]">
           {{ saving() ? 'Salvando...' : 'Salvar' }}
         </button>
       </form>
+
+      @if (profile(); as p2) {
+        <!-- Depoimentos -->
+        <section class="mb-10">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-headline font-black text-sm text-on-surface uppercase tracking-widest">Depoimentos</h3>
+            <button type="button" (click)="showTestimonialForm() ? cancelTestimonialForm() : openNewTestimonialForm()"
+              class="flex items-center gap-2 bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-4 py-2 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px]">
+              {{ showTestimonialForm() ? 'Cancelar' : '+ Novo depoimento' }}
+            </button>
+          </div>
+
+          @if (showTestimonialForm()) {
+            <form [formGroup]="testimonialForm" (ngSubmit)="saveTestimonial()"
+              class="bg-surface-container-low rounded-md p-4 mb-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+                Nome
+                <input type="text" formControlName="authorName" maxlength="120"
+                  class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+              </label>
+              <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+                Papel/descrição (opcional)
+                <input type="text" formControlName="authorRole" maxlength="100" placeholder="ex.: Atleta de CrossFit RX"
+                  class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+              </label>
+              <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+                Nota (1-5)
+                <input type="number" formControlName="rating" min="1" max="5"
+                  class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+              </label>
+              <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline md:col-span-2">
+                Depoimento
+                <textarea formControlName="content" rows="3" maxlength="1000"
+                  class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal"></textarea>
+              </label>
+              <div class="md:col-span-2">
+                <button type="submit" [disabled]="savingTestimonial()"
+                  class="bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black px-6 py-2.5 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px]">
+                  {{ savingTestimonial() ? 'Salvando...' : 'Salvar depoimento' }}
+                </button>
+              </div>
+            </form>
+          }
+
+          @if (testimonials().length === 0) {
+            <p class="text-on-surface-variant text-sm">Nenhum depoimento cadastrado ainda.</p>
+          } @else {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              @for (t of testimonials(); track t.id) {
+                <div class="bg-surface-container-low rounded-md p-4">
+                  <p class="text-on-surface font-headline font-bold text-sm">{{ t.authorName }}</p>
+                  @if (t.authorRole) { <p class="text-outline text-xs mb-1">{{ t.authorRole }}</p> }
+                  <p class="text-on-surface-variant text-sm mb-2">{{ t.content }}</p>
+                  <div class="flex items-center justify-between">
+                    <span class="text-primary-fixed text-xs">{{ '★'.repeat(t.rating) }}</span>
+                    <div class="flex gap-3">
+                      <button type="button" (click)="editTestimonial(t)" class="text-outline text-xs underline">Editar</button>
+                      <button type="button" (click)="removeTestimonial(t.id)" class="text-error text-xs underline">Remover</button>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </section>
+
+        <!-- FAQ -->
+        <section class="mb-10">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-headline font-black text-sm text-on-surface uppercase tracking-widest">Perguntas frequentes</h3>
+            <button type="button" (click)="showFaqForm() ? cancelFaqForm() : openNewFaqForm()"
+              class="flex items-center gap-2 bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-4 py-2 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px]">
+              {{ showFaqForm() ? 'Cancelar' : '+ Nova pergunta' }}
+            </button>
+          </div>
+
+          @if (showFaqForm()) {
+            <form [formGroup]="faqForm" (ngSubmit)="saveFaqItem()" class="bg-surface-container-low rounded-md p-4 mb-4 flex flex-col gap-3">
+              <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+                Pergunta
+                <input type="text" formControlName="question" maxlength="300"
+                  class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+              </label>
+              <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+                Resposta
+                <textarea formControlName="answer" rows="3" maxlength="2000"
+                  class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal"></textarea>
+              </label>
+              <button type="submit" [disabled]="savingFaq()"
+                class="self-start bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black px-6 py-2.5 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px]">
+                {{ savingFaq() ? 'Salvando...' : 'Salvar pergunta' }}
+              </button>
+            </form>
+          }
+
+          @if (faqItems().length === 0) {
+            <p class="text-on-surface-variant text-sm">Nenhuma pergunta cadastrada ainda.</p>
+          } @else {
+            <div class="flex flex-col gap-2">
+              @for (f of faqItems(); track f.id) {
+                <div class="bg-surface-container-low rounded-md p-4">
+                  <p class="text-on-surface font-headline font-bold text-sm mb-1">{{ f.question }}</p>
+                  <p class="text-on-surface-variant text-sm mb-2">{{ f.answer }}</p>
+                  <div class="flex gap-3">
+                    <button type="button" (click)="editFaqItem(f)" class="text-outline text-xs underline">Editar</button>
+                    <button type="button" (click)="removeFaqItem(f.id)" class="text-error text-xs underline">Remover</button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      }
     }
 
   </div>
