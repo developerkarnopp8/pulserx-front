@@ -63,6 +63,34 @@ describe('CoachLandingComponent.whatsappLink', () => {
   });
 });
 
+describe('CoachLandingComponent.scrollToSection', () => {
+  it('previne o comportamento padrão do link (nunca deixa o navegador resolver o href)', () => {
+    const { component } = build();
+    const event = { preventDefault: vi.fn() } as unknown as Event;
+    component.scrollToSection('contato', event);
+    expect(event.preventDefault).toHaveBeenCalled();
+  });
+
+  it('rola até o elemento com o id informado', () => {
+    const { component } = build();
+    const el = document.createElement('div');
+    el.id = 'contato';
+    const scrollIntoView = vi.fn();
+    el.scrollIntoView = scrollIntoView;
+    document.body.appendChild(el);
+
+    component.scrollToSection('contato', { preventDefault: vi.fn() } as unknown as Event);
+
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+    document.body.removeChild(el);
+  });
+
+  it('elemento inexistente: não quebra', () => {
+    const { component } = build();
+    expect(() => component.scrollToSection('nao-existe', { preventDefault: vi.fn() } as unknown as Event)).not.toThrow();
+  });
+});
+
 describe('CoachLandingComponent.isFeaturedPlan', () => {
   it('com exatamente 3 planos, destaca só o do meio (índice 1)', () => {
     const { component } = build();

@@ -59,6 +59,16 @@ export class CoachLandingComponent implements OnInit {
     return total === 3 && index === 1;
   }
 
+  /**
+   * Rola pra seção da própria página em vez de deixar o navegador resolver `href="#id"`.
+   * Com `<base href="/">` (exigido pelo roteamento do Angular), um link só-fragmento resolve
+   * pra `/#id` — a raiz do site, não a rota atual — e cai no redirect de `path: ''` pro login.
+   */
+  scrollToSection(id: string, event: Event): void {
+    event.preventDefault();
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   sendLead(): void {
     if (this.leadForm.invalid) { this.leadForm.markAllAsTouched(); return; }
     this.sending.set(true);

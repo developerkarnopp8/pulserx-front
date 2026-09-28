@@ -16,12 +16,12 @@
       <div class="max-w-5xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
         <span class="font-headline font-black text-lg text-on-surface tracking-tighter">{{ p.coachName }}</span>
         <div class="hidden md:flex items-center gap-6 text-xs font-headline uppercase tracking-widest text-on-surface-variant">
-          @if (p.plans.length > 0) { <a href="#planos" class="hover:text-primary-fixed">Planos</a> }
-          @if (p.testimonials.length > 0) { <a href="#depoimentos" class="hover:text-primary-fixed">Depoimentos</a> }
-          <a href="#sobre" class="hover:text-primary-fixed">Sobre</a>
-          @if (p.faqItems.length > 0) { <a href="#faq" class="hover:text-primary-fixed">Dúvidas</a> }
+          @if (p.plans.length > 0) { <a href="#planos" (click)="scrollToSection('planos', $event)" class="hover:text-primary-fixed">Planos</a> }
+          @if (p.testimonials.length > 0) { <a href="#depoimentos" (click)="scrollToSection('depoimentos', $event)" class="hover:text-primary-fixed">Depoimentos</a> }
+          <a href="#sobre" (click)="scrollToSection('sobre', $event)" class="hover:text-primary-fixed">Sobre</a>
+          @if (p.faqItems.length > 0) { <a href="#faq" (click)="scrollToSection('faq', $event)" class="hover:text-primary-fixed">Dúvidas</a> }
         </div>
-        <a href="#contato" class="bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-4 py-2 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px] flex items-center">
+        <a href="#contato" (click)="scrollToSection('contato', $event)" class="bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-4 py-2 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px] flex items-center">
           Começar agora
         </a>
       </div>
@@ -44,11 +44,11 @@
           {{ p.subheadline || p.bio || 'Periodização real, acompanhamento próximo e um método construído pra evolução consistente.' }}
         </p>
         <div class="flex flex-wrap items-center gap-3">
-          <a href="#contato" class="bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-6 py-3.5 rounded-sm uppercase tracking-tighter text-sm transition-all min-h-[44px] flex items-center">
+          <a href="#contato" (click)="scrollToSection('contato', $event)" class="bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-6 py-3.5 rounded-sm uppercase tracking-tighter text-sm transition-all min-h-[44px] flex items-center">
             Garantir minha vaga
           </a>
           @if (p.plans.length > 0) {
-            <a href="#planos" class="border border-outline-variant hover:border-primary-fixed text-on-surface font-headline font-black px-6 py-3.5 rounded-sm uppercase tracking-tighter text-sm transition-all min-h-[44px] flex items-center">
+            <a href="#planos" (click)="scrollToSection('planos', $event)" class="border border-outline-variant hover:border-primary-fixed text-on-surface font-headline font-black px-6 py-3.5 rounded-sm uppercase tracking-tighter text-sm transition-all min-h-[44px] flex items-center">
               Ver planos
             </a>
           }
@@ -157,7 +157,7 @@
               <p class="text-on-surface font-headline font-black text-2xl mt-auto mb-4">
                 {{ plan.isFree ? 'Grátis' : (fmtPrice(plan.priceCents) + '/mês') }}
               </p>
-              <a href="#contato" class="text-center bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-4 py-3 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px] flex items-center justify-center">
+              <a href="#contato" (click)="scrollToSection('contato', $event)" class="text-center bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-4 py-3 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px] flex items-center justify-center">
                 Assinar {{ plan.name }}
               </a>
             </div>
