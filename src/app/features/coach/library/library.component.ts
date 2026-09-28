@@ -30,12 +30,19 @@ export class LibraryComponent implements OnInit {
   editingItem   = signal<ExerciseLibraryItem | null>(null);
   saving        = signal(false);
 
-  expandedCategories = signal<Set<string>>(new Set());
-  expandedVideoId = signal<string | null>(null);
+  activeCategory = signal<'all' | string>('all');
 
-  toggleVideo(id: string): void {
-    this.expandedVideoId.update(current => current === id ? null : id);
-  }
+  /** Uma aba por categoria com pelo menos 1 item — contagem real, direto do catálogo carregado. */
+  categoryTabs = computed(() => {
+    const counts = new Map<string, number>();
+    for (const item of this.items()) {
+      const cat = item.category ?? 'Sem categoria';
+      counts.set(cat, (counts.get(cat) ?? 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([name, count]) => ({ name, count }));
+  });
 
   // ── Aba "Histórico por Aluno" ────────────────────────────────────────────
   activeTab            = signal<LibraryTab>('exercises');
@@ -48,22 +55,15 @@ export class LibraryComponent implements OnInit {
 
   form!: FormGroup;
 
+  /** Combina busca por texto + aba de categoria ativa. */
   filteredItems = computed(() => {
     const q = this.searchQuery().toLowerCase();
-    return this.items().filter(i =>
-      i.name.toLowerCase().includes(q) ||
-      (i.category ?? '').toLowerCase().includes(q)
-    );
-  });
-
-  groupedItems = computed(() => {
-    const grouped: Record<string, ExerciseLibraryItem[]> = {};
-    for (const item of this.filteredItems()) {
-      const cat = item.category ?? 'Sem categoria';
-      if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push(item);
-    }
-    return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
+    const activeCat = this.activeCategory();
+    return this.items().filter(i => {
+      const matchesSearch = i.name.toLowerCase().includes(q) || (i.category ?? '').toLowerCase().includes(q);
+      const matchesCategory = activeCat === 'all' || (i.category ?? 'Sem categoria') === activeCat;
+      return matchesSearch && matchesCategory;
+    });
   });
 
   constructor(private api: ApiService, private fb: FormBuilder) {
@@ -82,27 +82,9 @@ export class LibraryComponent implements OnInit {
 
   ngOnInit(): void {
     this.api.getLibrary().subscribe({
-      next: items => {
-        this.items.set(items);
-        this.loading.set(false);
-        const firstCategory = this.groupedItems()[0]?.[0];
-        if (firstCategory) this.expandedCategories.set(new Set([firstCategory]));
-      },
+      next: items => { this.items.set(items); this.loading.set(false); },
       error: () => this.loading.set(false),
     });
-  }
-
-  toggleCategory(cat: string): void {
-    this.expandedCategories.update(set => {
-      const next = new Set(set);
-      next.has(cat) ? next.delete(cat) : next.add(cat);
-      return next;
-    });
-  }
-
-  /** Categoria com resultado de busca ativo sempre aparece expandida, senão segue o toggle manual */
-  isCategoryExpanded(cat: string): boolean {
-    return this.searchQuery().trim().length > 0 || this.expandedCategories().has(cat);
   }
 
   openAdd(): void {

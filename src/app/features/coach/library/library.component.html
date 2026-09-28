@@ -53,6 +53,26 @@
     </div>
   </div>
 
+  <!-- Category tabs -->
+  @if (items().length > 0) {
+    <div class="px-4 md:px-8 mb-4 flex gap-2 flex-shrink-0 overflow-x-auto">
+      <button type="button" (click)="activeCategory.set('all')"
+        class="px-3 py-1.5 rounded-sm text-[10px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
+        [class.bg-primary-fixed]="activeCategory() === 'all'" [class.text-on-primary-fixed]="activeCategory() === 'all'"
+        [class.bg-surface-container]="activeCategory() !== 'all'" [class.text-outline]="activeCategory() !== 'all'">
+        Todos os Vídeos ({{ items().length }})
+      </button>
+      @for (tab of categoryTabs(); track tab.name) {
+        <button type="button" (click)="activeCategory.set(tab.name)"
+          class="px-3 py-1.5 rounded-sm text-[10px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
+          [class.bg-primary-fixed]="activeCategory() === tab.name" [class.text-on-primary-fixed]="activeCategory() === tab.name"
+          [class.bg-surface-container]="activeCategory() !== tab.name" [class.text-outline]="activeCategory() !== tab.name">
+          {{ tab.name }} ({{ tab.count }})
+        </button>
+      }
+    </div>
+  }
+
   <!-- Content -->
   <div class="flex-1 px-4 md:px-8 pb-8 overflow-y-auto">
 
@@ -74,70 +94,61 @@
         </button>
       </div>
     } @else if (filteredItems().length === 0) {
-      <p class="text-outline text-sm font-headline text-center py-12">Nenhum resultado para "{{ searchQuery() }}"</p>
+      <p class="text-outline text-sm font-headline text-center py-12">Nenhum resultado para este filtro.</p>
     } @else {
-      @for (group of groupedItems(); track group[0]) {
-        <div class="mb-3">
-          <!-- Category header (accordion toggle) -->
-          <button type="button" (click)="toggleCategory(group[0])"
-            class="w-full flex items-center gap-3 py-2 group">
-            <span class="material-symbols-outlined text-outline text-[18px] transition-transform"
-              [class.rotate-90]="isCategoryExpanded(group[0])">chevron_right</span>
-            <span class="text-[10px] font-headline font-black uppercase tracking-widest text-outline group-hover:text-on-surface transition-colors">{{ group[0] }}</span>
-            <div class="flex-1 h-px bg-outline-variant/10"></div>
-            <span class="text-outline text-[10px]">{{ group[1].length }}</span>
-          </button>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        @for (item of filteredItems(); track item.id) {
+          <div class="bg-surface-container-low rounded-md overflow-hidden hover:bg-surface-container transition-colors flex flex-col">
 
-          <!-- Exercise cards grid -->
-          @if (isCategoryExpanded(group[0])) {
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-3 animate-fade-in">
-            @for (item of group[1]; track item.id) {
-              <div class="bg-surface-container-low rounded-md p-4 flex flex-col gap-3 hover:bg-surface-container transition-colors">
-                <div class="flex items-start justify-between gap-2">
-                  <div class="flex-1 min-w-0">
-                    <p class="text-on-surface font-headline font-bold text-sm truncate">{{ item.name }}</p>
-                    <p class="text-on-surface-variant text-xs mt-0.5">{{ formatPreview(item) }}
-                      @if (item.loadPercent) {
-                        <span class="text-primary-fixed font-bold"> @ {{ item.loadPercent }}%</span>
-                      }
-                    </p>
-                  </div>
-                  <div class="flex items-center gap-1 flex-shrink-0">
-                    @if (item.youtubeUrl) {
-                      <button type="button" (click)="toggleVideo(item.id)"
-                        [attr.aria-expanded]="expandedVideoId() === item.id"
-                        [attr.aria-label]="'Ver demonstração de ' + item.name"
-                        class="w-6 h-6 flex items-center justify-center text-primary-fixed hover:text-primary transition-colors">
-                        <span class="material-symbols-outlined text-[18px]">{{ expandedVideoId() === item.id ? 'expand_less' : 'play_circle' }}</span>
-                      </button>
-                    }
-                    <button type="button" (click)="openEdit(item)"
-                      class="w-6 h-6 flex items-center justify-center text-outline hover:text-on-surface transition-colors rounded-sm hover:bg-surface-container">
-                      <span class="material-symbols-outlined text-[16px]">edit</span>
-                    </button>
-                    <button type="button" (click)="delete(item)"
-                      class="w-6 h-6 flex items-center justify-center text-outline hover:text-error transition-colors rounded-sm hover:bg-error/10">
-                      <span class="material-symbols-outlined text-[16px]">delete</span>
-                    </button>
-                  </div>
+            <!-- Vídeo real (o próprio componente já é a thumbnail + play — carrega o iframe só no clique) -->
+            <div class="relative flex-shrink-0">
+              @if (item.youtubeUrl) {
+                <app-youtube-embed [url]="item.youtubeUrl" />
+              } @else {
+                <div class="w-full aspect-video bg-surface-container flex items-center justify-center">
+                  <span class="material-symbols-outlined text-outline text-[32px]">fitness_center</span>
                 </div>
-                @if (item.youtubeUrl && expandedVideoId() === item.id) {
-                  <app-youtube-embed [url]="item.youtubeUrl" />
-                }
-                @if (item.notes) {
-                  <p class="text-outline text-xs italic border-l-2 border-primary-fixed/30 pl-2">{{ item.notes }}</p>
-                }
-                @if (item.restSeconds) {
-                  <p class="text-outline text-[10px] font-headline uppercase tracking-wider">
-                    Descanso: {{ item.restSeconds }}s
+              }
+              @if (item.category) {
+                <span class="absolute top-2 left-2 text-[9px] font-headline font-black uppercase tracking-widest bg-surface/90 text-primary-fixed px-2 py-1 rounded-sm pointer-events-none">
+                  {{ item.category }}
+                </span>
+              }
+            </div>
+
+            <div class="p-4 flex flex-col gap-2 flex-1">
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex-1 min-w-0">
+                  <p class="text-on-surface font-headline font-bold text-sm truncate">{{ item.name }}</p>
+                  <p class="text-on-surface-variant text-xs mt-0.5">{{ formatPreview(item) }}
+                    @if (item.loadPercent) {
+                      <span class="text-primary-fixed font-bold"> @ {{ item.loadPercent }}%</span>
+                    }
                   </p>
-                }
+                </div>
+                <div class="flex items-center gap-1 flex-shrink-0">
+                  <button type="button" (click)="openEdit(item)" title="Editar"
+                    class="w-6 h-6 flex items-center justify-center text-outline hover:text-on-surface transition-colors rounded-sm hover:bg-surface-container">
+                    <span class="material-symbols-outlined text-[16px]">edit</span>
+                  </button>
+                  <button type="button" (click)="delete(item)" title="Remover"
+                    class="w-6 h-6 flex items-center justify-center text-outline hover:text-error transition-colors rounded-sm hover:bg-error/10">
+                    <span class="material-symbols-outlined text-[16px]">delete</span>
+                  </button>
+                </div>
               </div>
-            }
+              @if (item.notes) {
+                <p class="text-outline text-xs italic border-l-2 border-primary-fixed/30 pl-2">{{ item.notes }}</p>
+              }
+              @if (item.restSeconds) {
+                <p class="text-outline text-[10px] font-headline uppercase tracking-wider">
+                  Descanso: {{ item.restSeconds }}s
+                </p>
+              }
+            </div>
           </div>
-          }
-        </div>
-      }
+        }
+      </div>
     }
   </div>
 
