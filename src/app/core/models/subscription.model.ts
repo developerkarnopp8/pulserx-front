@@ -143,3 +143,9 @@ export interface MonthlyBreakdown {
   };
 }
 
+/** Resposta do checkout do aluno: plano pago devolve o link da fatura do Asaas pra pagar. */
+export interface CheckoutResult {
+  subscription: Subscription;
+  checkoutUrl: string | null;
+}
+
