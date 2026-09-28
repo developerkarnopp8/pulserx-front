@@ -7,6 +7,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { SocketService } from '../../core/services/socket.service';
 import { NotificationPermissionBannerComponent } from '../../shared/components/notification-permission-banner/notification-permission-banner.component';
 import { NotificationsBellComponent } from '../../shared/components/notifications-bell/notifications-bell.component';
+import { athleteScreenTitle } from '../../shared/utils/athlete-screen-title';
 
 @Component({
   selector: 'app-athlete-shell',
@@ -20,6 +21,18 @@ export class AthleteShellComponent implements OnInit, OnDestroy {
   unreadMsgs   = signal(0);
   /** Telas de tela-cheia (ex: treino ativo) escondem o header/nav fixos do shell. */
   fullScreen   = signal(false);
+  /** Nome da tela atual, mostrado no cabeçalho abaixo da marca. */
+  screenTitle  = signal('');
+
+  /** Abas da barra inferior — Mensagens fica no cabeçalho (com contador), não aqui. */
+  readonly tabs = [
+    { path: '/athlete/home',         icon: 'home',            label: 'Início',   exact: true },
+    { path: '/athlete/weekly',       icon: 'exercise',        label: 'Treino',   exact: false },
+    { path: '/athlete/aulas',        icon: 'play_circle',     label: 'Aulas',    exact: false },
+    { path: '/athlete/records',      icon: 'emoji_events',    label: 'PRs',      exact: false },
+    { path: '/athlete/subscription', icon: 'account_circle',  label: 'Perfil',   exact: false },
+    { path: '/athlete/history',      icon: 'insights',        label: 'Evolução', exact: false },
+  ];
 
   private destroy$ = new Subject<void>();
 
@@ -34,6 +47,7 @@ export class AthleteShellComponent implements OnInit, OnDestroy {
     // dessa mesma navegação pode já ter disparado antes desse subscribe —
     // então também checamos a URL atual de cara, não só eventos futuros.
     this.fullScreen.set(this.router.url.includes('/athlete/active/'));
+    this.screenTitle.set(athleteScreenTitle(this.router.url));
 
     this.socket.newMessage$
       .pipe(takeUntil(this.destroy$))
@@ -52,6 +66,7 @@ export class AthleteShellComponent implements OnInit, OnDestroy {
         this.unreadMsgs.set(0);
       }
       this.fullScreen.set(url.includes('/athlete/active/'));
+      this.screenTitle.set(athleteScreenTitle(url));
     });
   }
 

@@ -3,8 +3,24 @@
   <!-- Top bar -->
   @if (!fullScreen()) {
   <header class="top-bar fixed top-0 left-0 right-0 max-w-md mx-auto z-50 flex items-center justify-between px-6 py-4">
-    <h1 class="font-headline font-black text-xl tracking-tighter text-primary-fixed italic uppercase">PulseRx</h1>
-    <div class="flex items-center gap-3 relative">
+    <div class="leading-none">
+      <h1 class="font-headline font-black text-xl tracking-tighter text-primary-fixed italic uppercase">PulseRx</h1>
+      @if (screenTitle()) {
+        <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-[0.2em] mt-0.5">{{ screenTitle() }}</p>
+      }
+    </div>
+    <div class="flex items-center gap-2 relative">
+      <!-- Mensagens (saiu da barra inferior pra abrir espaço às 6 abas do treino) -->
+      <a routerLink="/athlete/messages"
+        class="relative w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"
+        [attr.aria-label]="unreadMsgs() > 0 ? 'Mensagens, ' + unreadMsgs() + ' não lidas' : 'Mensagens'">
+        <span class="material-symbols-outlined text-[22px]" aria-hidden="true">chat</span>
+        @if (unreadMsgs() > 0) {
+          <span class="absolute top-0.5 right-0.5 min-w-[16px] h-4 bg-error text-on-error text-[9px] font-bold rounded-full flex items-center justify-center px-1" aria-hidden="true">
+            {{ unreadMsgs() > 9 ? '9+' : unreadMsgs() }}
+          </span>
+        }
+      </a>
       <app-notifications-bell />
       <!-- Avatar / menu trigger -->
       <button type="button" (click)="menuOpen.update(v => !v)"
@@ -48,33 +64,17 @@
 
   <!-- Bottom Nav -->
   @if (!fullScreen()) {
-  <nav class="bottom-nav fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 flex justify-around items-center px-6 pt-4 pb-8
-              rounded-t-3xl shadow-[0_-10px_20px_rgba(0,0,0,0.5)]">
-    <a routerLink="/athlete/home" routerLinkActive="text-primary-fixed scale-110" [routerLinkActiveOptions]="{exact:true}"
-       class="flex flex-col items-center gap-1 text-outline transition-all">
-      <span class="material-symbols-outlined text-[24px]">exercise</span>
-      <span class="font-headline text-[10px] uppercase font-bold">Treino</span>
-    </a>
-    <a routerLink="/athlete/weekly" routerLinkActive="text-primary-fixed scale-110"
-       class="flex flex-col items-center gap-1 text-outline transition-all">
-      <span class="material-symbols-outlined text-[24px]">insights</span>
-      <span class="font-headline text-[10px] uppercase font-bold">Evolução</span>
-    </a>
-    <a routerLink="/athlete/messages" routerLinkActive="text-primary-fixed scale-110"
-       class="flex flex-col items-center gap-1 text-outline transition-all relative">
-      <span class="material-symbols-outlined text-[24px]">chat</span>
-      <span class="font-headline text-[10px] uppercase font-bold">Mensagens</span>
-      @if (unreadMsgs() > 0) {
-        <span class="absolute -top-1 -right-1 min-w-[16px] h-4 bg-error text-on-error text-[9px] font-bold rounded-full flex items-center justify-center px-1">
-          {{ unreadMsgs() > 9 ? '9+' : unreadMsgs() }}
-        </span>
-      }
-    </a>
-    <a routerLink="/athlete/history" routerLinkActive="text-primary-fixed scale-110"
-       class="flex flex-col items-center gap-1 text-outline active:scale-95 transition-all">
-      <span class="material-symbols-outlined text-[24px]">person</span>
-      <span class="font-headline text-[10px] uppercase font-bold">Perfil</span>
-    </a>
+  <nav class="bottom-nav fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 grid grid-cols-6 items-stretch px-1 pt-2 pb-6
+              rounded-t-3xl shadow-[0_-10px_20px_rgba(0,0,0,0.5)]" aria-label="Navegação principal">
+    @for (tab of tabs; track tab.path) {
+      <a [routerLink]="tab.path" routerLinkActive="!text-primary-fixed bg-primary-fixed/10" #rla="routerLinkActive"
+         [routerLinkActiveOptions]="{ exact: tab.exact }" [attr.aria-current]="rla.isActive ? 'page' : null"
+         class="min-h-[52px] mx-0.5 flex flex-col items-center justify-center gap-1 rounded-xl text-outline hover:text-on-surface transition-colors
+                focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-fixed">
+        <span class="material-symbols-outlined text-[22px]" aria-hidden="true">{{ tab.icon }}</span>
+        <span class="font-headline text-[9px] uppercase font-bold tracking-wide">{{ tab.label }}</span>
+      </a>
+    }
   </nav>
   }
 

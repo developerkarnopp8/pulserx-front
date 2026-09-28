@@ -50,6 +50,17 @@
           </div>
         }
       </div>
+    } @empty {
+      @if (errorMsg()) {
+        <div role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-3 text-error text-sm">{{ errorMsg() }}</div>
+      } @else {
+        <!-- Os movimentos vêm do catálogo do coach; sem eles não há onde registrar um PR. -->
+        <div class="bg-surface-container-low rounded-md p-5 text-center">
+          <span class="material-symbols-outlined text-[32px] text-outline" aria-hidden="true">emoji_events</span>
+          <p class="text-on-surface text-sm font-semibold mt-2">Ainda não há movimentos para registrar</p>
+          <p class="text-on-surface-variant text-xs mt-1">Seu coach cadastra os movimentos (Snatch, Back Squat…). Assim que ele cadastrar, você registra seus recordes aqui.</p>
+        </div>
+      }
     }
   }
 </div>
