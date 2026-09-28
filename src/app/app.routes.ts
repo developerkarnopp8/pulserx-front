@@ -155,6 +155,13 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/public/coach-landing/coach-landing.component').then(m => m.CoachLandingComponent)
   },
+  // Documentos legais públicos (conteúdo em features/public/legal/legal-content.ts).
+  ...(['termos', 'privacidade', 'cookies', 'reembolso'] as const).map(doc => ({
+    path: doc,
+    data: { doc },
+    loadComponent: () =>
+      import('./features/public/legal/legal-page.component').then(m => m.LegalPageComponent),
+  })),
   {
     // Pública (sem guard): inscrição + pagamento do plano escolhido na landing do coach.
     path: 'c/:slug/assinar/:planId',
