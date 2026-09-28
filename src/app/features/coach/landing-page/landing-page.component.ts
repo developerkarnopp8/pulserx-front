@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DEFAULT_PILLARS, buildPageCopy } from '../../../shared/utils/landing-copy';
 import { ApiService } from '../../../core/services/api.service';
 import { CoachProfile, Testimonial, FaqItem } from '../../../core/models';
 
@@ -41,6 +42,12 @@ export class LandingPageComponent implements OnInit {
   faqForm: FormGroup;
 
   readonly publicUrlOrigin = window.location.origin;
+  /** Padrões dos cards, mostrados como placeholder no editor. */
+  readonly defaultPillars = DEFAULT_PILLARS;
+
+  get pillarControls() {
+    return (this.form.get('pillars') as FormArray).controls;
+  }
 
   constructor(private api: ApiService, private fb: FormBuilder) {
     this.form = this.fb.group({
@@ -56,6 +63,20 @@ export class LandingPageComponent implements OnInit {
       completionRate: [null, [Validators.min(0), Validators.max(100)]],
       whatsappNumber: ['', Validators.maxLength(20)],
       videoUrl: ['', Validators.maxLength(300)],
+      // Garantia (além dos 7 dias legais) e suporte
+      guaranteeDays: [null, [Validators.min(1), Validators.max(365)]],
+      guaranteeText: ['', Validators.maxLength(300)],
+      supportEmail: ['', [Validators.email, Validators.maxLength(200)]],
+      supportHours: ['', Validators.maxLength(100)],
+      // Textos da página (vazio = padrão)
+      howItWorksTitle: ['', Validators.maxLength(80)],
+      plansTitle: ['', Validators.maxLength(80)],
+      finalTitle: ['', Validators.maxLength(80)],
+      finalCtaLabel: ['', Validators.maxLength(40)],
+      pillars: this.fb.array(DEFAULT_PILLARS.map(() => this.fb.group({
+        title: ['', Validators.maxLength(60)],
+        text: ['', Validators.maxLength(200)],
+      }))),
     });
     this.testimonialForm = this.fb.group({
       authorName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(120)]],
@@ -81,6 +102,14 @@ export class LandingPageComponent implements OnInit {
             athletesCount: profile.athletesCount, npsScore: profile.npsScore,
             completionRate: profile.completionRate, whatsappNumber: profile.whatsappNumber ?? '',
             videoUrl: profile.videoUrl ?? '',
+            guaranteeDays: profile.guaranteeDays ?? null, guaranteeText: profile.guaranteeText ?? '',
+            supportEmail: profile.supportEmail ?? '', supportHours: profile.supportHours ?? '',
+            howItWorksTitle: profile.pageCopy?.howItWorksTitle ?? '', plansTitle: profile.pageCopy?.plansTitle ?? '',
+            finalTitle: profile.pageCopy?.finalTitle ?? '', finalCtaLabel: profile.pageCopy?.finalCtaLabel ?? '',
+            pillars: DEFAULT_PILLARS.map((_, i) => ({
+              title: profile.pageCopy?.pillars?.[i]?.title ?? '',
+              text: profile.pageCopy?.pillars?.[i]?.text ?? '',
+            })),
           });
           this.loadTestimonials();
           this.loadFaqItems();
@@ -119,6 +148,12 @@ export class LandingPageComponent implements OnInit {
       completionRate: v['completionRate'] ?? undefined,
       whatsappNumber: (v['whatsappNumber'] as string)?.trim() || undefined,
       videoUrl: (v['videoUrl'] as string)?.trim() || undefined,
+      // null limpa no backend (tirar a garantia/suporte tem de funcionar)
+      guaranteeDays: v['guaranteeDays'] || null,
+      guaranteeText: (v['guaranteeText'] as string)?.trim() || null,
+      supportEmail: (v['supportEmail'] as string)?.trim() || null,
+      supportHours: (v['supportHours'] as string)?.trim() || null,
+      pageCopy: buildPageCopy(this.form.value),
     } as never).subscribe({
       next: profile => {
         this.profile.set(profile);

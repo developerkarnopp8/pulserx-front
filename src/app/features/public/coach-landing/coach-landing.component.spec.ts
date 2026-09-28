@@ -7,6 +7,7 @@ const profile = (over: Partial<PublicCoachProfile> = {}): PublicCoachProfile => 
   coachName: 'Luan', bio: 'Treinador', bannerUrl: null, photoUrl: null, headline: null,
   subheadline: null, quote: null, achievementBadge: null, yearsExperience: null, athletesCount: null,
   npsScore: null, completionRate: null, whatsappNumber: null, videoUrl: null,
+  guaranteeDays: null, guaranteeText: null, supportEmail: null, supportHours: null, pageCopy: null,
   plans: [], testimonials: [], faqItems: [], ...over,
 });
 
@@ -148,3 +149,16 @@ describe('CoachLandingComponent.sendLead', () => {
     expect(component.sending()).toBe(false);
   });
 });
+
+describe('CoachLandingComponent — textos da página', () => {
+  it('usa os textos do coach e completa com o padrão', () => {
+    const { component } = build({
+      getPublicCoachProfile: vi.fn().mockReturnValue(of(profile({ coachName: 'Luan', pageCopy: { plansTitle: 'Planos do Luan' } }))),
+    });
+    component.ngOnInit();
+    expect(component.copy().plansTitle).toBe('Planos do Luan');
+    expect(component.copy().finalCtaLabel).toBe('Quero treinar com Luan');
+    expect(component.copy().pillars).toHaveLength(4);
+  });
+});
+

@@ -1,6 +1,7 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { resolveLandingCopy } from '../../../shared/utils/landing-copy';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
@@ -31,6 +32,9 @@ export class CoachLandingComponent implements OnInit {
   readonly categoryLabel = TRAINING_CATEGORY_LABEL;
 
   slug = '';
+
+  /** Textos da página: os do coach, com padrão (verdadeiro) onde ele não preencheu. */
+  copy = computed(() => resolveLandingCopy(this.profile()?.pageCopy, this.profile()?.coachName ?? ''));
 
   constructor(private api: ApiService, private route: ActivatedRoute, private fb: FormBuilder) {
     this.leadForm = this.fb.group({
