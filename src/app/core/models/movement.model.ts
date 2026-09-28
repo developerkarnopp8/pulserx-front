@@ -3,6 +3,8 @@ export interface Movement {
   name: string;
   category: string;
   coachId?: string;
+  /** Preenchido quando o movimento é do próprio atleta (só ele vê). */
+  athleteId?: string;
 }
 
 export interface PersonalRecord {

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
 import { Movement, PersonalRecord } from '../../../core/models';
+import { MOVEMENT_CATEGORIES, filterMovements } from '../../../shared/utils/movement-filter';
 
 interface MovementWithPR {
   movement: Movement;
@@ -32,6 +33,18 @@ export class RecordsComponent implements OnInit {
   saving = signal(false);
   justRecordedId = signal<string | null>(null);
 
+  // Busca e filtro por grupo
+  search = signal('');
+  selectedCategory = signal<string | null>(null);
+  readonly movementCategories = MOVEMENT_CATEGORIES;
+
+  // Novo movimento (do próprio atleta — só ele vê)
+  showNewMovement = signal(false);
+  newMovementName = signal('');
+  newMovementCategory = signal<string>('Força');
+  creatingMovement = signal(false);
+  newMovementError = signal('');
+
   movementsWithPR = computed<MovementWithPR[]>(() => {
     const recordsByMovement = new Map<string, PersonalRecord[]>();
     for (const r of this.records()) {
@@ -53,9 +66,16 @@ export class RecordsComponent implements OnInit {
     });
   });
 
+  /** Grupos que existem no catálogo carregado (pro seletor "Selecione um grupo"). */
+  availableCategories = computed(() =>
+    [...new Set(this.movements().map(m => m.category))].sort((a, b) => a.localeCompare(b)),
+  );
+
+  isFiltering = computed(() => !!this.search().trim() || this.selectedCategory() !== null);
+
   groupedMovements = computed(() => {
     const grouped: Record<string, MovementWithPR[]> = {};
-    for (const item of this.movementsWithPR()) {
+    for (const item of filterMovements(this.movementsWithPR(), this.search(), this.selectedCategory())) {
       const cat = item.movement.category;
       if (!grouped[cat]) grouped[cat] = [];
       grouped[cat].push(item);
@@ -90,8 +110,42 @@ export class RecordsComponent implements OnInit {
     });
   }
 
+  /** Buscando/filtrando, todo grupo com resultado fica aberto — senão o achado ficaria escondido. */
   isCategoryExpanded(cat: string): boolean {
-    return this.expandedCategories().has(cat);
+    return this.isFiltering() || this.expandedCategories().has(cat);
+  }
+
+  openNewMovement(): void {
+    this.newMovementName.set(this.search().trim());
+    this.newMovementCategory.set(this.selectedCategory() ?? 'Força');
+    this.newMovementError.set('');
+    this.showNewMovement.set(true);
+  }
+
+  closeNewMovement(): void {
+    this.showNewMovement.set(false);
+  }
+
+  /** Cria o movimento e já abre o registro do PR nele. */
+  createMovement(): void {
+    const name = this.newMovementName().trim();
+    if (!name || this.creatingMovement()) return;
+    this.creatingMovement.set(true);
+    this.newMovementError.set('');
+    this.api.createMovement(name, this.newMovementCategory()).subscribe({
+      next: movement => {
+        this.movements.update(list => [...list, movement]);
+        this.creatingMovement.set(false);
+        this.showNewMovement.set(false);
+        this.search.set('');
+        this.openForm(movement);
+      },
+      error: err => {
+        this.creatingMovement.set(false);
+        const msg = err?.error?.message;
+        this.newMovementError.set(Array.isArray(msg) ? msg[0] : (msg ?? 'Não foi possível cadastrar o movimento.'));
+      },
+    });
   }
 
   openForm(movement: Movement): void {
