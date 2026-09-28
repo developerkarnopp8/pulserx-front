@@ -7,6 +7,7 @@ const profile = (over: Partial<CoachProfile> = {}): CoachProfile => ({
   id: 'p1', coachId: 'coach-1', slug: 'luan', bio: 'Treinador', bannerUrl: null, photoUrl: null,
   headline: null, subheadline: null, quote: null, achievementBadge: null, yearsExperience: null,
   athletesCount: null, npsScore: null, completionRate: null, whatsappNumber: null, videoUrl: null,
+  guaranteeDays: null, guaranteeText: null, supportEmail: null, supportHours: null, pageCopy: null,
   published: false, ...over,
 });
 
@@ -60,11 +61,14 @@ describe('LandingPageComponent.ngOnInit', () => {
 
     component.ngOnInit();
 
-    expect(component.form.value).toEqual({
+    expect(component.form.value).toMatchObject({
       slug: 'luan-treinador', bio: 'Bio X', headline: 'H', subheadline: 'S', quote: 'Q',
       achievementBadge: 'Semifinals', yearsExperience: 12, athletesCount: 1400, npsScore: 92,
       completionRate: 88.4, whatsappNumber: '11999999999', videoUrl: 'https://youtu.be/abc',
+      guaranteeDays: null, guaranteeText: '', supportEmail: '', supportHours: '',
+      howItWorksTitle: '', plansTitle: '', finalTitle: '', finalCtaLabel: '',
     });
+    expect(component.form.value.pillars).toHaveLength(4);
     expect(api.getCoachTestimonials).toHaveBeenCalled();
     expect(api.getCoachFaqItems).toHaveBeenCalled();
     expect(component.testimonials()).toEqual([testimonial()]);
@@ -105,6 +109,7 @@ describe('LandingPageComponent.save', () => {
       slug: 'luan', bio: 'Treinador', headline: undefined, subheadline: undefined, quote: undefined,
       achievementBadge: undefined, yearsExperience: 12, athletesCount: undefined, npsScore: undefined,
       completionRate: undefined, whatsappNumber: undefined, videoUrl: undefined,
+      guaranteeDays: null, guaranteeText: null, supportEmail: null, supportHours: null, pageCopy: {},
     });
     expect(component.successMsg()).toBe('Salvo!');
     expect(component.saving()).toBe(false);
@@ -426,3 +431,46 @@ describe('LandingPageComponent — FAQ', () => {
     window.confirm = original;
   });
 });
+
+describe('LandingPageComponent — garantia, suporte e textos da página', () => {
+  it('carrega garantia, suporte e textos salvos (inclusive os cards na posição certa)', () => {
+    const { component } = build({
+      getMyCoachProfile: vi.fn().mockReturnValue(of(profile({
+        guaranteeDays: 30, guaranteeText: 'Devolvo 100%', supportEmail: 'suporte@example.com', supportHours: 'Seg a sex',
+        pageCopy: { howItWorksTitle: 'Meu método', finalCtaLabel: 'Bora', pillars: [{ title: '', text: '' }, { title: 'B', text: 'Texto B' }] },
+      }))),
+    });
+    component.ngOnInit();
+    expect(component.form.value).toMatchObject({
+      guaranteeDays: 30, guaranteeText: 'Devolvo 100%', supportEmail: 'suporte@example.com', supportHours: 'Seg a sex',
+      howItWorksTitle: 'Meu método', finalCtaLabel: 'Bora', plansTitle: '',
+    });
+    expect(component.form.value.pillars[1]).toEqual({ title: 'B', text: 'Texto B' });
+    expect(component.form.value.pillars[3]).toEqual({ title: '', text: '' });
+    expect(component.pillarControls).toHaveLength(4);
+    expect(component.defaultPillars[0].title).toBeTruthy();
+  });
+
+  it('salva garantia/suporte (vazio vira null pra limpar) e os textos preenchidos', () => {
+    const { component, api } = build();
+    component.form.patchValue({
+      slug: 'luan', guaranteeDays: 15, guaranteeText: '  Sem letra miúda ', supportEmail: 'suporte@example.com',
+      plansTitle: ' Planos ', pillars: [{ title: 'A', text: 'Texto A' }, { title: '', text: '' }, { title: '', text: '' }, { title: '', text: '' }],
+    });
+    component.save();
+    expect(api.upsertCoachProfile).toHaveBeenCalledWith(expect.objectContaining({
+      guaranteeDays: 15, guaranteeText: 'Sem letra miúda', supportEmail: 'suporte@example.com', supportHours: null,
+      pageCopy: { plansTitle: 'Planos', pillars: [{ title: 'A', text: 'Texto A' }, { title: '', text: '' }, { title: '', text: '' }, { title: '', text: '' }] },
+    }));
+  });
+
+  it('garantia fora de 1–365 ou e-mail inválido: não salva', () => {
+    const { component, api } = build();
+    component.form.patchValue({ slug: 'luan', guaranteeDays: 400 });
+    component.save();
+    component.form.patchValue({ guaranteeDays: null, supportEmail: 'nao-e-email' });
+    component.save();
+    expect(api.upsertCoachProfile).not.toHaveBeenCalled();
+  });
+});
+

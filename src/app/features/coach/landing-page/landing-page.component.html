@@ -141,6 +141,87 @@
           </label>
         </div>
 
+        <!-- Garantia e suporte -->
+        <fieldset class="border border-outline-variant/15 rounded-md p-4 flex flex-col gap-3">
+          <legend class="px-1 text-[10px] font-headline uppercase tracking-widest text-on-surface-variant">Garantia e suporte</legend>
+          <p class="text-outline text-xs">O arrependimento de 7 dias já é garantido por lei a todo aluno. Preencha a garantia só se você oferece mais que isso.</p>
+          <div class="grid grid-cols-1 md:grid-cols-[160px_1fr] gap-3">
+            <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+              Garantia (dias)
+              <input type="number" formControlName="guaranteeDays" min="1" max="365" placeholder="Ex.: 30"
+                class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+            </label>
+            <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+              Como funciona a garantia
+              <input type="text" formControlName="guaranteeText" maxlength="300" placeholder="Ex.: Se não gostar nos primeiros 30 dias, devolvo 100%."
+                class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+            </label>
+          </div>
+          @if (form.get('guaranteeDays')?.invalid && form.get('guaranteeDays')?.touched) {
+            <p class="text-error text-xs">A garantia vai de 1 a 365 dias.</p>
+          }
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+              E-mail de suporte
+              <input type="email" formControlName="supportEmail" maxlength="200" placeholder="suporte@seudominio.com"
+                class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+            </label>
+            <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+              Horário de atendimento
+              <input type="text" formControlName="supportHours" maxlength="100" placeholder="Ex.: Seg a sex, 8h às 18h"
+                class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+            </label>
+          </div>
+          @if (form.get('supportEmail')?.invalid && form.get('supportEmail')?.touched) {
+            <p class="text-error text-xs">Informe um e-mail válido.</p>
+          }
+        </fieldset>
+
+        <!-- Textos da página (vazio = texto padrão, mostrado como exemplo) -->
+        <fieldset class="border border-outline-variant/15 rounded-md p-4 flex flex-col gap-3">
+          <legend class="px-1 text-[10px] font-headline uppercase tracking-widest text-on-surface-variant">Textos da página</legend>
+          <p class="text-outline text-xs">Deixe em branco para usar o texto padrão (aparece como exemplo no campo).</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+              Título "Como funciona"
+              <input type="text" formControlName="howItWorksTitle" maxlength="80" placeholder="Como funciona o acompanhamento"
+                class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+            </label>
+            <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+              Título dos planos
+              <input type="text" formControlName="plansTitle" maxlength="80" placeholder="Escolha seu plano"
+                class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+            </label>
+            <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+              Título da chamada final
+              <input type="text" formControlName="finalTitle" maxlength="80" placeholder="Comece a treinar com (seu nome)"
+                class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+            </label>
+            <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+              Botão da chamada final
+              <input type="text" formControlName="finalCtaLabel" maxlength="40" placeholder="Quero treinar com (seu nome)"
+                class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+            </label>
+          </div>
+          <p class="text-[10px] font-headline uppercase tracking-widest text-on-surface-variant mt-1">Cards do "Como funciona"</p>
+          <div formArrayName="pillars" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            @for (group of pillarControls; track $index; let i = $index) {
+              <div [formGroupName]="i" class="bg-surface-container-low rounded-sm p-3 flex flex-col gap-2">
+                <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+                  Card {{ i + 1 }} — título
+                  <input type="text" formControlName="title" maxlength="60" [placeholder]="defaultPillars[i].title"
+                    class="bg-surface-container rounded-sm px-3 py-2 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
+                </label>
+                <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
+                  Texto
+                  <textarea formControlName="text" maxlength="200" rows="2" [placeholder]="defaultPillars[i].text"
+                    class="bg-surface-container rounded-sm px-3 py-2 text-sm text-on-surface normal-case tracking-normal resize-none"></textarea>
+                </label>
+              </div>
+            }
+          </div>
+        </fieldset>
+
         <button type="submit" [disabled]="saving()"
           class="self-start bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black px-6 py-2.5 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px]">
           {{ saving() ? 'Salvando...' : 'Salvar' }}

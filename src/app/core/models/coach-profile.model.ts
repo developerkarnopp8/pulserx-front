@@ -1,4 +1,5 @@
 import { SubscriptionPlan } from './subscription.model';
+import { LandingPageCopy } from '../../shared/utils/landing-copy';
 
 export interface CoachProfile {
   id: string;
@@ -17,6 +18,13 @@ export interface CoachProfile {
   completionRate: number | null;
   whatsappNumber: string | null;
   videoUrl: string | null;
+  /** Garantia oferecida pelo coach (além dos 7 dias legais) e suporte ao aluno. */
+  guaranteeDays: number | null;
+  guaranteeText: string | null;
+  supportEmail: string | null;
+  supportHours: string | null;
+  /** Textos editáveis da página (ausente = padrão). */
+  pageCopy: LandingPageCopy | null;
   published: boolean;
 }
 
@@ -33,6 +41,12 @@ export interface UpdateCoachProfileInput {
   completionRate?: number;
   whatsappNumber?: string;
   videoUrl?: string;
+  /** null limpa (o coach tirou a garantia/suporte). */
+  guaranteeDays?: number | null;
+  guaranteeText?: string | null;
+  supportEmail?: string | null;
+  supportHours?: string | null;
+  pageCopy?: LandingPageCopy;
 }
 
 export interface Testimonial {
@@ -80,6 +94,13 @@ export interface PublicCoachProfile {
   completionRate: number | null;
   whatsappNumber: string | null;
   videoUrl: string | null;
+  /** Garantia oferecida pelo coach (além dos 7 dias legais) e suporte ao aluno. */
+  guaranteeDays: number | null;
+  guaranteeText: string | null;
+  supportEmail: string | null;
+  supportHours: string | null;
+  /** Textos editáveis da página (ausente = padrão). */
+  pageCopy: LandingPageCopy | null;
   plans: Pick<SubscriptionPlan, 'id' | 'name' | 'description' | 'priceCents' | 'categories' | 'isFree'>[];
   testimonials: Testimonial[];
   faqItems: FaqItem[];

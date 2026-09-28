@@ -100,32 +100,19 @@
       </div>
     </section>
 
-    <!-- Diferenciais (conteúdo fixo do método, igual pra todo coach) -->
+    <!-- Como funciona: textos editáveis pelo coach, padrão verdadeiro onde ele não preencheu -->
     <section class="bg-surface-container-low/40 py-16">
       <div class="max-w-5xl mx-auto px-5">
         <p class="text-[10px] font-headline uppercase tracking-widest text-primary-fixed mb-2">Engenharia do desempenho</p>
-        <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface tracking-tighter mb-8">Como funciona o acompanhamento</h2>
+        <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface tracking-tighter mb-8">{{ copy().howItWorksTitle }}</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="bg-surface-container-low rounded-md p-5">
-            <span class="material-symbols-outlined text-primary-fixed text-[28px] mb-3 block">calendar_month</span>
-            <p class="font-headline font-bold text-sm text-on-surface mb-1">Periodização cíclica</p>
-            <p class="text-on-surface-variant text-xs leading-relaxed">Macrociclos divididos em fases de acúmulo, força e pico, sem estagnar o progresso.</p>
-          </div>
-          <div class="bg-surface-container-low rounded-md p-5">
-            <span class="material-symbols-outlined text-primary-fixed text-[28px] mb-3 block">fitness_center</span>
-            <p class="font-headline font-bold text-sm text-on-surface mb-1">Cargas adaptativas</p>
-            <p class="text-on-surface-variant text-xs leading-relaxed">Registre seu PR e o plano recalcula a carga certa pra cada sessão.</p>
-          </div>
-          <div class="bg-surface-container-low rounded-md p-5">
-            <span class="material-symbols-outlined text-primary-fixed text-[28px] mb-3 block">smart_display</span>
-            <p class="font-headline font-bold text-sm text-on-surface mb-1">Vídeo por exercício</p>
-            <p class="text-on-surface-variant text-xs leading-relaxed">Demonstração de cada movimento, pra treinar com técnica correta mesmo à distância.</p>
-          </div>
-          <div class="bg-surface-container-low rounded-md p-5">
-            <span class="material-symbols-outlined text-primary-fixed text-[28px] mb-3 block">smartphone</span>
-            <p class="font-headline font-bold text-sm text-on-surface mb-1">No seu bolso</p>
-            <p class="text-on-surface-variant text-xs leading-relaxed">Treino, histórico e recordes acessíveis pelo app, a qualquer hora.</p>
-          </div>
+          @for (pillar of copy().pillars; track $index) {
+            <div class="bg-surface-container-low rounded-md p-5">
+              <span class="material-symbols-outlined text-primary-fixed text-[28px] mb-3 block" aria-hidden="true">{{ pillar.icon }}</span>
+              <p class="font-headline font-bold text-sm text-on-surface mb-1">{{ pillar.title }}</p>
+              <p class="text-on-surface-variant text-xs leading-relaxed">{{ pillar.text }}</p>
+            </div>
+          }
         </div>
       </div>
     </section>
@@ -134,7 +121,18 @@
     @if (p.plans.length > 0) {
       <section id="planos" class="max-w-5xl mx-auto px-5 py-16">
         <p class="text-[10px] font-headline uppercase tracking-widest text-primary-fixed mb-2">Matrículas abertas</p>
-        <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface tracking-tighter mb-8">Escolha seu plano</h2>
+        <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface tracking-tighter mb-4">{{ copy().plansTitle }}</h2>
+        @if (p.guaranteeDays) {
+          <div class="mb-8 inline-flex items-start gap-3 bg-green-500/10 border border-green-500/30 rounded-md px-4 py-3 max-w-2xl">
+            <span class="material-symbols-outlined text-green-400 text-[22px]" aria-hidden="true">verified_user</span>
+            <div>
+              <p class="text-on-surface font-headline font-bold text-sm">Garantia de {{ p.guaranteeDays }} {{ p.guaranteeDays === 1 ? 'dia' : 'dias' }}</p>
+              @if (p.guaranteeText) { <p class="text-on-surface-variant text-xs mt-0.5">{{ p.guaranteeText }}</p> }
+            </div>
+          </div>
+        } @else {
+          <div class="mb-8"></div>
+        }
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           @for (plan of p.plans; track plan.id; let i = $index) {
             <div class="rounded-md p-5 flex flex-col"
@@ -218,6 +216,46 @@
       </div>
     </section>
 
+    <!-- Pagamento e suporte: formas de pagamento são regra da plataforma (fixas); suporte vem do coach -->
+    <section class="max-w-5xl mx-auto px-5 py-12" aria-labelledby="pagamento-suporte">
+      <p class="text-[10px] font-headline uppercase tracking-widest text-primary-fixed mb-2">Sem surpresas</p>
+      <h2 id="pagamento-suporte" class="font-headline font-black text-2xl md:text-3xl text-on-surface tracking-tighter mb-6">Pagamento e suporte</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-surface-container-low rounded-md p-5">
+          <p class="text-on-surface font-headline font-bold text-sm mb-3 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary-fixed text-[20px]" aria-hidden="true">payments</span> Formas de pagamento
+          </p>
+          <ul class="flex flex-wrap gap-2 mb-3">
+            <li class="text-xs bg-surface-container px-3 py-1.5 rounded-full text-on-surface">PIX</li>
+            <li class="text-xs bg-surface-container px-3 py-1.5 rounded-full text-on-surface">Boleto</li>
+            <li class="text-xs bg-surface-container px-3 py-1.5 rounded-full text-on-surface">Cartão de crédito</li>
+          </ul>
+          <p class="text-on-surface-variant text-xs">Assinatura mensal, pagamento pela página segura do Asaas. Cancele quando quiser pelo app. Arrependimento em até 7 dias da contratação (CDC, art. 49) — <a routerLink="/reembolso" class="text-primary-fixed underline">política de reembolso</a>.</p>
+        </div>
+        <div class="bg-surface-container-low rounded-md p-5">
+          <p class="text-on-surface font-headline font-bold text-sm mb-3 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary-fixed text-[20px]" aria-hidden="true">support_agent</span> Suporte
+          </p>
+          <ul class="space-y-2 text-sm text-on-surface-variant">
+            @if (p.supportEmail) {
+              <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]" aria-hidden="true">mail</span>
+                <a [href]="'mailto:' + p.supportEmail" class="text-on-surface underline break-all">{{ p.supportEmail }}</a></li>
+            }
+            @if (whatsappLink) {
+              <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]" aria-hidden="true">chat</span>
+                <a [href]="whatsappLink" target="_blank" rel="noopener" class="text-on-surface underline">WhatsApp</a></li>
+            }
+            @if (p.supportHours) {
+              <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]" aria-hidden="true">schedule</span>{{ p.supportHours }}</li>
+            }
+            @if (!p.supportEmail && !whatsappLink && !p.supportHours) {
+              <li>Fale com {{ p.coachName }} pelo formulário de contato no fim da página.</li>
+            }
+          </ul>
+        </div>
+      </div>
+    </section>
+
     <!-- FAQ -->
     @if (p.faqItems.length > 0) {
       <section id="faq" class="max-w-3xl mx-auto px-5 py-16">
@@ -239,14 +277,14 @@
       <div class="max-w-2xl mx-auto px-5">
         <div class="text-center mb-8">
           <p class="text-[10px] font-headline uppercase tracking-widest text-primary-fixed mb-2">A hora de começar é agora</p>
-          <h2 class="font-headline font-black text-2xl md:text-4xl text-on-surface tracking-tighter">Comece a treinar com {{ p.coachName }}</h2>
+          <h2 class="font-headline font-black text-2xl md:text-4xl text-on-surface tracking-tighter">{{ copy().finalTitle }}</h2>
         </div>
 
         @if (!showLeadForm() && !sent()) {
           <div class="flex flex-col sm:flex-row gap-3 justify-center">
             <button type="button" (click)="showLeadForm.set(true)"
               class="bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-6 py-4 rounded-sm uppercase tracking-tighter text-sm transition-all min-h-[44px]">
-              Quero treinar com {{ p.coachName }}
+              {{ copy().finalCtaLabel }}
             </button>
             @if (whatsappLink) {
               <a [href]="whatsappLink" target="_blank" rel="noopener"
