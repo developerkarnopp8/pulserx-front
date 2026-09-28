@@ -22,6 +22,7 @@ export class RecordsComponent implements OnInit {
   movements = signal<Movement[]>([]);
   records   = signal<PersonalRecord[]>([]);
   loading   = signal(true);
+  errorMsg  = signal('');
   expandedCategories = signal<Set<string>>(new Set());
 
   showForm = signal<Movement | null>(null);
@@ -65,11 +66,18 @@ export class RecordsComponent implements OnInit {
   constructor(private api: ApiService) {}
 
   ngOnInit(): void {
-    this.api.getMovements().subscribe(movements => {
-      this.movements.set(movements);
-      this.loading.set(false);
-      const firstCategory = this.groupedMovements()[0]?.[0];
-      if (firstCategory) this.expandedCategories.set(new Set([firstCategory]));
+    this.api.getMovements().subscribe({
+      next: movements => {
+        this.movements.set(movements);
+        this.loading.set(false);
+        const firstCategory = this.groupedMovements()[0]?.[0];
+        if (firstCategory) this.expandedCategories.set(new Set([firstCategory]));
+      },
+      // Sem isto a tela ficava presa no carregando (nenhum aviso) quando a API falhava.
+      error: () => {
+        this.loading.set(false);
+        this.errorMsg.set('Não foi possível carregar seus recordes.');
+      },
     });
     this.api.getMyPersonalRecords().subscribe(records => this.records.set(records));
   }

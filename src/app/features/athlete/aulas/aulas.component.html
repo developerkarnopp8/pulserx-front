@@ -1,0 +1,63 @@
+<div class="px-5 py-4 animate-fade-in">
+
+  <div class="mb-5">
+    <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-1">Vídeos do seu treino</p>
+    <h2 class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none uppercase">Aulas</h2>
+  </div>
+
+  @if (loading()) {
+    <div class="space-y-3" aria-busy="true" aria-label="Carregando aulas">
+      <div class="h-10 bg-surface-container-low rounded-md animate-pulse"></div>
+      <div class="h-48 bg-surface-container-low rounded-md animate-pulse"></div>
+    </div>
+  } @else if (errorMsg()) {
+    <div role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-3 text-error text-sm">{{ errorMsg() }}</div>
+  } @else if (!totalVideos()) {
+    <div class="bg-surface-container-low rounded-md p-5 text-center">
+      <span class="material-symbols-outlined text-[32px] text-outline" aria-hidden="true">play_circle</span>
+      <p class="text-on-surface text-sm font-semibold mt-2">Nenhuma aula ainda</p>
+      <p class="text-on-surface-variant text-xs mt-1">Os vídeos aparecem aqui quando seu coach adicionar vídeo aos exercícios do seu treino.</p>
+    </div>
+  } @else {
+    <!-- Filtro por categoria -->
+    @if (groups().length > 1) {
+      <div class="flex gap-2 mb-5 overflow-x-auto" role="group" aria-label="Filtrar por categoria">
+        <button type="button" (click)="select(null)" [attr.aria-pressed]="selected() === null"
+          class="min-h-[44px] px-4 rounded-full text-xs font-headline uppercase tracking-widest flex-shrink-0 transition-colors"
+          [class.bg-primary-fixed]="selected() === null" [class.text-on-primary-fixed]="selected() === null"
+          [class.bg-surface-container-low]="selected() !== null" [class.text-on-surface-variant]="selected() !== null">
+          Todas
+        </button>
+        @for (g of groups(); track g.category) {
+          <button type="button" (click)="select(g.category)" [attr.aria-pressed]="selected() === g.category"
+            class="min-h-[44px] px-4 rounded-full text-xs font-headline uppercase tracking-widest flex-shrink-0 transition-colors"
+            [class.bg-primary-fixed]="selected() === g.category" [class.text-on-primary-fixed]="selected() === g.category"
+            [class.bg-surface-container-low]="selected() !== g.category" [class.text-on-surface-variant]="selected() !== g.category">
+            {{ g.label }}
+          </button>
+        }
+      </div>
+    }
+
+    @for (g of visibleGroups(); track g.category) {
+      <section class="mb-6" [attr.aria-labelledby]="'aulas-' + g.category">
+        <h3 [id]="'aulas-' + g.category" class="flex items-center justify-between text-on-surface font-headline font-black text-sm uppercase tracking-widest mb-3">
+          {{ g.label }}
+          <span class="text-outline text-[10px] font-normal">{{ g.videos.length }} {{ g.videos.length === 1 ? 'vídeo' : 'vídeos' }}</span>
+        </h3>
+        <ul class="space-y-3">
+          @for (v of g.videos; track v.videoId) {
+            <li class="bg-surface-container-low rounded-md overflow-hidden">
+              <app-youtube-embed [url]="v.url" />
+              <div class="px-4 py-3">
+                <p class="text-on-surface text-sm font-semibold">{{ v.exerciseName }}</p>
+                <p class="text-on-surface-variant text-xs mt-0.5">{{ v.sessionName }}</p>
+              </div>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+
+</div>

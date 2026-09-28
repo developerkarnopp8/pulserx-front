@@ -117,6 +117,11 @@ export const routes: Routes = [
           import('./features/athlete/records/records.component').then(m => m.RecordsComponent)
       },
       {
+        path: 'aulas',
+        loadComponent: () =>
+          import('./features/athlete/aulas/aulas.component').then(m => m.AulasComponent)
+      },
+      {
         path: 'messages',
         loadComponent: () =>
           import('./features/athlete/messages/messages.component').then(m => m.AthleteMessagesComponent)
