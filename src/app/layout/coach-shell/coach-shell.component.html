@@ -8,13 +8,79 @@
   </div>
 }
 
+<!-- Blocos compartilhados entre o menu lateral (desktop) e o drawer (celular) -->
+<ng-template #brand>
+  <div class="flex items-center gap-2.5">
+    <span class="w-9 h-9 rounded-lg bg-primary-fixed/15 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+      <span class="material-symbols-outlined text-primary-fixed text-[22px]">monitor_heart</span>
+    </span>
+    <div class="leading-none">
+      <p class="font-condensed font-extrabold text-2xl text-on-surface uppercase tracking-wide">PulseRx</p>
+      <p class="font-condensed font-semibold text-[11px] text-on-surface-variant uppercase tracking-[0.2em] mt-0.5">Painel do Coach</p>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #nav>
+  <nav class="flex-1 px-3 space-y-1" aria-label="Menu do coach">
+    @for (item of navItems; track item.label) {
+      @if (item.soon) {
+        <span class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-outline/40 cursor-not-allowed select-none">
+          <span class="material-symbols-outlined text-[20px]" aria-hidden="true">{{ item.icon }}</span>
+          <span class="flex-1">{{ item.label }}</span>
+          <span class="text-[9px] font-condensed uppercase tracking-widest bg-surface-container px-1.5 py-0.5 rounded-sm">em breve</span>
+        </span>
+      } @else {
+        <a [routerLink]="item.route" (click)="closeMobileMenu()"
+           [attr.aria-current]="isNavActive(item.route) ? 'page' : null"
+           class="flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-lg text-sm transition-colors duration-150
+                  focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-fixed"
+           [ngClass]="isNavActive(item.route)
+             ? 'bg-primary-fixed text-on-primary-fixed font-semibold shadow-lg shadow-primary-fixed/20'
+             : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'">
+          <span class="material-symbols-outlined text-[20px]" aria-hidden="true">{{ item.icon }}</span>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    }
+  </nav>
+</ng-template>
+
+<ng-template #footer>
+  <div class="px-3 pt-4">
+    <button type="button" (click)="closeMobileMenu(); openModal()"
+            class="w-full min-h-[48px] bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-condensed font-extrabold text-base rounded-lg uppercase tracking-wider transition-colors flex items-center justify-center gap-2">
+      <span class="material-symbols-outlined text-[20px]" aria-hidden="true">add</span>
+      Novo Treino
+    </button>
+  </div>
+  <div class="mx-3 mt-4 p-3 rounded-lg bg-surface-container-low border border-outline-variant/10 flex items-center gap-3">
+    <div class="w-9 h-9 rounded-full bg-primary-fixed/20 text-primary-fixed flex items-center justify-center text-sm font-condensed font-extrabold flex-shrink-0" aria-hidden="true">
+      {{ auth.currentUser()?.name?.charAt(0)?.toUpperCase() ?? 'C' }}
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-on-surface text-xs font-semibold truncate">{{ auth.currentUser()?.name ?? 'Coach' }}</p>
+      <p class="text-outline text-[10px] truncate">{{ auth.currentUser()?.email }}</p>
+    </div>
+    <button type="button" (click)="logout()" aria-label="Sair"
+      class="w-9 h-9 flex items-center justify-center rounded-md text-outline hover:text-error hover:bg-error/10 transition-colors flex-shrink-0">
+      <span class="material-symbols-outlined text-[20px]" aria-hidden="true">logout</span>
+    </button>
+  </div>
+</ng-template>
+
 <!-- Header fixo (mobile, <768px) -->
-<header class="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3 bg-background border-b border-outline-variant/10">
+<header class="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3 bg-surface-container-lowest border-b border-outline-variant/10">
   <button type="button" (click)="toggleMobileMenu()" aria-label="Abrir menu"
-    class="w-9 h-9 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors">
-    <span class="material-symbols-outlined text-[24px]">menu</span>
+    class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors">
+    <span class="material-symbols-outlined text-[24px]" aria-hidden="true">menu</span>
   </button>
-  <h1 class="text-base font-bold text-on-surface font-headline">Coach <span class="text-primary-fixed">PulseRx</span></h1>
+  <div class="text-center leading-none">
+    <p class="font-condensed font-extrabold text-lg text-on-surface uppercase tracking-wide">PulseRx</p>
+    @if (screenTitle()) {
+      <p class="font-condensed font-semibold text-[10px] text-primary-fixed uppercase tracking-[0.2em] mt-0.5">{{ screenTitle() }}</p>
+    }
+  </div>
   <app-notifications-bell />
 </header>
 
@@ -22,135 +88,44 @@
 @if (mobileMenuOpen()) {
   <div class="md:hidden fixed inset-0 z-50 flex animate-fade-in">
     <div class="absolute inset-0 bg-black/80" (click)="closeMobileMenu()"></div>
-    <div class="relative w-64 h-full bg-background border-r border-outline-variant/10 flex flex-col py-8 animate-slide-up overflow-y-auto">
-
-      <!-- Brand -->
-      <div class="px-6 mb-8">
-        <h1 class="text-xl font-bold text-on-surface font-headline">Coach Premium</h1>
-        <p class="text-[10px] text-primary-fixed tracking-widest uppercase font-headline mt-0.5">Nível Elite</p>
-      </div>
-
-      <!-- Nav -->
-      <nav class="flex-1 px-4 space-y-1">
-        @for (item of navItems; track item.label) {
-          @if (item.soon) {
-            <span class="flex items-center gap-3 px-4 py-3 font-headline text-outline/40 cursor-not-allowed select-none">
-              <span class="material-symbols-outlined text-[22px]">{{ item.icon }}</span>
-              <span class="flex-1">{{ item.label }}</span>
-              <span class="text-[9px] font-headline uppercase tracking-widest bg-surface-container px-1.5 py-0.5 rounded-sm">em breve</span>
-            </span>
-          } @else {
-            <a [routerLink]="item.route" (click)="closeMobileMenu()"
-               class="flex items-center gap-3 px-4 py-3 transition-all duration-200 font-headline hover:bg-surface-container/50 hover:text-on-surface"
-               [class.bg-surface-container-high]="isNavActive(item.route)"
-               [class.text-primary-fixed]="isNavActive(item.route)"
-               [class.font-bold]="isNavActive(item.route)"
-               [class.rounded-r-full]="isNavActive(item.route)"
-               [class.text-outline]="!isNavActive(item.route)">
-              <span class="material-symbols-outlined text-[22px]">{{ item.icon }}</span>
-              <span>{{ item.label }}</span>
-            </a>
-          }
-        }
-      </nav>
-
-      <!-- Novo Treino CTA -->
-      <div class="px-6 pt-6">
-        <button type="button" (click)="closeMobileMenu(); openModal()"
-                class="w-full bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black py-4 rounded-md uppercase tracking-tighter transition-all flex items-center justify-center gap-2">
-          <span class="material-symbols-outlined text-[20px]">add</span>
-          Novo Treino
-        </button>
-      </div>
-
-      <!-- User + Logout -->
-      <div class="px-6 pt-4 pb-2 border-t border-outline-variant/10 mt-4">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="w-8 h-8 rounded-sm bg-primary-fixed/20 text-primary-fixed flex items-center justify-center text-xs font-headline font-black flex-shrink-0">
-            {{ auth.currentUser()?.name?.charAt(0)?.toUpperCase() ?? 'C' }}
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-on-surface text-xs font-headline font-bold truncate">{{ auth.currentUser()?.name ?? 'Coach' }}</p>
-            <p class="text-outline text-[10px] truncate">{{ auth.currentUser()?.email }}</p>
-          </div>
-        </div>
-        <button type="button" (click)="logout()"
-          class="w-full flex items-center gap-2 px-3 py-2 rounded-sm text-outline hover:text-error hover:bg-error/10 font-headline text-xs uppercase tracking-wider transition-all">
-          <span class="material-symbols-outlined text-[18px]">logout</span>
-          Sair
-        </button>
-      </div>
+    <div class="relative w-72 h-full bg-surface-container-lowest border-r border-outline-variant/10 flex flex-col py-6 animate-slide-up overflow-y-auto">
+      <div class="px-5 mb-6"><ng-container [ngTemplateOutlet]="brand" /></div>
+      <ng-container [ngTemplateOutlet]="nav" />
+      <div class="pb-2"><ng-container [ngTemplateOutlet]="footer" /></div>
     </div>
   </div>
 }
 
-<div class="flex mx-auto max-w-[1440px] h-screen bg-background overflow-hidden">
+<div class="flex mx-auto max-w-[1600px] h-screen bg-background overflow-hidden">
 
   <!-- Sidebar -->
-  <aside class="hidden md:flex w-64 h-screen flex-shrink-0 border-r border-outline-variant/10 bg-background flex-col py-8">
-    <!-- Brand -->
-    <div class="px-6 mb-8 flex items-start justify-between">
-      <div>
-        <h1 class="text-xl font-bold text-on-surface font-headline">Coach Premium</h1>
-        <p class="text-[10px] text-primary-fixed tracking-widest uppercase font-headline mt-0.5">Nível Elite</p>
-      </div>
-      <app-notifications-bell align="start" />
-    </div>
-
-    <!-- Nav -->
-    <nav class="flex-1 px-4 space-y-1">
-      @for (item of navItems; track item.label) {
-        @if (item.soon) {
-          <span class="flex items-center gap-3 px-4 py-3 font-headline text-outline/40 cursor-not-allowed select-none">
-            <span class="material-symbols-outlined text-[22px]">{{ item.icon }}</span>
-            <span class="flex-1">{{ item.label }}</span>
-            <span class="text-[9px] font-headline uppercase tracking-widest bg-surface-container px-1.5 py-0.5 rounded-sm">em breve</span>
-          </span>
-        } @else {
-          <a [routerLink]="item.route"
-             class="flex items-center gap-3 px-4 py-3 transition-all duration-200 font-headline hover:bg-surface-container/50 hover:text-on-surface"
-             [class.bg-surface-container-high]="isNavActive(item.route)"
-             [class.text-primary-fixed]="isNavActive(item.route)"
-             [class.font-bold]="isNavActive(item.route)"
-             [class.rounded-r-full]="isNavActive(item.route)"
-             [class.text-outline]="!isNavActive(item.route)">
-            <span class="material-symbols-outlined text-[22px]">{{ item.icon }}</span>
-            <span>{{ item.label }}</span>
-          </a>
-        }
-      }
-    </nav>
-
-    <!-- Novo Treino CTA -->
-    <div class="px-6 pt-6">
-      <button type="button" (click)="openModal()"
-              class="w-full bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black py-4 rounded-md uppercase tracking-tighter transition-all flex items-center justify-center gap-2">
-        <span class="material-symbols-outlined text-[20px]">add</span>
-        Novo Treino
-      </button>
-    </div>
-
-    <!-- User + Logout -->
-    <div class="px-6 pt-4 pb-2 border-t border-outline-variant/10 mt-4">
-      <div class="flex items-center gap-3 mb-3">
-        <div class="w-8 h-8 rounded-sm bg-primary-fixed/20 text-primary-fixed flex items-center justify-center text-xs font-headline font-black flex-shrink-0">
-          {{ auth.currentUser()?.name?.charAt(0)?.toUpperCase() ?? 'C' }}
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-on-surface text-xs font-headline font-bold truncate">{{ auth.currentUser()?.name ?? 'Coach' }}</p>
-          <p class="text-outline text-[10px] truncate">{{ auth.currentUser()?.email }}</p>
-        </div>
-      </div>
-      <button type="button" (click)="logout()"
-        class="w-full flex items-center gap-2 px-3 py-2 rounded-sm text-outline hover:text-error hover:bg-error/10 font-headline text-xs uppercase tracking-wider transition-all">
-        <span class="material-symbols-outlined text-[18px]">logout</span>
-        Sair
-      </button>
-    </div>
+  <aside class="hidden md:flex w-64 h-screen flex-shrink-0 border-r border-outline-variant/10 bg-surface-container-lowest flex-col py-6">
+    <div class="px-5 mb-8"><ng-container [ngTemplateOutlet]="brand" /></div>
+    <ng-container [ngTemplateOutlet]="nav" />
+    <div class="pb-2"><ng-container [ngTemplateOutlet]="footer" /></div>
   </aside>
 
   <!-- Main -->
   <main class="flex-1 flex flex-col min-h-0 overflow-hidden pt-16 md:pt-0">
+    <!-- Barra superior (desktop) -->
+    <header class="hidden md:flex items-center justify-between px-8 h-16 flex-shrink-0 border-b border-outline-variant/10">
+      <div class="flex items-center gap-3 min-w-0">
+        <span class="font-condensed font-bold text-xs text-on-surface-variant uppercase tracking-[0.2em]">Painel do Coach</span>
+        @if (screenTitle()) {
+          <span class="w-px h-4 bg-outline-variant/30" aria-hidden="true"></span>
+          <h1 class="font-condensed font-bold text-sm text-primary-fixed uppercase tracking-[0.15em] truncate">{{ screenTitle() }}</h1>
+        }
+      </div>
+      <div class="flex items-center gap-4">
+        <app-notifications-bell />
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-primary-fixed/20 text-primary-fixed flex items-center justify-center text-xs font-condensed font-extrabold" aria-hidden="true">
+            {{ auth.currentUser()?.name?.charAt(0)?.toUpperCase() ?? 'C' }}
+          </div>
+          <span class="text-on-surface text-sm font-semibold">{{ auth.currentUser()?.name ?? 'Coach' }}</span>
+        </div>
+      </div>
+    </header>
     <app-notification-permission-banner />
     <router-outlet />
   </main>

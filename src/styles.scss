@@ -154,6 +154,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .font-headline { font-family: 'Lexend', sans-serif !important; }
 .font-body     { font-family: 'Inter', sans-serif !important; }
 .font-display  { font-family: 'Lexend', sans-serif !important; }
+/* Títulos e rótulos condensados do painel do coach (mockup) — só títulos curtos, nunca texto corrido. */
+.font-condensed { font-family: 'Barlow Condensed', 'Lexend', sans-serif !important; }
 
 /* ─── Timer glow ─────────────────────────────────────────────────── */
 .timer-glow { text-shadow: 0 0 40px rgba(255, 121, 72, 0.3); }
