@@ -84,6 +84,65 @@ describe('SocketService.connect', () => {
   });
 });
 
+describe('SocketService.connect — troca de conta na mesma aba', () => {
+  beforeEach(() => { ioMock.mockReset(); });
+
+  it('token de OUTRO usuário: fecha o socket anterior e abre um novo com o token novo', async () => {
+    const coachSocket = fakeSocket(true);
+    const athleteSocket = fakeSocket();
+    ioMock.mockReturnValueOnce(coachSocket).mockReturnValueOnce(athleteSocket);
+    const service = await buildService();
+
+    service.connect('tok-coach');
+    service.connect('tok-athlete');
+
+    expect(coachSocket.disconnect).toHaveBeenCalled();
+    expect(ioMock).toHaveBeenLastCalledWith('http://localhost:3000/messages', {
+      auth: { token: 'tok-athlete' },
+      transports: ['websocket'],
+    });
+  });
+
+  it('depois da troca, as mensagens chegam pelo socket do usuário novo', async () => {
+    const coachSocket = fakeSocket(true);
+    const athleteSocket = fakeSocket();
+    ioMock.mockReturnValueOnce(coachSocket).mockReturnValueOnce(athleteSocket);
+    const service = await buildService();
+    service.connect('tok-coach');
+    service.connect('tok-athlete');
+    const received: unknown[] = [];
+    service.newMessage$.subscribe(m => received.push(m));
+
+    athleteSocket.emit('new_message', { id: 'm-atleta', from: { name: 'Luan' } });
+
+    expect(received).toEqual([{ id: 'm-atleta', from: { name: 'Luan' } }]);
+    expect(ioMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('mesmo token ainda conectando: não abre um segundo socket', async () => {
+    const socket = fakeSocket(false);
+    ioMock.mockReturnValue(socket);
+    const service = await buildService();
+
+    service.connect('tok-1');
+    service.connect('tok-1');
+
+    expect(ioMock).toHaveBeenCalledTimes(1);
+    expect(socket.disconnect).not.toHaveBeenCalled();
+  });
+
+  it('depois do logout (disconnect), o mesmo token reconecta', async () => {
+    ioMock.mockImplementation(() => fakeSocket());
+    const service = await buildService();
+    service.connect('tok-1');
+    service.disconnect();
+
+    service.connect('tok-1');
+
+    expect(ioMock).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe('SocketService.disconnect', () => {
   beforeEach(() => { ioMock.mockReset(); });
 

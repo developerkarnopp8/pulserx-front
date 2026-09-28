@@ -37,6 +37,8 @@ export class AthleteMessagesComponent implements OnInit, OnDestroy, AfterViewChe
     this.socket.newMessage$
       .pipe(takeUntil(this.destroy$))
       .subscribe(msg => {
+        // Só entra na conversa o que o coach mandou pra MIM — nunca um evento de outra conversa.
+        if (msg.fromId !== this.coachId() || msg.toId !== this.myId()) return;
         this.messages.update(list => [...list, msg]);
       });
 

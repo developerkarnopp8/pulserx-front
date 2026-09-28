@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap, map } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { User, UserRole } from '../models';
 import { SocketService } from './socket.service';
 import { environment } from '../../../environments/environment';
@@ -21,6 +21,18 @@ export class AuthService {
     // Re-connect socket if already logged in (page refresh)
     const token = this.getToken();
     if (token) this.socket.connect(token);
+
+    // Login/logout em OUTRA aba troca o token do localStorage; sem isto esta aba seguiria com a
+    // tela e o socket do usuário anterior, mas com as requisições saindo com o token novo.
+    // O evento 'storage' só dispara nas outras abas; key null = localStorage.clear().
+    window.addEventListener('storage', event => {
+      if (event.key === TOKEN_KEY || event.key === null) this.reloadForSessionChange();
+    });
+  }
+
+  /** Recarrega a aba pra ela assumir a sessão atual do navegador (ou cair no login). */
+  protected reloadForSessionChange(): void {
+    window.location.reload();
   }
 
   login(email: string, password: string, expectedRole: UserRole): Observable<void> {
@@ -30,12 +42,8 @@ export class AuthService {
         { email, password },
       )
       .pipe(
-        tap(res => {
-          localStorage.setItem(TOKEN_KEY, res.access_token);
-          localStorage.setItem(USER_KEY, JSON.stringify(res.user));
-          this.currentUser.set(res.user);
-          this.socket.connect(res.access_token);
-        }),
+        // Perfil errado é recusado ANTES de gravar a sessão: senão o token/socket do outro perfil
+        // ficava ativo na aba mesmo com a tela de erro (e vazava tempo real pro próximo login).
         map(res => {
           if (res.user.role !== expectedRole) {
             const labels: Record<string, string> = { coach: 'Coach', athlete: 'Atleta', admin: 'Admin' };
@@ -43,6 +51,10 @@ export class AuthService {
               `Este e-mail pertence a um perfil diferente. Use o acesso ${labels[res.user.role] ?? res.user.role}.`,
             );
           }
+          localStorage.setItem(TOKEN_KEY, res.access_token);
+          localStorage.setItem(USER_KEY, JSON.stringify(res.user));
+          this.currentUser.set(res.user);
+          this.socket.connect(res.access_token);
         }),
       );
   }
