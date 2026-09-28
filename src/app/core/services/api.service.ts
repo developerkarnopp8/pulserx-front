@@ -362,6 +362,16 @@ export class ApiService {
     return this.http.delete<void>(`${this.base}/exercise-library/${id}`);
   }
 
+  uploadLibraryImage(id: string, file: File): Observable<ExerciseLibraryItem> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<ExerciseLibraryItem>(`${this.base}/exercise-library/${id}/image`, formData);
+  }
+
+  removeLibraryImage(id: string): Observable<ExerciseLibraryItem> {
+    return this.http.delete<ExerciseLibraryItem>(`${this.base}/exercise-library/${id}/image`);
+  }
+
   // ── Payments ──────────────────────────────────────────────────────────────
 
   getPayments(): Observable<Payment[]> {
