@@ -6,8 +6,11 @@ import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Session } from '../../../core/models';
 import { todaySessions } from '../../../shared/utils/plan-selection';
+import { LatestPr, StreakResult, WeekDay, currentWeek, latestLoadPr, trainingStreak } from '../../../shared/utils/training-streak';
 
 const WATER_TAP_ML = 250;
+/** Janela do histórico usada pra sequência; se vier cheia, a tela mostra "N+" (nunca inventa o total). */
+const STREAK_HISTORY_LIMIT = 200;
 
 @Component({
   selector: 'app-home',
@@ -40,6 +43,11 @@ export class HomeComponent implements OnInit {
   loggingWater = signal(false);
   loggingCalories = signal(false);
 
+  streak = signal<StreakResult | null>(null);
+  week = signal<WeekDay[]>([]);
+  latestPr = signal<LatestPr | null>(null);
+  prsLoaded = signal(false);
+
   constructor(private api: ApiService, public auth: AuthService) {}
 
   ngOnInit(): void {
@@ -55,6 +63,22 @@ export class HomeComponent implements OnInit {
           },
         });
       },
+    });
+
+    // Cards de sequência e PR: falha só esconde o card, não derruba a Início.
+    this.api.getWorkoutHistory(STREAK_HISTORY_LIMIT).subscribe({
+      next: logs => {
+        const now = new Date();
+        const dates = logs.map(l => l.completedAt);
+        this.streak.set(trainingStreak(dates, now, logs.length >= STREAK_HISTORY_LIMIT));
+        this.week.set(currentWeek(dates, now));
+      },
+      error: () => {},
+    });
+
+    this.api.getMyPersonalRecords().subscribe({
+      next: records => { this.latestPr.set(latestLoadPr(records)); this.prsLoaded.set(true); },
+      error: () => {},
     });
 
     this.api.getTodayIntake().subscribe(t => {

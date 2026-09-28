@@ -145,15 +145,69 @@
     }
   </div>
 
-  <!-- AI Tip: Dica de Elite -->
-  <div class="bg-surface-container-low rounded-md p-4 border-l-2 border-tertiary">
-    <div class="flex items-center gap-2 mb-2">
-      <span class="material-symbols-outlined text-tertiary text-[16px]">auto_awesome</span>
-      <p class="text-tertiary text-[10px] font-headline font-bold uppercase tracking-widest">Dica de Elite</p>
-    </div>
-    <p class="text-on-surface text-sm leading-relaxed">
-      Seu sono atingiu 8h15min ontem. A recuperação muscular está otimizada para o treino de hoje. Aumente a carga em 5% se sentir confiança.
-    </p>
-  </div>
+  <!-- Sequência de dias com treino (histórico real de treinos) -->
+  @if (streak(); as s) {
+    <section class="bg-surface-container-low rounded-md p-4 mb-3" aria-labelledby="sequencia-treino">
+      <div class="flex items-center justify-between mb-3 gap-2">
+        <h3 id="sequencia-treino" class="flex items-center gap-2 font-headline font-black text-lg text-on-surface uppercase tracking-tight">
+          <span class="material-symbols-outlined text-primary-fixed text-[22px]" aria-hidden="true">local_fire_department</span>
+          @if (s.days === 0) {
+            Comece sua sequência
+          } @else {
+            {{ s.days }}{{ s.atLeast ? '+' : '' }} {{ s.days === 1 ? 'dia seguido' : 'dias seguidos' }}
+          }
+        </h3>
+      </div>
+      <ol class="grid grid-cols-7 gap-1.5" aria-label="Treinos desta semana">
+        @for (d of week(); track d.label) {
+          <li class="flex flex-col items-center gap-1.5">
+            <span class="text-[10px] font-headline uppercase tracking-wider"
+              [class.text-primary-fixed]="d.state === 'today'"
+              [class.text-on-surface-variant]="d.state !== 'today'">{{ d.label }}</span>
+            <span class="w-9 h-9 rounded-sm flex items-center justify-center"
+              [class.bg-primary-fixed]="d.state === 'done'"
+              [class.bg-surface-container-highest]="d.state === 'today'"
+              [class.bg-surface-container]="d.state === 'missed' || d.state === 'future'"
+              [attr.aria-label]="d.label + ': ' + (d.state === 'done' ? 'treinou' : d.state === 'today' ? 'hoje, ainda sem treino' : d.state === 'missed' ? 'sem treino' : 'ainda não chegou')">
+              @if (d.state === 'done') {
+                <span class="material-symbols-outlined text-[18px] text-on-primary-fixed" aria-hidden="true">check</span>
+              } @else if (d.state === 'today') {
+                <span class="material-symbols-outlined text-[18px] text-primary-fixed" aria-hidden="true">play_arrow</span>
+              } @else {
+                <span class="w-1.5 h-1.5 rounded-full bg-outline-variant" aria-hidden="true"></span>
+              }
+            </span>
+          </li>
+        }
+      </ol>
+    </section>
+  }
+
+  <!-- PR mais recente (último registro que superou a melhor carga do movimento) -->
+  @if (prsLoaded()) {
+    <a routerLink="/athlete/records"
+      class="bg-surface-container-low hover:bg-surface-container rounded-md p-4 mb-5 flex items-center gap-4 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-fixed">
+      <span class="w-12 h-12 rounded-md bg-primary-fixed/15 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+        <span class="material-symbols-outlined text-primary-fixed text-[24px]">emoji_events</span>
+      </span>
+      <div class="flex-1 min-w-0">
+        <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest">PR mais recente</p>
+        @if (latestPr(); as p) {
+          <p class="flex items-center gap-2 font-headline font-black text-lg text-on-surface uppercase tracking-tight truncate">
+            <span class="truncate">{{ p.record.movement.name }} {{ p.record.loadKg }}kg</span>
+            @if (p.deltaKg) {
+              <span class="text-[10px] font-headline bg-primary-fixed/15 text-primary-fixed px-1.5 py-0.5 rounded-sm flex-shrink-0">+{{ p.deltaKg }}kg</span>
+            }
+          </p>
+        } @else {
+          <p class="text-on-surface text-sm">Registre seu primeiro recorde</p>
+        }
+      </div>
+      <span class="text-primary-fixed text-xs font-headline uppercase tracking-widest flex items-center gap-1 flex-shrink-0">
+        Ver todos
+        <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span>
+      </span>
+    </a>
+  }
 
 </div>
