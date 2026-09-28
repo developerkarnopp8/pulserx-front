@@ -1,8 +1,9 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
 import { PlatformSettings } from '../../../core/models';
+import { formatReais } from '../../../shared/utils/currency';
 
 interface Coach {
   id: string;
@@ -10,6 +11,12 @@ interface Coach {
   email: string;
   aiImportEnabled: boolean;
   createdAt: string;
+  /** Governança/repasses (real — soma de GatewayPayment pago, dividida pela % do contrato). */
+  platformFeePercent: number;
+  studentCount: number;
+  totalPaid: number;
+  platformCut: number;
+  coachCut: number;
 }
 
 @Component({
@@ -40,6 +47,19 @@ export class CoachesComponent implements OnInit {
   loadingSettings = signal(false);
   updatingSettings = signal(false);
   settingsError = signal('');
+
+  readonly fmtReais = formatReais;
+
+  /** Balanço real da plataforma inteira — soma simples dos coaches carregados. */
+  platformTotals = computed(() => {
+    const list = this.coaches();
+    return {
+      studentCount: list.reduce((sum, c) => sum + c.studentCount, 0),
+      totalPaid:    list.reduce((sum, c) => sum + c.totalPaid, 0),
+      platformCut:  list.reduce((sum, c) => sum + c.platformCut, 0),
+      coachCut:     list.reduce((sum, c) => sum + c.coachCut, 0),
+    };
+  });
 
   form!: FormGroup;
 
@@ -105,7 +125,13 @@ export class CoachesComponent implements OnInit {
     this.savingContractId.set(coach.id);
     this.contractError.set('');
     this.api.setCoachContract(coach.id, this.contractFeePercent()).subscribe({
-      next: () => { this.savingContractId.set(null); this.contractTargetId.set(null); },
+      next: () => {
+        this.savingContractId.set(null);
+        this.contractTargetId.set(null);
+        // Recarrega a lista pra refletir a % nova e o repasse recalculado — sem isso a linha
+        // ficava mostrando a % antiga até um F5 (achado testando no navegador).
+        this.load();
+      },
       error: err => {
         const msg = err?.error?.message;
         this.contractError.set(Array.isArray(msg) ? msg[0] : (msg ?? 'Não foi possível salvar o contrato.'));

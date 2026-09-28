@@ -577,10 +577,14 @@ export class ApiService {
 
   // ── Admin ────────────────────────────────────────────────────────────────
 
-  getCoaches(): Observable<{ id: string; name: string; email: string; aiImportEnabled: boolean; createdAt: string }[]> {
-    return this.http.get<{ id: string; name: string; email: string; aiImportEnabled: boolean; createdAt: string }[]>(
-      `${this.base}/admin/coaches`,
-    );
+  getCoaches(): Observable<{
+    id: string; name: string; email: string; aiImportEnabled: boolean; createdAt: string;
+    platformFeePercent: number; studentCount: number; totalPaid: number; platformCut: number; coachCut: number;
+  }[]> {
+    return this.http.get<{
+      id: string; name: string; email: string; aiImportEnabled: boolean; createdAt: string;
+      platformFeePercent: number; studentCount: number; totalPaid: number; platformCut: number; coachCut: number;
+    }[]>(`${this.base}/admin/coaches`);
   }
 
   createCoach(name: string, email: string): Observable<{ id: string; name: string; email: string; password: string }> {

@@ -1,4 +1,4 @@
-import { centsToReaisInput, formatCents, reaisToCents } from './currency';
+import { centsToReaisInput, formatCents, formatReais, reaisToCents } from './currency';
 
 describe('formatCents', () => {
   it('0 → "Grátis"', () => {
@@ -30,6 +30,16 @@ describe('reaisToCents', () => {
 
   it('arredonda imprecisão de ponto flutuante', () => {
     expect(reaisToCents('19.9')).toBe(1990);
+  });
+});
+
+describe('formatReais', () => {
+  it('formata um valor já em reais (não centavos) em R$ com vírgula decimal', () => {
+    // Intl usa espaço fino ( ) entre "R$" e o valor — normaliza pra comparar.
+    const normalize = (s: string) => s.replace(/ /g, ' ');
+    expect(normalize(formatReais(149))).toBe('R$ 149,00');
+    expect(normalize(formatReais(1000.5))).toBe('R$ 1.000,50');
+    expect(normalize(formatReais(0))).toBe('R$ 0,00');
   });
 });
 

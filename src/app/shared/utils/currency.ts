@@ -14,3 +14,8 @@ export function reaisToCents(value: string | number): number {
 export function centsToReaisInput(cents: number): string {
   return (cents / 100).toFixed(2);
 }
+
+/** Valor em reais (não centavos — é como o gateway de pagamento devolve) → "R$ 149,00". */
+export function formatReais(value: number): string {
+  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}

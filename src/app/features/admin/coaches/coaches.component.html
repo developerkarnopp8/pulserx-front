@@ -13,6 +13,28 @@
     </button>
   </div>
 
+  <!-- Balanço real da plataforma (governança/repasses) -->
+  @if (coaches().length > 0) {
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div class="bg-surface-container-low rounded-md p-4">
+        <p class="text-outline text-[9px] font-headline uppercase tracking-widest mb-1">Alunos (todos os coaches)</p>
+        <p class="font-headline font-black text-xl text-on-surface">{{ platformTotals().studentCount }}</p>
+      </div>
+      <div class="bg-surface-container-low rounded-md p-4">
+        <p class="text-outline text-[9px] font-headline uppercase tracking-widest mb-1">Recebido (pago, real)</p>
+        <p class="font-headline font-black text-xl text-on-surface">{{ fmtReais(platformTotals().totalPaid) }}</p>
+      </div>
+      <div class="bg-surface-container-low rounded-md p-4">
+        <p class="text-outline text-[9px] font-headline uppercase tracking-widest mb-1">Repasse da plataforma</p>
+        <p class="font-headline font-black text-xl text-primary-fixed">{{ fmtReais(platformTotals().platformCut) }}</p>
+      </div>
+      <div class="bg-surface-container-low rounded-md p-4">
+        <p class="text-outline text-[9px] font-headline uppercase tracking-widest mb-1">Repasse dos coaches</p>
+        <p class="font-headline font-black text-xl text-on-surface">{{ fmtReais(platformTotals().coachCut) }}</p>
+      </div>
+    </div>
+  }
+
   <!-- Bloqueio por assinatura (plataforma) -->
   <div class="bg-surface-container-low rounded-md p-5 mb-6">
     <div class="flex items-center justify-between gap-4 flex-wrap">
@@ -75,6 +97,21 @@
           <div class="flex-1 min-w-0">
             <p class="text-on-surface font-headline font-bold text-sm truncate">{{ coach.name }}</p>
             <p class="text-outline text-xs truncate">{{ coach.email }}</p>
+          </div>
+
+          <div class="hidden lg:flex items-center gap-4 flex-shrink-0 text-right">
+            <div>
+              <p class="text-on-surface font-headline font-bold text-sm">{{ coach.studentCount }}</p>
+              <p class="text-outline text-[9px] font-headline uppercase tracking-widest">Alunos</p>
+            </div>
+            <div>
+              <p class="text-on-surface font-headline font-bold text-sm">{{ coach.platformFeePercent }}%</p>
+              <p class="text-outline text-[9px] font-headline uppercase tracking-widest">% Plataforma</p>
+            </div>
+            <div>
+              <p class="text-primary-fixed font-headline font-bold text-sm">{{ fmtReais(coach.platformCut) }}</p>
+              <p class="text-outline text-[9px] font-headline uppercase tracking-widest">Repasse</p>
+            </div>
           </div>
 
           <div class="flex items-center gap-2 flex-shrink-0">
