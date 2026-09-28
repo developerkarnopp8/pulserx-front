@@ -17,12 +17,19 @@ const summary = (over: Partial<FinancialSummary> = {}): FinancialSummary => ({
   ...over,
 });
 
+const monthly = {
+  currentPlatformFeePercent: 10,
+  month: { count: 2, gross: 198, gatewayFee: 3.98, platformFee: 19.4, coachNet: 174.62, pendingBreakdown: 0 },
+};
+
 function build(apiOver: Record<string, unknown> = {}) {
   const api = {
     getStudents: vi.fn().mockReturnValue(of([])),
     getPaymentSummary: vi.fn().mockReturnValue(of({ totalReceived: 0, totalPending: 0, totalOverdue: 0, countOverdue: 0 })),
     getPayments: vi.fn().mockReturnValue(of([])),
     getFinancialSummary: vi.fn().mockReturnValue(of(summary())),
+    getMonthlyBreakdown: vi.fn().mockReturnValue(of(monthly)),
+    getCoachGatewayPayments: vi.fn().mockReturnValue(of([])),
     ...apiOver,
   };
   const auth = { currentUser: () => ({ id: 'coach-1' }) };
@@ -58,3 +65,60 @@ describe('FinancialComponent — Visão Geral (assinaturas reais)', () => {
     expect(component.financialSummary()).toBeNull();
   });
 });
+
+describe('FinancialComponent — repasse do mês (Asaas → AEVON → coach)', () => {
+  it('carrega o repasse do mês e as cobranças do Asaas', () => {
+    const rows = [{ id: 'pay1' }];
+    const { component, api } = build({ getCoachGatewayPayments: vi.fn().mockReturnValue(of(rows)) });
+    component.ngOnInit();
+    expect(api.getMonthlyBreakdown).toHaveBeenCalled();
+    expect(component.monthly()).toEqual(monthly);
+    expect(component.gatewayPayments()).toEqual(rows);
+  });
+
+  it('barra de rateio a partir dos totais reais do mês', () => {
+    const { component } = build();
+    expect(component.split()).toEqual([]);
+    component.ngOnInit();
+    expect(component.split().map(s => s.percent)).toEqual([2, 9.8, 88.2]);
+    expect(component.segmentColor.coach).toBe('#d95926');
+  });
+
+  it('erros nas rotas do Asaas só escondem as seções (resto da tela segue)', () => {
+    const { component } = build({
+      getMonthlyBreakdown: vi.fn().mockReturnValue(throwError(() => new Error('x'))),
+      getCoachGatewayPayments: vi.fn().mockReturnValue(throwError(() => new Error('x'))),
+    });
+    component.ngOnInit();
+    expect(component.monthly()).toBeNull();
+    expect(component.gatewayPayments()).toEqual([]);
+    expect(component.financialSummary()).toEqual(summary());
+  });
+
+  it('barras de receita por plano proporcionais ao maior plano', () => {
+    const { component } = build({
+      getFinancialSummary: vi.fn().mockReturnValue(of(summary({
+        revenueByPlan: [
+          { planId: 'a', planName: 'Combo', priceCents: 19900, activeCount: 1, mrrCents: 19900 },
+          { planId: 'b', planName: 'Core', priceCents: 9950, activeCount: 1, mrrCents: 9950 },
+        ],
+      }))),
+    });
+    expect(component.planShares()).toEqual([]);
+    component.ngOnInit();
+    expect(component.planShares()).toEqual([100, 50]);
+  });
+
+  it('sem contrato definido: % atual null chega intacto pra tela avisar', () => {
+    const { component } = build({ getMonthlyBreakdown: vi.fn().mockReturnValue(of({ ...monthly, currentPlatformFeePercent: null })) });
+    component.ngOnInit();
+    expect(component.monthly()?.currentPlatformFeePercent).toBeNull();
+  });
+
+  it('fmtReais: reais do Asaas em moeda; null vira "—" (não inventa)', () => {
+    const { component } = build();
+    expect(component.fmtReais(null)).toBe('—');
+    expect(component.fmtReais(87.31)).toBe(component.fmtCents(8731));
+  });
+});
+
