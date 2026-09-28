@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Payment, PaymentSummary, Student } from '../../../core/models';
+import { Payment, PaymentSummary, Student, FinancialSummary } from '../../../core/models';
+import { formatCents } from '../../../shared/utils/currency';
 
 @Component({
   selector: 'app-financial',
@@ -18,6 +19,11 @@ export class FinancialComponent implements OnInit {
   loading     = signal(true);
   showModal   = signal(false);
   saving      = signal(false);
+
+  /** MRR/receita por plano, inadimplência e churn/LTV — assinaturas reais (Asaas), não o log manual abaixo. */
+  financialSummary = signal<FinancialSummary | null>(null);
+  loadingSummary   = signal(true);
+  readonly fmtCents = formatCents;
 
   form!: FormGroup;
 
@@ -47,6 +53,15 @@ export class FinancialComponent implements OnInit {
     if (!coach) return;
     this.api.getStudents(coach.id).subscribe(s => this.students.set(s));
     this.loadData();
+    this.loadFinancialSummary();
+  }
+
+  private loadFinancialSummary(): void {
+    this.loadingSummary.set(true);
+    this.api.getFinancialSummary().subscribe({
+      next: s => { this.financialSummary.set(s); this.loadingSummary.set(false); },
+      error: () => this.loadingSummary.set(false),
+    });
   }
 
   private loadData(): void {
