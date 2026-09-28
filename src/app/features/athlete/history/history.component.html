@@ -1,15 +1,109 @@
-<div class="px-5 py-4 animate-fade-in pb-6" [class.opacity-60]="loading()">
+<div class="px-5 py-4 animate-fade-in pb-6">
 
-  <h2 class="font-display font-black text-2xl text-on-surface mb-1">Histórico</h2>
-
-  <app-workout-history-calendar [logs]="logs()" [avgSessionSeconds]="avgSessionSeconds()" />
-
-  <!-- AI Insight -->
-  <div class="bg-tertiary/10 border border-tertiary/30 rounded-xl p-4 mt-4">
-    <p class="text-tertiary text-xs font-semibold uppercase tracking-wide mb-2">Insight da IA Coach</p>
-    <p class="text-on-surface text-sm leading-relaxed">
-      Sua recuperação na terça foi abaixo do ideal. Reduz a carga de cardio hoje em 15%.
-    </p>
+  <div class="mb-5">
+    <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-1">Seu desempenho</p>
+    <h2 class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none uppercase">Evolução</h2>
   </div>
+
+  @if (loading()) {
+    <div class="space-y-3" aria-busy="true" aria-label="Carregando evolução">
+      <div class="h-24 bg-surface-container-low rounded-md animate-pulse"></div>
+      <div class="h-40 bg-surface-container-low rounded-md animate-pulse"></div>
+    </div>
+  } @else if (errorMsg()) {
+    <div role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-3 text-error text-sm">{{ errorMsg() }}</div>
+  } @else {
+
+    <!-- Números principais -->
+    <div class="grid grid-cols-3 gap-2 mb-4">
+      <div class="bg-surface-container-low rounded-md p-3">
+        <p class="text-on-surface-variant text-[9px] font-headline uppercase tracking-widest">Sequência</p>
+        <p class="font-headline font-black text-2xl text-on-surface leading-tight mt-1">
+          {{ streak().days }}{{ streak().atLeast ? '+' : '' }}
+        </p>
+        <p class="text-outline text-[10px]">{{ streak().days === 1 ? 'dia seguido' : 'dias seguidos' }}</p>
+      </div>
+      <div class="bg-surface-container-low rounded-md p-3">
+        <p class="text-on-surface-variant text-[9px] font-headline uppercase tracking-widest">Por semana</p>
+        <p class="font-headline font-black text-2xl text-on-surface leading-tight mt-1">{{ weeklyAverage() }}</p>
+        <p class="text-outline text-[10px]">dias (média 8 sem.)</p>
+      </div>
+      <div class="bg-surface-container-low rounded-md p-3">
+        <p class="text-on-surface-variant text-[9px] font-headline uppercase tracking-widest">Sessão média</p>
+        <p class="font-headline font-black text-2xl text-on-surface leading-tight mt-1">{{ formatDuration(avgSessionSeconds()) }}</p>
+        <p class="text-outline text-[10px]">{{ sessions().length }} {{ sessions().length === 1 ? 'sessão' : 'sessões' }}</p>
+      </div>
+    </div>
+
+    <!-- Dias treinados por semana (1 série: sem legenda, o título nomeia) -->
+    <section class="bg-surface-container-low rounded-md p-4 mb-4" aria-labelledby="evo-semanas">
+      <h3 id="evo-semanas" class="text-on-surface font-headline font-black text-sm uppercase tracking-widest mb-1">Dias treinados por semana</h3>
+      <p class="text-outline text-[10px] mb-4">Últimas 8 semanas · máximo 7</p>
+      <div class="flex items-end gap-2 h-28 border-b border-outline-variant/20" aria-hidden="true">
+        @for (w of weeks(); track w.label; let last = $last) {
+          <div class="flex-1 h-full flex flex-col justify-end items-center group relative"
+            [title]="'Semana de ' + w.label + ': ' + w.days + (w.days === 1 ? ' dia' : ' dias')">
+            @if (last || w.days === 7) {
+              <span class="text-on-surface text-[10px] font-headline font-bold mb-1">{{ w.days }}</span>
+            }
+            <div class="w-full rounded-t bg-primary-fixed transition-opacity group-hover:opacity-80"
+              [class.opacity-60]="!last" [style.height.%]="barHeight(w.days)"></div>
+          </div>
+        }
+      </div>
+      <div class="flex gap-2 mt-1.5" aria-hidden="true">
+        @for (w of weeks(); track w.label) {
+          <span class="flex-1 text-center text-outline text-[9px]">{{ w.label }}</span>
+        }
+      </div>
+      <!-- Mesma informação em lista, pra leitor de tela -->
+      <ul class="sr-only">
+        @for (w of weeks(); track w.label) {
+          <li>Semana de {{ w.label }}: {{ w.days }} {{ w.days === 1 ? 'dia treinado' : 'dias treinados' }}</li>
+        }
+      </ul>
+    </section>
+
+    <!-- Evolução dos PRs por movimento -->
+    <section class="mb-4" aria-labelledby="evo-prs">
+      <div class="flex items-center justify-between mb-2">
+        <h3 id="evo-prs" class="text-on-surface font-headline font-black text-sm uppercase tracking-widest">Evolução dos PRs</h3>
+        <a routerLink="/athlete/records" class="text-primary-fixed text-xs font-headline hover:underline min-h-[44px] flex items-center">Registrar</a>
+      </div>
+      @for (p of progressions(); track p.movementId) {
+        <div class="bg-surface-container-low rounded-md px-4 py-3 mb-2 flex items-center gap-3">
+          <div class="flex-1 min-w-0">
+            <p class="text-on-surface text-sm font-semibold truncate">{{ p.movementName }}</p>
+            <p class="text-on-surface-variant text-xs">
+              <span class="text-on-surface font-headline font-bold">{{ p.bestKg }}kg</span>
+              @if (p.gainKg > 0) {
+                · +{{ p.gainKg }}kg desde {{ p.points[0].achievedAt | date:'dd/MM/yy' }}
+              } @else {
+                · em {{ p.lastPrAt | date:'dd/MM/yy' }}
+              }
+            </p>
+          </div>
+          @if (p.points.length > 1) {
+            <svg [attr.width]="sparkW" [attr.height]="sparkH" [attr.viewBox]="'0 0 ' + sparkW + ' ' + sparkH"
+              role="img" [attr.aria-label]="'PRs de ' + p.movementName + ': de ' + p.firstKg + ' para ' + p.bestKg + ' kg em ' + p.points.length + ' marcas'"
+              class="flex-shrink-0">
+              <title>{{ p.firstKg }}kg → {{ p.bestKg }}kg ({{ p.points.length }} PRs)</title>
+              <path [attr.d]="sparkPath(p)" fill="none" stroke="var(--color-primary-fixed)" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" />
+              <circle [attr.cx]="sparkLast(p).x" [attr.cy]="sparkLast(p).y" r="4"
+                fill="var(--color-primary-fixed)" stroke="var(--color-surface-container-low)" stroke-width="2" />
+            </svg>
+          }
+        </div>
+      } @empty {
+        <div class="bg-surface-container-low rounded-md p-4 text-center">
+          <p class="text-on-surface-variant text-sm">Registre seus PRs pra acompanhar a evolução de carga aqui.</p>
+        </div>
+      }
+    </section>
+
+    <!-- Calendário do histórico (componente já existente) -->
+    <app-workout-history-calendar [logs]="logs()" [avgSessionSeconds]="avgSessionSeconds()" />
+  }
 
 </div>
