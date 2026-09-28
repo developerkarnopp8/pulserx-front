@@ -1,5 +1,5 @@
 import { FormBuilder } from '@angular/forms';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { LibraryComponent } from './library.component';
 import { ExerciseLibraryItem } from '../../../core/models';
 
@@ -65,5 +65,106 @@ describe('LibraryComponent.filteredItems', () => {
     const { component } = build(items);
     component.searchQuery.set('core');
     expect(component.filteredItems().map(i => i.id)).toEqual(['3']);
+  });
+});
+
+describe('LibraryComponent.delete', () => {
+  const originalConfirm = window.confirm;
+  afterEach(() => { window.confirm = originalConfirm; });
+
+  function withDelete(items: ExerciseLibraryItem[]) {
+    const api = { getLibrary: vi.fn().mockReturnValue(of(items)), deleteLibraryItem: vi.fn().mockReturnValue(of({})) };
+    const component = new LibraryComponent(api as any, new FormBuilder());
+    component.ngOnInit();
+    return { component, api };
+  }
+
+  it('item importado dos planos: avisa que continua nos planos e não volta', () => {
+    const confirmSpy = vi.fn().mockReturnValue(true);
+    window.confirm = confirmSpy;
+    const { component, api } = withDelete([item({ autoImported: true })]);
+    component.delete(component.items()[0]);
+    expect(confirmSpy.mock.calls[0][0]).toContain('continua nos planos');
+    expect(api.deleteLibraryItem).toHaveBeenCalledWith('i1');
+    expect(component.items()).toEqual([]);
+  });
+
+  it('item cadastrado à mão: confirmação simples; cancelar não apaga', () => {
+    const confirmSpy = vi.fn().mockReturnValue(false);
+    window.confirm = confirmSpy;
+    const { component, api } = withDelete([item({ autoImported: false })]);
+    component.delete(component.items()[0]);
+    expect(confirmSpy.mock.calls[0][0]).toBe('Remover "Snatch" da biblioteca?');
+    expect(api.deleteLibraryItem).not.toHaveBeenCalled();
+  });
+});
+
+describe('LibraryComponent — capa do exercício', () => {
+  function withImageApi(over: Record<string, unknown> = {}) {
+    const updated = item({ imageUrl: 'https://res.cloudinary.com/x/capa.webp' });
+    const api = {
+      getLibrary: vi.fn().mockReturnValue(of([item()])),
+      uploadLibraryImage: vi.fn().mockReturnValue(of(updated)),
+      removeLibraryImage: vi.fn().mockReturnValue(of(item({ imageUrl: null }))),
+      ...over,
+    };
+    const component = new LibraryComponent(api as any, new FormBuilder());
+    component.ngOnInit();
+    return { component, api };
+  }
+  const fileEvent = (file?: File) => ({ target: { files: file ? [file] : [], value: 'x' } } as unknown as Event);
+
+  it('envia a imagem do exercício em edição e atualiza card e formulário', () => {
+    const { component, api } = withImageApi();
+    component.openEdit(component.items()[0]);
+    const file = new File(['img'], 'capa.png', { type: 'image/png' });
+    component.onImageSelected(fileEvent(file));
+    expect(api.uploadLibraryImage).toHaveBeenCalledWith('i1', file);
+    expect(component.items()[0].imageUrl).toContain('capa.webp');
+    expect(component.editingItem()?.imageUrl).toContain('capa.webp');
+    expect(component.uploadingImage()).toBe(false);
+  });
+
+  it('recusa tipo ou tamanho inválido antes de enviar', () => {
+    const { component, api } = withImageApi();
+    component.openEdit(component.items()[0]);
+    component.onImageSelected(fileEvent(new File(['x'], 'doc.pdf', { type: 'application/pdf' })));
+    expect(component.imageError()).toContain('até 5MB');
+    const big = new File(['x'], 'grande.png', { type: 'image/png' });
+    Object.defineProperty(big, 'size', { value: 6 * 1024 * 1024 });
+    component.onImageSelected(fileEvent(big));
+    expect(api.uploadLibraryImage).not.toHaveBeenCalled();
+  });
+
+  it('sem arquivo ou sem exercício em edição: não faz nada', () => {
+    const { component, api } = withImageApi();
+    component.onImageSelected(fileEvent(new File(['img'], 'a.png', { type: 'image/png' })));
+    component.openEdit(component.items()[0]);
+    component.onImageSelected(fileEvent());
+    component.closeDrawer();
+    component.removeImage();
+    expect(api.uploadLibraryImage).not.toHaveBeenCalled();
+    expect(api.removeLibraryImage).not.toHaveBeenCalled();
+  });
+
+  it('erro no envio ou na remoção: mensagem e libera o botão', () => {
+    const { component } = withImageApi({
+      uploadLibraryImage: vi.fn().mockReturnValue(throwError(() => new Error('x'))),
+      removeLibraryImage: vi.fn().mockReturnValue(throwError(() => new Error('x'))),
+    });
+    component.openEdit(component.items()[0]);
+    component.onImageSelected(fileEvent(new File(['img'], 'a.png', { type: 'image/png' })));
+    expect(component.imageError()).toContain('Não foi possível enviar');
+    component.removeImage();
+    expect(component.imageError()).toContain('Não foi possível remover');
+    expect(component.uploadingImage()).toBe(false);
+  });
+
+  it('remove a capa', () => {
+    const { component, api } = withImageApi();
+    component.openEdit(component.items()[0]);
+    component.removeImage();
+    expect(api.removeLibraryImage).toHaveBeenCalledWith('i1');
+    expect(component.items()[0].imageUrl).toBeNull();
   });
 });

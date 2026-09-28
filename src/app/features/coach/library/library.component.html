@@ -60,7 +60,7 @@
         class="px-3 py-1.5 rounded-sm text-[10px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
         [class.bg-primary-fixed]="activeCategory() === 'all'" [class.text-on-primary-fixed]="activeCategory() === 'all'"
         [class.bg-surface-container]="activeCategory() !== 'all'" [class.text-outline]="activeCategory() !== 'all'">
-        Todos os Vídeos ({{ items().length }})
+        Todos ({{ items().length }})
       </button>
       @for (tab of categoryTabs(); track tab.name) {
         <button type="button" (click)="activeCategory.set(tab.name)"
@@ -85,7 +85,7 @@
         <span class="material-symbols-outlined text-outline text-[56px]">fitness_center</span>
         <div class="text-center">
           <p class="text-on-surface font-headline font-bold">Biblioteca vazia</p>
-          <p class="text-on-surface-variant text-sm mt-1">Adicione exercícios para reutilizar nos planos dos seus atletas.</p>
+          <p class="text-on-surface-variant text-sm mt-1">Os exercícios que você usar nos planos aparecem aqui sozinhos. Também dá pra cadastrar direto.</p>
         </div>
         <button type="button" (click)="openAdd()"
           class="flex items-center gap-2 bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-5 py-3 rounded-sm uppercase tracking-tighter text-xs transition-all">
@@ -100,21 +100,25 @@
         @for (item of filteredItems(); track item.id) {
           <div class="bg-surface-container-low rounded-md overflow-hidden hover:bg-surface-container transition-colors flex flex-col">
 
-            <!-- Vídeo real (o próprio componente já é a thumbnail + play — carrega o iframe só no clique) -->
-            <div class="relative flex-shrink-0">
-              @if (item.youtubeUrl) {
-                <app-youtube-embed [url]="item.youtubeUrl" />
-              } @else {
-                <div class="w-full aspect-video bg-surface-container flex items-center justify-center">
-                  <span class="material-symbols-outlined text-outline text-[32px]">fitness_center</span>
-                </div>
-              }
-              @if (item.category) {
-                <span class="absolute top-2 left-2 text-[9px] font-headline font-black uppercase tracking-widest bg-surface/90 text-primary-fixed px-2 py-1 rounded-sm pointer-events-none">
-                  {{ item.category }}
-                </span>
-              }
-            </div>
+            <!-- Capa: imagem do coach > vídeo (thumbnail + play, iframe só no clique) > sem mídia = card compacto -->
+            @if (item.imageUrl || item.youtubeUrl) {
+              <div class="relative flex-shrink-0">
+                @if (item.imageUrl) {
+                  <img [src]="item.imageUrl" [alt]="'Capa de ' + item.name" loading="lazy" class="w-full aspect-video object-cover" />
+                } @else {
+                  <app-youtube-embed [url]="item.youtubeUrl" />
+                }
+                @if (item.category) {
+                  <span class="absolute top-2 left-2 text-[9px] font-headline font-black uppercase tracking-widest bg-surface/90 text-primary-fixed px-2 py-1 rounded-sm pointer-events-none">
+                    {{ item.category }}
+                  </span>
+                }
+              </div>
+            } @else if (item.category) {
+              <span class="self-start mt-4 ml-4 text-[9px] font-headline font-black uppercase tracking-widest bg-primary-fixed/10 text-primary-fixed px-2 py-1 rounded-sm">
+                {{ item.category }}
+              </span>
+            }
 
             <div class="p-4 flex flex-col gap-2 flex-1">
               <div class="flex items-start justify-between gap-2">
@@ -223,6 +227,37 @@
                 <option [value]="cat">{{ cat }}</option>
               }
             </select>
+          </div>
+
+          <!-- Capa (só editando: o envio precisa do exercício já salvo) -->
+          <div class="col-span-2">
+            <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-1.5">Imagem de capa</p>
+            @if (editingItem(); as current) {
+              <div class="flex items-center gap-3">
+                @if (current.imageUrl) {
+                  <img [src]="current.imageUrl" alt="Capa atual" class="w-24 aspect-video object-cover rounded-sm flex-shrink-0" />
+                }
+                <label class="min-h-[44px] inline-flex items-center gap-2 px-3 rounded-sm bg-surface-container text-on-surface text-xs font-headline uppercase tracking-wider cursor-pointer hover:bg-surface-container-high"
+                  [class.opacity-50]="uploadingImage()">
+                  <span class="material-symbols-outlined text-[16px]" aria-hidden="true">image</span>
+                  {{ uploadingImage() ? 'Enviando...' : (current.imageUrl ? 'Trocar imagem' : 'Enviar imagem') }}
+                  <input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" [disabled]="uploadingImage()"
+                    (change)="onImageSelected($event)" />
+                </label>
+                @if (current.imageUrl) {
+                  <button type="button" (click)="removeImage()" [disabled]="uploadingImage()"
+                    class="min-h-[44px] px-3 text-outline hover:text-error text-xs font-headline uppercase tracking-wider disabled:opacity-50">
+                    Remover
+                  </button>
+                }
+              </div>
+              <p class="text-outline text-[10px] mt-1.5">JPG, PNG ou WebP até 5MB. Tem prioridade sobre a miniatura do vídeo.</p>
+            } @else {
+              <p class="text-outline text-xs">Salve o exercício primeiro; depois, em "Editar", você envia a capa.</p>
+            }
+            @if (imageError()) {
+              <p role="alert" class="text-error text-xs mt-1.5">{{ imageError() }}</p>
+            }
           </div>
 
           <div class="col-span-2">

@@ -11,6 +11,9 @@ type DrawerMode = 'add' | 'edit';
 type LibraryTab = 'exercises' | 'history';
 
 const CATEGORIES = ['LPO', 'Força', 'Ginástica', 'Metcon', 'Resistência', 'Mobilidade', 'Core', 'Outro'];
+/** Mesmo teto do backend — recusa antes de enviar (o backend também valida tipo pelos magic bytes). */
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 @Component({
   selector: 'app-library',
@@ -29,6 +32,8 @@ export class LibraryComponent implements OnInit {
   drawerMode    = signal<DrawerMode>('add');
   editingItem   = signal<ExerciseLibraryItem | null>(null);
   saving        = signal(false);
+  uploadingImage = signal(false);
+  imageError     = signal('');
 
   activeCategory = signal<'all' | string>('all');
 
@@ -95,6 +100,7 @@ export class LibraryComponent implements OnInit {
   }
 
   openEdit(item: ExerciseLibraryItem): void {
+    this.imageError.set('');
     this.drawerMode.set('edit');
     this.editingItem.set(item);
     this.form.patchValue({
@@ -147,8 +153,52 @@ export class LibraryComponent implements OnInit {
     }
   }
 
+  /** Capa do exercício em edição: envia na hora (precisa do id, então só no modo editar). */
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    const item = this.editingItem();
+    input.value = '';
+    if (!file || !item) return;
+    if (!IMAGE_TYPES.includes(file.type) || file.size > MAX_IMAGE_BYTES) {
+      this.imageError.set('Use uma imagem JPG, PNG ou WebP de até 5MB.');
+      return;
+    }
+    this.imageError.set('');
+    this.uploadingImage.set(true);
+    this.api.uploadLibraryImage(item.id, file).subscribe({
+      next: updated => this.applyImageChange(updated),
+      error: () => {
+        this.uploadingImage.set(false);
+        this.imageError.set('Não foi possível enviar a imagem. Tente de novo.');
+      },
+    });
+  }
+
+  removeImage(): void {
+    const item = this.editingItem();
+    if (!item) return;
+    this.uploadingImage.set(true);
+    this.api.removeLibraryImage(item.id).subscribe({
+      next: updated => this.applyImageChange(updated),
+      error: () => {
+        this.uploadingImage.set(false);
+        this.imageError.set('Não foi possível remover a imagem.');
+      },
+    });
+  }
+
+  private applyImageChange(updated: ExerciseLibraryItem): void {
+    this.uploadingImage.set(false);
+    this.editingItem.set(updated);
+    this.items.update(list => list.map(i => (i.id === updated.id ? updated : i)));
+  }
+
   delete(item: ExerciseLibraryItem): void {
-    if (!confirm(`Remover "${item.name}" da biblioteca?`)) return;
+    const msg = item.autoImported
+      ? `Remover "${item.name}" da biblioteca? Ele continua nos planos em que já foi usado e não volta a aparecer aqui.`
+      : `Remover "${item.name}" da biblioteca?`;
+    if (!confirm(msg)) return;
     this.api.deleteLibraryItem(item.id).subscribe({
       next: () => this.items.update(list => list.filter(i => i.id !== item.id)),
     });
