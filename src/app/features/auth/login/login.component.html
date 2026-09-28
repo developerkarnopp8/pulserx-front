@@ -131,10 +131,18 @@
 
         </form>
 
-        <p class="text-center text-outline text-xs mt-6">
-          Ainda não possui conta?
-          <button type="button" class="text-primary-fixed hover:underline ml-1 font-headline">Solicitar Acesso</button>
-        </p>
+        <!-- Não existe cadastro aberto: coach é criado pelo admin; aluno se inscreve pela página do treinador. -->
+        @if (!rootOnly()) {
+          <p class="text-center text-outline text-xs mt-6">
+            @if (selectedRole() === 'coach') {
+              Quer usar o PulseRx como treinador?
+              <a href="mailto:aevonaevon52@gmail.com?subject=Quero%20usar%20o%20PulseRx%20como%20treinador"
+                class="text-primary-fixed hover:underline ml-1 font-headline">Fale com a gente</a>
+            } @else {
+              Ainda não tem conta? Peça ao seu treinador o link da página dele — a inscrição é feita por lá.
+            }
+          </p>
+        }
 
       </div>
 
