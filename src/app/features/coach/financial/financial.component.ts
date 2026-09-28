@@ -3,14 +3,17 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Payment, PaymentSummary, Student, FinancialSummary } from '../../../core/models';
+import { Payment, PaymentSummary, Student, FinancialSummary, MonthlyBreakdown, CoachGatewayPayment, GATEWAY_PAYMENT_STATUS_LABEL } from '../../../core/models';
 import { formatCents } from '../../../shared/utils/currency';
+import { SplitSegment, shareOfMax, splitSegments } from '../../../shared/utils/split-bar';
 
 @Component({
   selector: 'app-financial',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './financial.component.html',
+  // Mesmo :host das outras telas do coach: ocupa a altura do <main> e rola por dentro.
+  styleUrl: './financial.component.scss',
 })
 export class FinancialComponent implements OnInit {
   payments    = signal<Payment[]>([]);
@@ -24,6 +27,21 @@ export class FinancialComponent implements OnInit {
   financialSummary = signal<FinancialSummary | null>(null);
   loadingSummary   = signal(true);
   readonly fmtCents = formatCents;
+  readonly gatewayStatusLabel = GATEWAY_PAYMENT_STATUS_LABEL;
+  /** Paleta validada (dataviz) no fundo escuro — mesma dos pontos de legenda nos cards. */
+  readonly segmentColor: Record<SplitSegment['key'], string> = { gateway: '#199e70', platform: '#3987e5', coach: '#d95926' };
+
+  /** Repasse do mês (cobranças pagas): bruto, taxa real do Asaas, % da AEVON e líquido do coach. */
+  monthly        = signal<MonthlyBreakdown | null>(null);
+  gatewayPayments = signal<CoachGatewayPayment[]>([]);
+
+  split = computed<SplitSegment[]>(() => {
+    const m = this.monthly()?.month;
+    return m ? splitSegments(m.gatewayFee, m.platformFee, m.coachNet) : [];
+  });
+
+  /** Largura da barra de cada plano em relação ao de maior receita. */
+  planShares = computed(() => shareOfMax(this.financialSummary()?.revenueByPlan.map(p => p.mrrCents) ?? []));
 
   form!: FormGroup;
 
@@ -54,6 +72,14 @@ export class FinancialComponent implements OnInit {
     this.api.getStudents(coach.id).subscribe(s => this.students.set(s));
     this.loadData();
     this.loadFinancialSummary();
+    // Falha aqui só esconde as seções do Asaas; o resto do Financeiro segue funcionando.
+    this.api.getMonthlyBreakdown().subscribe({ next: m => this.monthly.set(m), error: () => {} });
+    this.api.getCoachGatewayPayments().subscribe({ next: p => this.gatewayPayments.set(p), error: () => {} });
+  }
+
+  /** Reais (Float do Asaas) → moeda; null = o Asaas ainda não informou. */
+  fmtReais(value: number | null): string {
+    return value == null ? '—' : formatCents(Math.round(value * 100));
   }
 
   private loadFinancialSummary(): void {

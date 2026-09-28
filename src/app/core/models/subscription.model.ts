@@ -104,3 +104,42 @@ export interface FinancialSummary {
   /** null quando não há cancelamento no mês pra calcular uma taxa de churn (evita divisão por zero/número fictício). */
   ltvProjectedCents: number | null;
 }
+
+/** Divisão real de uma cobrança do Asaas (valores em reais). null = o Asaas ainda não informou. */
+export interface PaymentBreakdown {
+  gross: number;
+  gatewayFee: number | null;
+  netValue: number | null;
+  platformFeePercent: number | null;
+  platformFee: number | null;
+  coachNet: number | null;
+}
+
+/** Cobrança do Asaas de um aluno do coach (GET /subscriptions/gateway-payments). */
+export interface CoachGatewayPayment {
+  id: string;
+  status: GatewayPaymentStatus;
+  amount: number;
+  dueDate: string;
+  paidAt: string | null;
+  invoiceUrl: string | null;
+  createdAt: string;
+  subscription: { student: { id: string; user: { name: string } }; plan: { name: string } };
+  breakdown: PaymentBreakdown;
+}
+
+/** Mês corrente, só cobranças pagas (GET /subscriptions/monthly-breakdown). */
+export interface MonthlyBreakdown {
+  /** null = o admin ainda não definiu o contrato deste coach (≠ 0% combinado). */
+  currentPlatformFeePercent: number | null;
+  month: {
+    count: number;
+    gross: number;
+    gatewayFee: number;
+    platformFee: number;
+    coachNet: number;
+    /** Pagas sem o líquido do Asaas ainda — ficam fora das somas de taxa/repasse. */
+    pendingBreakdown: number;
+  };
+}
+

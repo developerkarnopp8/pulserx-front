@@ -6,7 +6,7 @@ import {
   ExerciseLibraryItem, Payment, PaymentSummary, SkipReason, SkipDecision,
   Movement, PersonalRecord, AppNotification,
   WorkoutSessionRecord, SessionTimeSummary, SessionTimeDetail, CoachAvgDuration,
-  SubscriptionPlan, Subscription, MySubscription, MyGatewayPayment, CoachContract, PlatformSettings, FreeConfig, FinancialSummary,
+  SubscriptionPlan, Subscription, MySubscription, MyGatewayPayment, CoachGatewayPayment, MonthlyBreakdown, CoachContract, PlatformSettings, FreeConfig, FinancialSummary,
   CoachProfile, UpdateCoachProfileInput, PublicCoachProfile, CreateLeadInput,
   Testimonial, UpsertTestimonialInput, FaqItem, UpsertFaqItemInput,
 } from '../models';
@@ -647,6 +647,16 @@ export class ApiService {
   /** Aluno: histórico real das próprias cobranças (Asaas). */
   getMyPayments(): Observable<MyGatewayPayment[]> {
     return this.http.get<MyGatewayPayment[]>(`${this.base}/subscriptions/me/payments`);
+  }
+
+  /** Coach: cobranças do Asaas dos próprios alunos, com a divisão real de cada uma. */
+  getCoachGatewayPayments(): Observable<CoachGatewayPayment[]> {
+    return this.http.get<CoachGatewayPayment[]>(`${this.base}/subscriptions/gateway-payments`);
+  }
+
+  /** Coach: mês corrente — bruto, taxa do Asaas, % da plataforma e o próprio líquido. */
+  getMonthlyBreakdown(): Observable<MonthlyBreakdown> {
+    return this.http.get<MonthlyBreakdown>(`${this.base}/subscriptions/monthly-breakdown`);
   }
 
   /** Coach: MRR/receita por plano, inadimplência e churn/LTV projetado — dado real, sem invenção. */
