@@ -6,52 +6,209 @@
   </div>
 
   @if (loading()) {
-    <div class="h-32 bg-surface-container-low rounded-md animate-pulse"></div>
+    <div class="space-y-3" aria-busy="true" aria-label="Carregando assinatura">
+      <div class="h-20 bg-surface-container-low rounded-md animate-pulse"></div>
+      <div class="h-64 bg-surface-container-low rounded-md animate-pulse"></div>
+    </div>
   } @else if (errorMsg()) {
     <div role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-3 text-error text-sm">{{ errorMsg() }}</div>
   } @else if (data(); as d) {
+
+    <!-- Perfil -->
+    <div class="bg-gradient-to-br from-surface-container-low to-primary-fixed/10 rounded-md p-4 mb-3 flex items-center gap-4">
+      @if (auth.currentUser()?.avatarUrl; as avatar) {
+        <img [src]="avatar" alt="" class="w-14 h-14 rounded-full object-cover ring-2 ring-primary-fixed flex-shrink-0" />
+      } @else {
+        <div class="w-14 h-14 rounded-full bg-surface-container-highest ring-2 ring-primary-fixed flex items-center justify-center flex-shrink-0" aria-hidden="true">
+          <span class="material-symbols-outlined text-primary-fixed text-[28px]">person</span>
+        </div>
+      }
+      <div class="min-w-0">
+        <p class="font-headline font-black text-lg text-on-surface leading-tight truncate">{{ auth.currentUser()?.name || 'Atleta' }}</p>
+        @if (d.subscription; as sub) {
+          <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mt-1">
+            Atleta PulseRx · assinante desde {{ sub.startedAt | date:'MM/yyyy' }}
+          </p>
+        } @else {
+          <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mt-1">Atleta PulseRx</p>
+        }
+      </div>
+    </div>
+
     @if (d.subscription; as sub) {
-      <div class="bg-surface-container-low rounded-md p-5 mb-5">
-        <div class="flex items-center justify-between mb-1">
-          <p class="text-on-surface font-headline font-black text-xl">{{ sub.plan.name }}</p>
-          <span class="text-[10px] font-headline uppercase tracking-widest px-2 py-1 rounded-sm"
+      <!-- Plano atual -->
+      <section class="bg-surface-container-low rounded-md p-5 mb-5" aria-labelledby="plano-atual">
+        <div class="flex items-center justify-between mb-3">
+          <p id="plano-atual" class="flex items-center gap-2 text-on-surface-variant text-[10px] font-headline uppercase tracking-widest">
+            <span class="w-2 h-2 rounded-full bg-primary-fixed" aria-hidden="true"></span>
+            Plano atual
+          </p>
+          <span class="inline-flex items-center gap-1.5 text-[10px] font-headline uppercase tracking-widest px-2.5 py-1 rounded-full"
             [class.bg-primary-fixed/15]="sub.status === 'ACTIVE' || sub.status === 'TRIALING'"
             [class.text-primary-fixed]="sub.status === 'ACTIVE' || sub.status === 'TRIALING'"
             [class.bg-error/15]="sub.status === 'PAST_DUE' || sub.status === 'CANCELED'"
             [class.text-error]="sub.status === 'PAST_DUE' || sub.status === 'CANCELED'">
+            <span class="w-1.5 h-1.5 rounded-full bg-current" aria-hidden="true"></span>
             {{ statusLabel[sub.status] }}
           </span>
         </div>
-        <p class="text-outline text-sm">{{ fmtPrice(sub.plan.priceCents) }}/mês</p>
-        @if (sub.status === 'TRIALING' && sub.trialEndsAt) {
-          <p class="text-outline text-xs mt-2">Teste até {{ sub.trialEndsAt | date:'dd/MM/yyyy' }}</p>
-        }
-        @if (sub.status !== 'CANCELED') {
-          <button type="button" (click)="cancel()" [disabled]="canceling()"
-            class="mt-4 text-error text-xs font-headline uppercase tracking-widest underline disabled:opacity-50">
-            {{ canceling() ? 'Cancelando…' : 'Cancelar assinatura' }}
-          </button>
-        }
-        @if (cancelMsg()) {
-          <p class="text-on-surface-variant text-xs mt-2">{{ cancelMsg() }}</p>
-        }
-      </div>
+
+        <h3 class="font-headline font-black text-2xl text-on-surface uppercase tracking-tight leading-tight">{{ sub.plan.name }}</h3>
+
+        <div class="bg-surface-container rounded-md px-4 py-4 mt-4 flex items-end gap-2">
+          @if (sub.plan.isFree) {
+            <p class="font-headline font-black text-4xl text-primary leading-none tracking-tighter">Gratuito</p>
+          } @else {
+            <p class="font-headline font-black text-4xl text-primary leading-none tracking-tighter">{{ fmtPrice(sub.plan.priceCents) }}</p>
+            <p class="text-on-surface-variant font-headline text-sm pb-0.5">/ mês</p>
+          }
+        </div>
+
+        <ul class="mt-3 space-y-2">
+          @if (sub.status === 'TRIALING' && sub.trialEndsAt) {
+            <li class="flex items-center gap-3 bg-surface-container rounded-md px-4 py-3">
+              <span class="material-symbols-outlined text-[20px] text-primary-fixed" aria-hidden="true">hourglass_top</span>
+              <div>
+                <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest">Período de teste</p>
+                <p class="text-on-surface text-sm font-semibold">Até {{ sub.trialEndsAt | date:'dd/MM/yyyy' }}</p>
+              </div>
+            </li>
+          }
+          @if (!sub.plan.isFree && sub.status !== 'CANCELED') {
+            <li class="flex items-center gap-3 bg-surface-container rounded-md px-4 py-3">
+              <span class="material-symbols-outlined text-[20px] text-primary-fixed" aria-hidden="true">event</span>
+              <div>
+                <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest">Próxima cobrança</p>
+                @if (nextCharge(); as next) {
+                  <p class="text-on-surface text-sm font-semibold">
+                    {{ next.dueDate | date:'dd/MM/yyyy':'UTC' }} · {{ fmtAmount(next.amount) }}
+                  </p>
+                  @if (next.status === 'overdue') {
+                    <p class="text-error text-xs mt-0.5">Fatura vencida</p>
+                  }
+                } @else {
+                  <p class="text-on-surface-variant text-sm">Nenhuma fatura em aberto</p>
+                }
+              </div>
+            </li>
+            <li class="flex items-center gap-3 bg-surface-container rounded-md px-4 py-3">
+              <span class="material-symbols-outlined text-[20px] text-primary-fixed" aria-hidden="true">qr_code_2</span>
+              <div>
+                <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest">Forma de pagamento</p>
+                <p class="text-on-surface text-sm font-semibold">PIX</p>
+              </div>
+            </li>
+          }
+          @if (sub.status === 'CANCELED' && sub.canceledAt) {
+            <li class="flex items-center gap-3 bg-surface-container rounded-md px-4 py-3">
+              <span class="material-symbols-outlined text-[20px] text-error" aria-hidden="true">block</span>
+              <div>
+                <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest">Cancelada em</p>
+                <p class="text-on-surface text-sm font-semibold">{{ sub.canceledAt | date:'dd/MM/yyyy' }}</p>
+              </div>
+            </li>
+          }
+        </ul>
+
+        <!-- Categorias liberadas agora (com o bloqueio desligado são todas, não só as do plano) -->
+        <div class="mt-4 border border-primary-fixed/20 bg-primary-fixed/5 rounded-md p-4">
+          <p class="flex items-center gap-2 text-primary-fixed text-[10px] font-headline uppercase tracking-widest mb-3">
+            <span class="material-symbols-outlined text-[16px]" aria-hidden="true">verified</span>
+            Treinos liberados hoje
+          </p>
+          <ul class="space-y-2">
+            @for (cat of d.categories; track cat) {
+              <li class="flex items-center gap-2 text-on-surface text-sm">
+                <span class="material-symbols-outlined text-[18px] text-primary-fixed" aria-hidden="true">check_circle</span>
+                {{ categoryLabel[cat] }}
+              </li>
+            } @empty {
+              <li class="text-on-surface-variant text-sm">Nenhuma categoria liberada no momento.</li>
+            }
+          </ul>
+        </div>
+      </section>
     } @else {
       <div class="bg-surface-container-low rounded-md p-5 mb-5">
         <p class="text-on-surface-variant text-sm">Você ainda não tem um plano de assinatura. Fale com seu coach.</p>
+        @if (d.categories.length) {
+          <p class="text-outline text-[10px] font-headline uppercase tracking-widest mt-4 mb-2">Categorias liberadas hoje</p>
+          <div class="flex flex-wrap gap-2">
+            @for (cat of d.categories; track cat) {
+              <span class="text-xs font-headline uppercase tracking-wider bg-primary-fixed/10 text-primary-fixed px-3 py-1.5 rounded-sm">{{ categoryLabel[cat] }}</span>
+            }
+          </div>
+        }
       </div>
     }
 
-    <div>
-      <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-2">Categorias liberadas hoje</p>
-      <div class="flex flex-wrap gap-2">
-        @for (cat of d.categories; track cat) {
-          <span class="text-xs font-headline uppercase tracking-wider bg-primary-fixed/10 text-primary-fixed px-3 py-1.5 rounded-sm">{{ categoryLabel[cat] }}</span>
-        } @empty {
-          <p class="text-on-surface-variant text-sm">Nenhuma categoria liberada no momento.</p>
+    <!-- Histórico de faturas (cobranças reais do Asaas) -->
+    <section class="mb-5" aria-labelledby="historico-faturas">
+      <p id="historico-faturas" class="text-outline text-[10px] font-headline uppercase tracking-widest mb-2">Histórico de faturas</p>
+      @if (paymentsLoading()) {
+        <div class="h-16 bg-surface-container-low rounded-md animate-pulse"></div>
+      } @else if (paymentsError()) {
+        <div role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-3 text-error text-sm">{{ paymentsError() }}</div>
+      } @else {
+        <ul class="space-y-2">
+          @for (p of visiblePayments(); track p.id) {
+            <li class="bg-surface-container-low rounded-md px-4 py-3 flex items-center gap-3">
+              <span class="material-symbols-outlined text-[20px] flex-shrink-0" aria-hidden="true"
+                [class.text-primary-fixed]="p.status === 'paid'"
+                [class.text-on-surface-variant]="p.status === 'pending'"
+                [class.text-error]="p.status === 'overdue'">
+                {{ p.status === 'paid' ? 'task_alt' : p.status === 'overdue' ? 'error' : 'schedule' }}
+              </span>
+              <div class="flex-1 min-w-0">
+                <p class="text-on-surface text-sm font-semibold">{{ fmtAmount(p.amount) }}</p>
+                <p class="text-on-surface-variant text-xs">
+                  {{ paymentStatusLabel[p.status] }} ·
+                  @if (p.status === 'paid' && p.paidAt) {
+                    paga em {{ p.paidAt | date:'dd/MM/yyyy' }}
+                  } @else {
+                    vence {{ p.dueDate | date:'dd/MM/yyyy':'UTC' }}
+                  }
+                </p>
+              </div>
+              @if (safeInvoiceUrl(p.invoiceUrl); as url) {
+                <a [href]="url" target="_blank" rel="noopener noreferrer"
+                  class="min-h-[44px] inline-flex items-center gap-1 px-3 rounded-sm text-xs font-headline uppercase tracking-widest flex-shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-fixed"
+                  [class.bg-primary-fixed]="p.status !== 'paid'"
+                  [class.text-on-primary-fixed]="p.status !== 'paid'"
+                  [class.bg-surface-container-highest]="p.status === 'paid'"
+                  [class.text-on-surface]="p.status === 'paid'"
+                  [attr.aria-label]="(p.status === 'paid' ? 'Ver fatura de ' : 'Pagar fatura de ') + fmtAmount(p.amount) + ' (abre em nova aba)'">
+                  {{ p.status === 'paid' ? 'Ver' : 'Pagar' }}
+                  <span class="material-symbols-outlined text-[14px]" aria-hidden="true">open_in_new</span>
+                </a>
+              }
+            </li>
+          } @empty {
+            <li class="bg-surface-container-low rounded-md px-4 py-3 text-on-surface-variant text-sm">Nenhuma fatura até agora.</li>
+          }
+        </ul>
+        @if (payments().length > 3) {
+          <button type="button" (click)="toggleAllPayments()" [attr.aria-expanded]="showAllPayments()"
+            class="mt-2 w-full min-h-[44px] text-on-surface-variant hover:text-on-surface text-xs font-headline uppercase tracking-widest">
+            {{ showAllPayments() ? 'Mostrar menos' : 'Ver todas (' + payments().length + ')' }}
+          </button>
         }
-      </div>
-    </div>
+      }
+    </section>
+
+    @if (d.subscription; as sub) {
+      @if (sub.status !== 'CANCELED') {
+        <div class="text-center">
+          <button type="button" (click)="cancel()" [disabled]="canceling()"
+            class="min-h-[44px] px-4 text-on-surface-variant hover:text-error text-xs underline disabled:opacity-50">
+            {{ canceling() ? 'Cancelando…' : 'Cancelar assinatura' }}
+          </button>
+        </div>
+      }
+    }
+    @if (cancelMsg()) {
+      <p class="text-on-surface-variant text-xs mt-2 text-center" aria-live="polite">{{ cancelMsg() }}</p>
+    }
   }
 
 </div>

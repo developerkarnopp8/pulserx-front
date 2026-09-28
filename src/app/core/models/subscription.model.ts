@@ -46,6 +46,26 @@ export interface MySubscription {
   categories: TrainingCategory[];
 }
 
+/** Status de uma cobrança do gateway (Asaas). */
+export type GatewayPaymentStatus = 'pending' | 'paid' | 'overdue';
+
+export const GATEWAY_PAYMENT_STATUS_LABEL: Record<GatewayPaymentStatus, string> = {
+  pending: 'Em aberto',
+  paid: 'Paga',
+  overdue: 'Vencida',
+};
+
+/** Cobrança real do próprio aluno (GET /subscriptions/me/payments). `amount` em reais. */
+export interface MyGatewayPayment {
+  id: string;
+  status: GatewayPaymentStatus;
+  amount: number;
+  dueDate: string;
+  paidAt: string | null;
+  invoiceUrl: string | null;
+  createdAt: string;
+}
+
 export interface CoachContract {
   coachId: string;
   platformFeePercent: number;
