@@ -6,7 +6,7 @@ import {
   ExerciseLibraryItem, Payment, PaymentSummary, SkipReason, SkipDecision,
   Movement, PersonalRecord, AppNotification,
   WorkoutSessionRecord, SessionTimeSummary, SessionTimeDetail, CoachAvgDuration,
-  SubscriptionPlan, Subscription, MySubscription, CoachContract, PlatformSettings, FreeConfig, FinancialSummary,
+  SubscriptionPlan, Subscription, MySubscription, MyGatewayPayment, CoachContract, PlatformSettings, FreeConfig, FinancialSummary,
   CoachProfile, UpdateCoachProfileInput, PublicCoachProfile, CreateLeadInput,
   Testimonial, UpsertTestimonialInput, FaqItem, UpsertFaqItemInput,
 } from '../models';
@@ -642,6 +642,11 @@ export class ApiService {
   /** Aluno: a própria assinatura + o que ela libera hoje. */
   getMySubscription(): Observable<MySubscription> {
     return this.http.get<MySubscription>(`${this.base}/subscriptions/me`);
+  }
+
+  /** Aluno: histórico real das próprias cobranças (Asaas). */
+  getMyPayments(): Observable<MyGatewayPayment[]> {
+    return this.http.get<MyGatewayPayment[]>(`${this.base}/subscriptions/me/payments`);
   }
 
   /** Coach: MRR/receita por plano, inadimplência e churn/LTV projetado — dado real, sem invenção. */
