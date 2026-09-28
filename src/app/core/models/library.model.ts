@@ -3,6 +3,8 @@ export interface ExerciseLibraryItem {
   coachId: string;
   name: string;
   youtubeUrl?: string;
+  /** Capa enviada pelo coach; tem prioridade sobre a miniatura do vídeo. */
+  imageUrl?: string | null;
   sets?: number;
   reps?: string;
   duration?: string;
@@ -10,6 +12,8 @@ export interface ExerciseLibraryItem {
   loadPercent?: number;
   category?: string;
   notes?: string;
+  /** Veio sozinho dos planos do coach (não cadastrado à mão). */
+  autoImported?: boolean;
   createdAt: string;
 }
 
