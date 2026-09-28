@@ -1,7 +1,8 @@
 import { LegalPageComponent } from './legal-page.component';
 import { LEGAL_COMPANY, LEGAL_DOCS } from './legal-content';
 
-const page = (doc?: string) => new LegalPageComponent({ snapshot: { data: doc ? { doc } : {} } } as any);
+const location = { back: vi.fn() };
+const page = (doc?: string) => new LegalPageComponent({ snapshot: { data: doc ? { doc } : {} } } as any, location as any);
 
 describe('LegalPageComponent', () => {
   it.each(['termos', 'privacidade', 'cookies', 'reembolso'])('mostra o documento "%s" da rota', key => {
@@ -11,6 +12,20 @@ describe('LegalPageComponent', () => {
   it('sem documento na rota (ou desconhecido) cai nos Termos', () => {
     expect(page().doc().key).toBe('termos');
     expect(page('outro').doc().key).toBe('termos');
+  });
+
+  it('Voltar usa o histórico do navegador', () => {
+    page('termos').back();
+    expect(location.back).toHaveBeenCalled();
+  });
+
+  it('canGoBack segue o tamanho do histórico (aba nova = sem histórico)', () => {
+    const spy = vi.spyOn(window.history, 'length', 'get');
+    spy.mockReturnValue(1);
+    expect(page('termos').canGoBack).toBe(false);
+    spy.mockReturnValue(3);
+    expect(page('termos').canGoBack).toBe(true);
+    spy.mockRestore();
   });
 
   it('lista os 4 documentos pra navegação', () => {

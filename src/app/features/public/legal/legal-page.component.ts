@@ -1,4 +1,5 @@
 import { Component, computed } from '@angular/core';
+import { Location } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { LEGAL_COMPANY, LEGAL_DOCS, LEGAL_LAST_UPDATED, LegalDocKey } from './legal-content';
 
@@ -16,5 +17,15 @@ export class LegalPageComponent {
 
   readonly doc = computed(() => LEGAL_DOCS[(this.route.snapshot.data['doc'] as LegalDocKey) ?? 'termos'] ?? LEGAL_DOCS.termos);
 
-  constructor(private route: ActivatedRoute) {}
+  /**
+   * Com histórico (veio da página do coach etc.) o botão volta; sem histórico a página abriu numa
+   * aba nova (link da inscrição, pra não perder o formulário) — aí orienta a fechar a aba.
+   */
+  readonly canGoBack = typeof window !== 'undefined' && window.history.length > 1;
+
+  constructor(private route: ActivatedRoute, private location: Location) {}
+
+  back(): void {
+    this.location.back();
+  }
 }
