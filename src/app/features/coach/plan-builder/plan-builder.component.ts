@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { ApiService } from '../../../core/services/api.service';
 import { TrainingPlan, TRAINING_CATEGORY_LABEL, Exercise, Session, SessionType, ExerciseLibraryItem, TrainingDay, PersonalRecord, SessionTimeSummary, SessionTimeDetail } from '../../../core/models';
 import { PlanCalendarModalComponent } from '../../../shared/components/plan-calendar-modal/plan-calendar-modal.component';
+import { YoutubeEmbedComponent } from '../../../shared/components/youtube-embed/youtube-embed.component';
 import { exportWeekToPdf, exportMonthToPdf } from '../../../shared/utils/plan-pdf-export';
 import { formatDurationShort } from '../../../shared/utils/format-duration';
 
@@ -12,7 +13,7 @@ type DrawerMode = 'add' | 'edit';
 @Component({
   selector: 'app-plan-builder',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PlanCalendarModalComponent],
+  imports: [CommonModule, ReactiveFormsModule, PlanCalendarModalComponent, YoutubeEmbedComponent],
   templateUrl: './plan-builder.component.html',
   styleUrl: './plan-builder.component.scss'
 })
@@ -357,6 +358,14 @@ export class PlanBuilderComponent implements OnInit, OnChanges {
 
   isExpanded(id: string): boolean { return this.expandedSessions().has(id); }
 
+  // Vídeo do exercício embutido inline (facade — só carrega ao clicar em "play"), um por vez
+  // pra não abrir vários players simultâneos numa sessão com muitos exercícios em vídeo.
+  expandedVideoId = signal<string | null>(null);
+
+  toggleVideo(exerciseId: string): void {
+    this.expandedVideoId.update(cur => cur === exerciseId ? null : exerciseId);
+  }
+
   openAddSession(dayId: string): void {
     this.sessionForm.reset({ type: 'Strength' });
     this.showAddSession.set(dayId);
@@ -588,6 +597,11 @@ export class PlanBuilderComponent implements OnInit, OnChanges {
 
   getTypeBorderColor(type: SessionType): string {
     return this.typeBorderColors[type] ?? 'border-outline-variant';
+  }
+
+  /** Letra do bloco (A, B, C...) pela posição real do exercício na sessão — nada inventado, só rótulo. */
+  blockLetter(index: number): string {
+    return String.fromCharCode(65 + (index % 26));
   }
 
   formatReps(ex: Exercise): string {

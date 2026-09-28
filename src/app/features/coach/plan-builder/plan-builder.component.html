@@ -26,6 +26,12 @@
       }
     </div>
     <div class="flex items-center gap-2 flex-wrap md:flex-nowrap">
+      @if (plan()) {
+        <span class="hidden sm:flex items-center gap-1.5 text-on-surface-variant font-headline text-[10px] uppercase tracking-widest" title="Toda alteração é salva no servidor assim que você confirma — não existe rascunho local perdível">
+          <span class="w-1.5 h-1.5 rounded-full bg-primary-fixed animate-pulse-subtle"></span>
+          Auto-Save Ativo
+        </span>
+      }
       @if (plan()?.published) {
         <span class="flex items-center gap-1.5 text-green-400 font-headline text-xs uppercase tracking-wider">
           <span class="material-symbols-outlined text-[14px]">check_circle</span>
@@ -398,46 +404,71 @@
                         </div>
                       }
                     }
-                    @for (ex of session.exercises; track ex.id) {
-                      <div class="flex items-start justify-between py-3 border-b border-outline-variant/10 last:border-0">
-                        <div class="flex-1 min-w-0 pr-3">
-                          <p class="text-on-surface text-sm font-headline font-bold truncate">
-                            {{ ex.name }}
-                            @if (sessionTimeDetails()[session.id]?.exercises; as exList) {
-                              @for (te of exList; track te.id) {
-                                @if (te.id === ex.id && te.durationSeconds != null) {
-                                  <span class="text-outline text-[10px] font-headline ml-2">{{ fmtDuration(te.durationSeconds) }}</span>
+                    @for (ex of session.exercises; track ex.id; let ei = $index) {
+                      <div class="py-3 border-b border-outline-variant/10 last:border-0">
+                        <div class="flex items-start justify-between gap-3">
+                          <div class="flex items-start gap-2.5 flex-1 min-w-0 pr-1">
+                            <span class="flex-shrink-0 w-5 h-5 rounded-sm bg-primary-fixed/15 text-primary-fixed text-[10px] font-headline font-black flex items-center justify-center mt-0.5">
+                              {{ blockLetter(ei) }}
+                            </span>
+                            <div class="min-w-0 flex-1">
+                              <p class="text-on-surface text-sm font-headline font-bold truncate">
+                                {{ ex.name }}
+                                @if (sessionTimeDetails()[session.id]?.exercises; as exList) {
+                                  @for (te of exList; track te.id) {
+                                    @if (te.id === ex.id && te.durationSeconds != null) {
+                                      <span class="text-outline text-[10px] font-headline ml-2">{{ fmtDuration(te.durationSeconds) }}</span>
+                                    }
+                                  }
                                 }
+                              </p>
+                              <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
+                                @if (ex.sets || ex.reps || ex.duration) {
+                                  <span class="text-[10px] font-headline font-bold bg-surface-container text-on-surface-variant px-2 py-0.5 rounded-sm">{{ formatReps(ex) }}</span>
+                                }
+                                @if (ex.loadPercent) {
+                                  <span class="text-[10px] font-headline font-bold bg-primary-fixed/15 text-primary-fixed px-2 py-0.5 rounded-sm">@ {{ ex.loadPercent }}%</span>
+                                }
+                                @if (ex.restSeconds) {
+                                  <span class="text-[10px] font-headline text-outline px-2 py-0.5">
+                                    <span class="material-symbols-outlined text-[11px] align-middle">timer</span>
+                                    {{ ex.restSeconds }}s
+                                  </span>
+                                }
+                              </div>
+                              @if (ex.coachNotes) {
+                                <p class="text-outline text-xs mt-2 italic border-l-2 border-primary-fixed/40 pl-2">{{ ex.coachNotes }}</p>
                               }
+                            </div>
+                          </div>
+                          <div class="flex items-center gap-1 flex-shrink-0">
+                            @if (ex.youtubeUrl) {
+                              <button type="button" (click)="toggleVideo(ex.id)"
+                                class="w-6 h-6 flex items-center justify-center transition-colors"
+                                [class.text-primary-fixed]="expandedVideoId() === ex.id"
+                                [class.text-outline]="expandedVideoId() !== ex.id"
+                                [class.hover:text-primary]="expandedVideoId() !== ex.id"
+                                title="Vídeo de demonstração">
+                                <span class="material-symbols-outlined text-[18px]">play_circle</span>
+                              </button>
                             }
-                          </p>
-                          <p class="text-on-surface-variant text-xs mt-0.5">{{ formatReps(ex) }}
-                            @if (ex.loadPercent) {
-                              <span class="text-primary-fixed font-bold"> @ {{ ex.loadPercent }}%</span>
-                            }
-                          </p>
-                          @if (ex.coachNotes) {
-                            <p class="text-outline text-xs mt-1 italic border-l-2 border-primary-fixed/40 pl-2">{{ ex.coachNotes }}</p>
-                          }
+                            <button type="button" (click)="openEditExercise(ex, session.id)"
+                              class="w-6 h-6 flex items-center justify-center text-outline hover:text-on-surface transition-colors rounded-sm hover:bg-surface-container"
+                              title="Editar exercício">
+                              <span class="material-symbols-outlined text-[16px]">edit</span>
+                            </button>
+                            <button type="button" (click)="deleteExercise(ex, session.id)"
+                              class="w-6 h-6 flex items-center justify-center text-outline hover:text-error transition-colors rounded-sm hover:bg-error/10"
+                              title="Remover exercício">
+                              <span class="material-symbols-outlined text-[16px]">delete</span>
+                            </button>
+                          </div>
                         </div>
-                        <div class="flex items-center gap-1 flex-shrink-0">
-                          @if (ex.youtubeUrl) {
-                            <a [href]="ex.youtubeUrl" target="_blank" rel="noopener"
-                              class="w-6 h-6 flex items-center justify-center text-primary-fixed hover:text-primary transition-colors">
-                              <span class="material-symbols-outlined text-[18px]">play_circle</span>
-                            </a>
-                          }
-                          <button type="button" (click)="openEditExercise(ex, session.id)"
-                            class="w-6 h-6 flex items-center justify-center text-outline hover:text-on-surface transition-colors rounded-sm hover:bg-surface-container"
-                            title="Editar exercício">
-                            <span class="material-symbols-outlined text-[16px]">edit</span>
-                          </button>
-                          <button type="button" (click)="deleteExercise(ex, session.id)"
-                            class="w-6 h-6 flex items-center justify-center text-outline hover:text-error transition-colors rounded-sm hover:bg-error/10"
-                            title="Remover exercício">
-                            <span class="material-symbols-outlined text-[16px]">delete</span>
-                          </button>
-                        </div>
+                        @if (ex.youtubeUrl && expandedVideoId() === ex.id) {
+                          <div class="mt-3 ml-[30px] animate-fade-in">
+                            <app-youtube-embed [url]="ex.youtubeUrl" />
+                          </div>
+                        }
                       </div>
                     }
 
