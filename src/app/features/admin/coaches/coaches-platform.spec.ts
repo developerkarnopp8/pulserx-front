@@ -5,7 +5,10 @@ import { PlatformSettings } from '../../../core/models';
 
 /** Cobre contrato (%) e o bloqueio por assinatura, adicionados na R3. */
 
-const coach = { id: 'coach-1', name: 'Luan', email: 'luan@example.com', aiImportEnabled: true, createdAt: '2026-01-01T00:00:00.000Z' };
+const coach = {
+  id: 'coach-1', name: 'Luan', email: 'luan@example.com', aiImportEnabled: true, createdAt: '2026-01-01T00:00:00.000Z',
+  platformFeePercent: 10, studentCount: 100, totalPaid: 10000, platformCut: 1000, coachCut: 9000,
+};
 
 const settings = (over: Partial<PlatformSettings> = {}): PlatformSettings => ({
   enforceSubscriptionAccess: false, totalStudents: 5, studentsWithoutAccess: 0, ...over,
@@ -122,6 +125,30 @@ describe('CoachesComponent — contrato (% da plataforma)', () => {
     expect(component.savingContractId()).toBeNull();
   });
 
+  it('salvar com sucesso recarrega a lista — sem isso a % ficava desatualizada na linha até um F5', () => {
+    const { component, api } = build();
+    component.ngOnInit();
+    api.getCoaches.mockClear();
+
+    component.openContract(coach);
+    component.saveContract(coach);
+
+    expect(api.getCoaches).toHaveBeenCalledTimes(1);
+  });
+
+  it('erro ao salvar NÃO recarrega a lista', () => {
+    const { component, api } = build({
+      setCoachContract: vi.fn().mockReturnValue(throwError(() => ({ error: { message: 'Coach não encontrado' } }))),
+    });
+    component.ngOnInit();
+    api.getCoaches.mockClear();
+
+    component.openContract(coach);
+    component.saveContract(coach);
+
+    expect(api.getCoaches).not.toHaveBeenCalled();
+  });
+
   it('erro ao salvar mantém o painel aberto e mostra a mensagem', () => {
     const { component } = build({
       setCoachContract: vi.fn().mockReturnValue(throwError(() => ({ error: { message: 'Coach não encontrado' } }))),
@@ -133,5 +160,24 @@ describe('CoachesComponent — contrato (% da plataforma)', () => {
     expect(component.contractError()).toBe('Coach não encontrado');
     expect(component.contractTargetId()).toBe('coach-1');
     expect(component.savingContractId()).toBeNull();
+  });
+});
+
+describe('CoachesComponent.platformTotals — governança/repasses', () => {
+  it('soma alunos/receita/repasse real de todos os coaches carregados', () => {
+    const coach2 = { ...coach, id: 'coach-2', studentCount: 50, totalPaid: 5000, platformCut: 150, coachCut: 4850 };
+    const { component } = build({ getCoaches: vi.fn().mockReturnValue(of([coach, coach2])) });
+    component.ngOnInit();
+
+    expect(component.platformTotals()).toEqual({
+      studentCount: 150, totalPaid: 15000, platformCut: 1150, coachCut: 13850,
+    });
+  });
+
+  it('sem nenhum coach: tudo zero, não quebra', () => {
+    const { component } = build({ getCoaches: vi.fn().mockReturnValue(of([])) });
+    component.ngOnInit();
+
+    expect(component.platformTotals()).toEqual({ studentCount: 0, totalPaid: 0, platformCut: 0, coachCut: 0 });
   });
 });
