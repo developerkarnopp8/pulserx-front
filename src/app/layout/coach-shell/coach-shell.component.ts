@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterOutlet, RouterLink, Router, NavigationEnd } from '@angular/router';
@@ -9,6 +9,7 @@ import { Student, TrainingPlan } from '../../core/models';
 import { NotificationPermissionBannerComponent } from '../../shared/components/notification-permission-banner/notification-permission-banner.component';
 import { NotificationsBellComponent } from '../../shared/components/notifications-bell/notifications-bell.component';
 import { addUtcDays, toDateKey, utcDateFromIso } from '../../shared/utils/date-key';
+import { coachScreenTitle } from '../../shared/utils/coach-screen-title';
 
 interface NavItem { label: string; route: string; icon: string; soon?: boolean; }
 
@@ -38,6 +39,8 @@ export class CoachShellComponent implements OnInit {
   private startDateTouchedByUser = false;
 
   currentUrl = signal('');
+  /** Nome da tela atual, na barra superior. */
+  screenTitle = computed(() => coachScreenTitle(this.currentUrl()));
 
   navItems: NavItem[] = [
     { label: 'Dashboard',  route: '/coach/dashboard', icon: 'dashboard' },
