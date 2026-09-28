@@ -90,6 +90,20 @@ describe('AuthService.login', () => {
     expect(err?.message).toContain('Coach');
   });
 
+  it('role diferente: NÃO grava token/usuário nem abre socket (sessão do outro perfil não fica ativa na aba)', () => {
+    localStorage.clear();
+    const { http, router, socket } = build();
+    const service = new AuthService(http as any, router as any, socket as any);
+    http.post.mockReturnValue(of({ access_token: 'tok-coach', user: user({ role: 'coach' }) }));
+
+    service.login('luan@x.com', 'x', 'athlete').subscribe({ error: () => {} });
+
+    expect(localStorage.getItem('pulserx_token')).toBeNull();
+    expect(localStorage.getItem('pulserx_user')).toBeNull();
+    expect(service.currentUser()).toBeNull();
+    expect(socket.connect).not.toHaveBeenCalled();
+  });
+
   it('role diferente e desconhecida (fora do mapa de rótulos): usa o valor bruto (?? res.user.role)', () => {
     const { http, router, socket } = build();
     const service = new AuthService(http as any, router as any, socket as any);
@@ -187,5 +201,46 @@ describe('AuthService — getToken/isAuthenticated/isCoach/isAthlete/isAdmin', (
 
     service.currentUser.set(user({ role: 'admin' }));
     expect(service.isAdmin()).toBe(true);
+  });
+});
+
+describe('AuthService — sessão trocada em outra aba', () => {
+  function serviceWithReloadSpy() {
+    const { http, router, socket } = build();
+    const service = new AuthService(http as any, router as any, socket as any);
+    const reload = vi.spyOn(service as any, 'reloadForSessionChange').mockImplementation(() => {});
+    return reload;
+  }
+
+  it('token trocado em outra aba (login/logout): recarrega esta aba', () => {
+    const reload = serviceWithReloadSpy();
+    window.dispatchEvent(new StorageEvent('storage', { key: 'pulserx_token', newValue: 'tok-outro' }));
+    expect(reload).toHaveBeenCalled();
+  });
+
+  it('localStorage.clear() em outra aba (key null): recarrega', () => {
+    const reload = serviceWithReloadSpy();
+    window.dispatchEvent(new StorageEvent('storage', { key: null }));
+    expect(reload).toHaveBeenCalled();
+  });
+
+  it('outra chave (ex.: rascunho de treino): não recarrega', () => {
+    const reload = serviceWithReloadSpy();
+    window.dispatchEvent(new StorageEvent('storage', { key: 'workout-draft:s1', newValue: '{}' }));
+    expect(reload).not.toHaveBeenCalled();
+  });
+
+  it('reloadForSessionChange chama window.location.reload', () => {
+    const original = window.location;
+    const reload = vi.fn();
+    Object.defineProperty(window, 'location', { value: { reload }, writable: true, configurable: true });
+    try {
+      const { http, router, socket } = build();
+      const service = new AuthService(http as any, router as any, socket as any);
+      (service as any).reloadForSessionChange();
+      expect(reload).toHaveBeenCalled();
+    } finally {
+      Object.defineProperty(window, 'location', { value: original, writable: true, configurable: true });
+    }
   });
 });

@@ -8,11 +8,21 @@ import { AppNotification } from '../models';
 @Injectable({ providedIn: 'root' })
 export class SocketService implements OnDestroy {
   private socket: Socket | null = null;
+  /** Token com que o socket atual autenticou — a conexão pertence a ESTE usuário. */
+  private socketToken: string | null = null;
   readonly newMessage$ = new Subject<ChatMessage>();
   readonly newNotification$ = new Subject<AppNotification>();
 
+  /**
+   * Abre o socket do usuário do `token`. Se já houver um socket de OUTRA sessão (troca de conta
+   * na mesma aba sem logout), ele é fechado antes — senão a aba continuaria recebendo, em tempo
+   * real, as mensagens/notificações destinadas ao usuário anterior.
+   */
   connect(token: string): void {
-    if (this.socket?.connected) return;
+    if (this.socket && this.socketToken === token) return;
+    this.disconnect();
+
+    this.socketToken = token;
 
     const wsUrl = environment.apiUrl.replace('/api', '');
     this.socket = io(`${wsUrl}/messages`, {
@@ -33,6 +43,7 @@ export class SocketService implements OnDestroy {
   disconnect(): void {
     this.socket?.disconnect();
     this.socket = null;
+    this.socketToken = null;
   }
 
   private showBrowserNotification(msg: ChatMessage): void {
