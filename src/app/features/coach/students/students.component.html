@@ -4,29 +4,40 @@
   <header class="px-4 md:px-8 py-4 md:py-6 flex items-center justify-between flex-shrink-0 gap-3 flex-wrap">
     <div>
       <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-1">Coach Dashboard</p>
-      <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface tracking-tighter leading-none">GESTÃO DE ATLETAS</h2>
-      <p class="text-on-surface-variant text-sm mt-1">Performance e evolução técnica dos seus alunos elite.</p>
+      <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface tracking-tighter leading-none">ALUNOS & ASSINATURAS</h2>
+      <p class="text-on-surface-variant text-sm mt-1">Performance, plano e status de assinatura dos seus atletas.</p>
     </div>
-    <button type="button" (click)="openModal()"
-      class="flex items-center gap-2 bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-5 py-3 rounded-sm uppercase tracking-tighter text-xs transition-all">
-      <span class="material-symbols-outlined text-[16px]">person_add</span>
-      Adicionar Atleta
-    </button>
+    <div class="flex items-center gap-2">
+      <button type="button" (click)="exportCsv()" [disabled]="filtered().length === 0"
+        class="flex items-center gap-2 bg-surface-container-low hover:bg-surface-container disabled:opacity-40 text-on-surface-variant hover:text-on-surface font-headline font-bold px-4 py-3 rounded-sm uppercase tracking-tighter text-xs transition-all">
+        <span class="material-symbols-outlined text-[16px]">download</span>
+        Exportar CSV
+      </button>
+      <button type="button" (click)="openModal()"
+        class="flex items-center gap-2 bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-5 py-3 rounded-sm uppercase tracking-tighter text-xs transition-all">
+        <span class="material-symbols-outlined text-[16px]">person_add</span>
+        Adicionar Atleta
+      </button>
+    </div>
   </header>
 
-  <!-- Stats bar -->
-  <div class="px-4 md:px-8 pb-4 grid grid-cols-3 gap-2 md:flex md:gap-3 flex-shrink-0">
-    <div class="bg-surface-container-low rounded-md px-5 py-3 flex-1 text-center">
+  <!-- Stats bar (dado real: contagem por status de assinatura) -->
+  <div class="px-4 md:px-8 pb-4 grid grid-cols-2 md:grid-cols-4 gap-2 flex-shrink-0">
+    <div class="bg-surface-container-low rounded-md px-5 py-3 text-center">
       <p class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none">{{ students().length }}</p>
       <p class="text-outline text-[10px] font-headline uppercase tracking-widest mt-1">Total</p>
     </div>
-    <div class="bg-surface-container-low rounded-md px-5 py-3 flex-1 text-center">
-      <p class="font-headline font-black text-3xl text-primary-fixed tracking-tighter leading-none">{{ students().length }}</p>
+    <div class="bg-surface-container-low rounded-md px-5 py-3 text-center">
+      <p class="font-headline font-black text-3xl text-green-400 tracking-tighter leading-none">{{ activeCount() }}</p>
       <p class="text-outline text-[10px] font-headline uppercase tracking-widest mt-1">Ativos</p>
     </div>
-    <div class="bg-surface-container-low rounded-md px-5 py-3 flex-1 text-center">
-      <p class="font-headline font-black text-3xl text-tertiary tracking-tighter leading-none">{{ filtered().length }}</p>
-      <p class="text-outline text-[10px] font-headline uppercase tracking-widest mt-1">Filtrados</p>
+    <div class="bg-surface-container-low rounded-md px-5 py-3 text-center">
+      <p class="font-headline font-black text-3xl text-tertiary tracking-tighter leading-none">{{ trialingCount() }}</p>
+      <p class="text-outline text-[10px] font-headline uppercase tracking-widest mt-1">Em Teste</p>
+    </div>
+    <div class="bg-surface-container-low rounded-md px-5 py-3 text-center">
+      <p class="font-headline font-black text-3xl text-error tracking-tighter leading-none">{{ pastDueCount() }}</p>
+      <p class="text-outline text-[10px] font-headline uppercase tracking-widest mt-1">Inadimplentes</p>
     </div>
   </div>
 
@@ -36,98 +47,149 @@
       <span class="material-symbols-outlined text-outline text-[16px]">search</span>
       <input
         type="search"
-        placeholder="Buscar atleta..."
+        placeholder="Buscar por nome ou e-mail..."
         (input)="search.set($any($event.target).value)"
         class="bg-transparent text-on-surface placeholder:text-outline text-sm flex-1"/>
     </div>
   </div>
 
-  <!-- Bento Grid -->
+  <!-- Filter tabs -->
+  <div class="px-4 md:px-8 mb-4 flex gap-2 flex-shrink-0 overflow-x-auto">
+    <button type="button" (click)="filterTab.set('all')"
+      class="px-3 py-1.5 rounded-sm text-[10px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
+      [class.bg-primary-fixed]="filterTab() === 'all'" [class.text-on-primary-fixed]="filterTab() === 'all'"
+      [class.bg-surface-container]="filterTab() !== 'all'" [class.text-outline]="filterTab() !== 'all'">
+      Todos ({{ students().length }})
+    </button>
+    @for (plan of planTabs(); track plan.id) {
+      <button type="button" (click)="filterTab.set(plan.id)"
+        class="px-3 py-1.5 rounded-sm text-[10px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
+        [class.bg-primary-fixed]="filterTab() === plan.id" [class.text-on-primary-fixed]="filterTab() === plan.id"
+        [class.bg-surface-container]="filterTab() !== plan.id" [class.text-outline]="filterTab() !== plan.id">
+        {{ plan.name }} ({{ plan.count }})
+      </button>
+    }
+    @if (pastDueCount() > 0) {
+      <button type="button" (click)="filterTab.set('PAST_DUE')"
+        class="px-3 py-1.5 rounded-sm text-[10px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
+        [class.bg-error]="filterTab() === 'PAST_DUE'" [class.text-on-error]="filterTab() === 'PAST_DUE'"
+        [class.bg-surface-container]="filterTab() !== 'PAST_DUE'" [class.text-error]="filterTab() !== 'PAST_DUE'">
+        Inadimplentes ({{ pastDueCount() }})
+      </button>
+    }
+    @if (trialingCount() > 0) {
+      <button type="button" (click)="filterTab.set('TRIALING')"
+        class="px-3 py-1.5 rounded-sm text-[10px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
+        [class.bg-primary-fixed]="filterTab() === 'TRIALING'" [class.text-on-primary-fixed]="filterTab() === 'TRIALING'"
+        [class.bg-surface-container]="filterTab() !== 'TRIALING'" [class.text-outline]="filterTab() !== 'TRIALING'">
+        Período de Teste ({{ trialingCount() }})
+      </button>
+    }
+    @if (noPlanCount() > 0) {
+      <button type="button" (click)="filterTab.set('no_plan')"
+        class="px-3 py-1.5 rounded-sm text-[10px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
+        [class.bg-primary-fixed]="filterTab() === 'no_plan'" [class.text-on-primary-fixed]="filterTab() === 'no_plan'"
+        [class.bg-surface-container]="filterTab() !== 'no_plan'" [class.text-outline]="filterTab() !== 'no_plan'">
+        Sem Plano ({{ noPlanCount() }})
+      </button>
+    }
+  </div>
+
+  <!-- Table -->
   <div class="flex-1 px-4 md:px-8 pb-8 overflow-y-auto">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      @for (student of filtered(); track student.id) {
-        <div class="bg-surface-container-low rounded-md overflow-hidden hover:bg-surface-container transition-colors group"
-          [class.opacity-50]="deleting() === student.id">
-
-          <!-- Card gradient header -->
-          <div class="h-28 bg-gradient-to-b from-primary-fixed/15 to-transparent flex items-end justify-center pb-4 relative">
-            @if (student.avatarUrl) {
-              <img [src]="student.avatarUrl" [attr.alt]="student.name" [attr.title]="student.name" class="w-16 h-16 rounded-sm object-cover"/>
-            } @else {
-              <div class="w-16 h-16 rounded-sm bg-surface-container flex items-center justify-center text-xl font-headline font-black text-primary-fixed">
-                {{ getInitials(student.name) }}
-              </div>
-            }
-            <!-- Active badge -->
-            <span class="absolute top-3 right-3 text-[9px] font-headline font-bold text-primary-fixed bg-primary-fixed/15 px-2 py-0.5 rounded-sm uppercase tracking-wider">Ativo</span>
-            <!-- Edit / Delete actions (visible on hover) -->
-            <div class="absolute top-3 left-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button type="button" (click)="openEditModal(student)"
-                title="Editar objetivo"
-                class="w-6 h-6 rounded-sm bg-surface-container/80 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors">
-                <span class="material-symbols-outlined text-[14px]">edit</span>
-              </button>
-              <button type="button" (click)="deleteStudent(student)"
-                title="Remover atleta"
-                class="w-6 h-6 rounded-sm bg-surface-container/80 flex items-center justify-center text-error hover:bg-error/20 transition-colors">
-                <span class="material-symbols-outlined text-[14px]">delete</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Card body -->
-          <div class="p-4">
-            <h3 class="text-on-surface font-headline font-bold text-sm truncate mb-0.5 flex items-center gap-1.5">
-              {{ student.name }}
-              @if (pendingSkips()[student.id]; as count) {
-                <span class="min-w-[16px] h-4 px-1 rounded-full bg-error text-on-error text-[9px] font-bold flex items-center justify-center flex-shrink-0"
-                  title="Pulos pendentes">
-                  {{ count }}
-                </span>
-              }
-            </h3>
-            <p class="text-outline text-xs truncate mb-3">{{ student.email }}</p>
-
-            <div class="space-y-1.5 mb-3">
-              <div class="flex justify-between text-xs">
-                <span class="text-on-surface-variant">Meta</span>
-                <span class="text-on-surface font-headline font-bold truncate ml-2 max-w-[120px]">{{ student.goal }}</span>
-              </div>
-              <div class="flex justify-between text-xs">
-                <span class="text-on-surface-variant">Fase</span>
-                <span class="text-on-surface-variant font-headline">Semana {{ student.currentWeek }}</span>
-              </div>
-              <div class="flex justify-between text-xs">
-                <span class="text-on-surface-variant" title="Tempo médio de treino nos últimos 30 dias">Tempo médio</span>
-                <span class="text-on-surface font-headline font-bold">{{ fmtDuration(avgByStudent()[student.id]) }}</span>
-              </div>
-            </div>
-
-            <!-- Progress bar -->
-            <div class="w-full bg-surface-container rounded-full h-0.5 mb-1.5">
-              <div class="bg-primary-fixed rounded-full h-0.5 transition-all"
-                [style.width.%]="student.completionPercent ?? 0"></div>
-            </div>
-            <div class="flex justify-between text-[10px] font-headline mb-4">
-              <span class="text-outline uppercase tracking-wider" title="% de exercícios com registro no plano do mês atual">Progresso do Mês</span>
-              <span class="text-on-surface-variant font-bold">{{ student.completionPercent ?? 0 }}%</span>
-            </div>
-
-            <!-- Action -->
-            <div class="grid grid-cols-2 gap-2">
-              <a [routerLink]="['/coach/plan-builder', student.id]"
-                class="block text-center text-[11px] font-headline font-bold bg-primary-fixed/10 text-primary-fixed hover:bg-primary-fixed hover:text-on-primary-fixed py-2 rounded-sm transition-all uppercase tracking-wider">
-                Ver Plano
-              </a>
-              <button type="button" (click)="openSubscriptionModal(student)"
-                class="text-center text-[11px] font-headline font-bold bg-surface-container text-on-surface-variant hover:text-on-surface py-2 rounded-sm transition-all uppercase tracking-wider">
-                Assinatura
-              </button>
-            </div>
-          </div>
+    @if (filtered().length === 0) {
+      <p class="text-outline text-sm font-headline text-center py-12">Nenhum resultado para este filtro.</p>
+    } @else {
+      <div class="bg-surface-container-low rounded-md overflow-x-auto md:overflow-hidden">
+        <!-- Table header -->
+        <div class="grid grid-cols-[2fr_1.3fr_1fr_1fr_0.8fr_1fr_auto] gap-4 px-5 py-3 border-b border-outline-variant/10 min-w-[960px] md:min-w-0">
+          <span class="text-outline text-[9px] font-headline uppercase tracking-widest">Atleta / Identificação</span>
+          <span class="text-outline text-[9px] font-headline uppercase tracking-widest">Plano</span>
+          <span class="text-outline text-[9px] font-headline uppercase tracking-widest">Status Assinatura</span>
+          <span class="text-outline text-[9px] font-headline uppercase tracking-widest">Renovação</span>
+          <span class="text-outline text-[9px] font-headline uppercase tracking-widest">Tempo Médio</span>
+          <span class="text-outline text-[9px] font-headline uppercase tracking-widest">Progresso</span>
+          <span class="text-outline text-[9px] font-headline uppercase tracking-widest">Ações</span>
         </div>
-      }
-    </div>
+
+        @for (student of filtered(); track student.id) {
+          <div class="grid grid-cols-[2fr_1.3fr_1fr_1fr_0.8fr_1fr_auto] gap-4 px-5 py-4 border-b border-outline-variant/10 last:border-0 items-center hover:bg-surface-container transition-colors min-w-[960px] md:min-w-0"
+            [class.opacity-50]="deleting() === student.id">
+
+            <!-- Atleta -->
+            <div class="flex items-center gap-3 min-w-0">
+              @if (student.avatarUrl) {
+                <img [src]="student.avatarUrl" [attr.alt]="student.name" class="w-9 h-9 rounded-sm object-cover flex-shrink-0"/>
+              } @else {
+                <div class="w-9 h-9 rounded-sm bg-surface-container flex items-center justify-center text-xs font-headline font-black text-primary-fixed flex-shrink-0">
+                  {{ getInitials(student.name) }}
+                </div>
+              }
+              <div class="min-w-0">
+                <p class="text-on-surface font-headline font-bold text-sm truncate flex items-center gap-1.5">
+                  {{ student.name }}
+                  @if (pendingSkips()[student.id]; as count) {
+                    <span class="min-w-[16px] h-4 px-1 rounded-full bg-error text-on-error text-[9px] font-bold flex items-center justify-center flex-shrink-0"
+                      title="Pulos pendentes">{{ count }}</span>
+                  }
+                </p>
+                <p class="text-outline text-xs truncate">{{ student.email }}</p>
+              </div>
+            </div>
+
+            <!-- Plano -->
+            <div class="min-w-0">
+              <p class="text-on-surface font-headline font-bold text-xs truncate">{{ student.subscription?.plan?.name ?? 'Sem plano' }}</p>
+              @if (student.subscription?.plan; as plan) {
+                <p class="text-outline text-[11px]">{{ plan.isFree ? 'Grátis' : (fmtPrice(plan.priceCents) + '/mês') }}</p>
+              }
+            </div>
+
+            <!-- Status -->
+            <div>
+              <span class="text-[10px] font-headline font-bold px-2 py-1 rounded-sm uppercase tracking-wider whitespace-nowrap"
+                [class]="subscriptionStatusClass(student)">
+                {{ subscriptionStatusLabel(student) }}
+              </span>
+            </div>
+
+            <!-- Renovação -->
+            <p class="text-on-surface-variant text-xs whitespace-nowrap">{{ formatDate(student.subscription?.renewsAt ?? null) }}</p>
+
+            <!-- Tempo médio (últimos 30 dias) -->
+            <p class="text-on-surface-variant text-xs whitespace-nowrap">{{ fmtDuration(avgByStudent()[student.id]) }}</p>
+
+            <!-- Progresso -->
+            <div>
+              <div class="w-full bg-surface-container rounded-full h-1 mb-1">
+                <div class="bg-primary-fixed rounded-full h-1 transition-all" [style.width.%]="student.completionPercent ?? 0"></div>
+              </div>
+              <p class="text-outline text-[10px] font-headline">{{ student.completionPercent ?? 0 }}%</p>
+            </div>
+
+            <!-- Ações -->
+            <div class="flex items-center gap-1">
+              <a [routerLink]="['/coach/plan-builder', student.id]" title="Ver plano de treino"
+                class="w-7 h-7 flex items-center justify-center text-outline hover:text-primary-fixed transition-colors rounded-sm hover:bg-primary-fixed/10">
+                <span class="material-symbols-outlined text-[16px]">fitness_center</span>
+              </a>
+              <button type="button" (click)="openSubscriptionModal(student)" title="Assinatura"
+                class="w-7 h-7 flex items-center justify-center text-outline hover:text-on-surface transition-colors rounded-sm hover:bg-surface-container">
+                <span class="material-symbols-outlined text-[16px]">credit_card</span>
+              </button>
+              <button type="button" (click)="openEditModal(student)" title="Editar objetivo"
+                class="w-7 h-7 flex items-center justify-center text-outline hover:text-on-surface transition-colors rounded-sm hover:bg-surface-container">
+                <span class="material-symbols-outlined text-[16px]">edit</span>
+              </button>
+              <button type="button" (click)="deleteStudent(student)" title="Remover atleta"
+                class="w-7 h-7 flex items-center justify-center text-outline hover:text-error transition-colors rounded-sm hover:bg-error/10">
+                <span class="material-symbols-outlined text-[16px]">delete</span>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
   </div>
 </div>
 

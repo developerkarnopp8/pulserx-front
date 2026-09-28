@@ -24,6 +24,7 @@ interface RawStudent {
   completionPercent?: number;
   avatarUrl?: string;
   user: { id: string; name: string; email: string; role: string };
+  subscription?: Subscription | null;
 }
 
 interface RawExercise {
@@ -504,6 +505,7 @@ export class ApiService {
       coachId:           s.coachId,
       completionPercent: s.completionPercent,
       avatarUrl:         s.avatarUrl,
+      subscription:      s.subscription,
     };
   }
 

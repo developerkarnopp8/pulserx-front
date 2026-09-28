@@ -4,11 +4,20 @@ import { RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Student, SubscriptionPlan, Subscription, TRAINING_CATEGORY_LABEL } from '../../../core/models';
+import { Student, SubscriptionPlan, Subscription, SubscriptionStatus, SUBSCRIPTION_STATUS_LABEL, TRAINING_CATEGORY_LABEL } from '../../../core/models';
 import { formatCents } from '../../../shared/utils/currency';
 import { formatDurationShort } from '../../../shared/utils/format-duration';
 
 type ModalMode = 'add' | 'edit';
+
+/** Aba de filtro: status da assinatura, "sem plano", ou o id de um plano específico. */
+type FilterTab = 'all' | 'no_plan' | 'TRIALING' | 'PAST_DUE';
+
+interface PlanTabOption {
+  id: string;
+  name: string;
+  count: number;
+}
 
 @Component({
   selector: 'app-students',
@@ -43,13 +52,40 @@ export class StudentsComponent implements OnInit {
   subscriptionError   = signal('');
   readonly fmtPrice = formatCents;
   readonly categoryLabel = TRAINING_CATEGORY_LABEL;
+  readonly statusLabelMap = SUBSCRIPTION_STATUS_LABEL;
 
-  filtered = computed(() =>
-    this.students().filter(s =>
-      s.name.toLowerCase().includes(this.search().toLowerCase()) ||
-      s.email.toLowerCase().includes(this.search().toLowerCase())
-    )
-  );
+  // ── Filtros por status/plano da assinatura (dado real, vindo junto de GET /students) ──────
+  filterTab = signal<FilterTab | string>('all');
+
+  activeCount   = computed(() => this.students().filter(s => s.subscription?.status === 'ACTIVE').length);
+  trialingCount = computed(() => this.students().filter(s => s.subscription?.status === 'TRIALING').length);
+  pastDueCount  = computed(() => this.students().filter(s => s.subscription?.status === 'PAST_DUE').length);
+  noPlanCount   = computed(() => this.students().filter(s => !s.subscription || s.subscription.status === 'CANCELED').length);
+
+  /** Uma aba por plano com pelo menos 1 aluno assinante — ordem por quantidade de alunos. */
+  planTabs = computed<PlanTabOption[]>(() => {
+    const byPlan = new Map<string, PlanTabOption>();
+    for (const s of this.students()) {
+      const plan = s.subscription?.plan;
+      if (!plan || s.subscription?.status === 'CANCELED') continue;
+      const entry = byPlan.get(plan.id) ?? { id: plan.id, name: plan.name, count: 0 };
+      entry.count++;
+      byPlan.set(plan.id, entry);
+    }
+    return Array.from(byPlan.values()).sort((a, b) => b.count - a.count);
+  });
+
+  filtered = computed(() => {
+    const term = this.search().toLowerCase();
+    let list = this.students().filter(s =>
+      s.name.toLowerCase().includes(term) || s.email.toLowerCase().includes(term)
+    );
+    const tab = this.filterTab();
+    if (tab === 'no_plan') list = list.filter(s => !s.subscription || s.subscription.status === 'CANCELED');
+    else if (tab === 'TRIALING' || tab === 'PAST_DUE') list = list.filter(s => s.subscription?.status === tab);
+    else if (tab !== 'all') list = list.filter(s => s.subscription?.plan.id === tab && s.subscription.status !== 'CANCELED');
+    return list;
+  });
 
   form!: FormGroup;
   editForm!: FormGroup;
@@ -231,5 +267,50 @@ export class StudentsComponent implements OnInit {
       },
       error: () => this.deleting.set(null),
     });
+  }
+
+  subscriptionStatusLabel(student: Student): string {
+    const status = student.subscription?.status;
+    if (!status || status === 'CANCELED') return 'Sem plano';
+    return this.statusLabelMap[status];
+  }
+
+  subscriptionStatusClass(student: Student): string {
+    const status = student.subscription?.status;
+    const map: Record<SubscriptionStatus, string> = {
+      ACTIVE:   'bg-green-500/20 text-green-400',
+      TRIALING: 'bg-tertiary/20 text-tertiary',
+      PAST_DUE: 'bg-error/20 text-error',
+      CANCELED: 'bg-surface-container text-outline',
+    };
+    return status ? map[status] : 'bg-surface-container text-outline';
+  }
+
+  formatDate(date: string | null): string {
+    return date ? new Date(date).toLocaleDateString('pt-BR') : '—';
+  }
+
+  /** Exporta a lista filtrada (nome/e-mail/plano/status/datas) — sem CPF nem qualquer dado de pagamento. */
+  exportCsv(): void {
+    const header = ['Nome', 'E-mail', 'Objetivo', 'Plano', 'Status', 'Início', 'Renovação'];
+    const rows = this.filtered().map(s => [
+      s.name,
+      s.email,
+      s.goal,
+      s.subscription?.plan.name ?? 'Sem plano',
+      this.subscriptionStatusLabel(s),
+      this.formatDate(s.subscription?.startedAt ?? null),
+      this.formatDate(s.subscription?.renewsAt ?? null),
+    ]);
+    const csv = [header, ...rows]
+      .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `alunos-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 }
