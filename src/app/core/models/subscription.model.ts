@@ -56,3 +56,31 @@ export interface PlatformSettings {
   totalStudents: number;
   studentsWithoutAccess: number;
 }
+
+export interface RevenueByPlan {
+  planId: string;
+  planName: string;
+  priceCents: number;
+  activeCount: number;
+  mrrCents: number;
+}
+
+/**
+ * MRR/receita por plano, inadimplência e churn/LTV — tudo calculado a partir do dado real de
+ * assinatura (sem billing history tabular, churn/LTV são aproximações honestas, não contábeis).
+ */
+export interface FinancialSummary {
+  mrrCents: number;
+  revenueByPlan: RevenueByPlan[];
+  totalActive: number;
+  totalPastDue: number;
+  pastDueRatePercent: number;
+  churn: {
+    canceledThisMonth: number;
+    activeAtStartOfMonth: number;
+    ratePercent: number;
+  };
+  arpuCents: number;
+  /** null quando não há cancelamento no mês pra calcular uma taxa de churn (evita divisão por zero/número fictício). */
+  ltvProjectedCents: number | null;
+}

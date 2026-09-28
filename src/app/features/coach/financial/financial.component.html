@@ -14,6 +14,70 @@
     </button>
   </header>
 
+  <!-- Visão Geral — assinaturas reais (Asaas): MRR/receita por plano, inadimplência, churn/LTV -->
+  @if (loadingSummary()) {
+    <div class="px-4 md:px-8 mb-6 flex-shrink-0">
+      <div class="h-24 bg-surface-container-low rounded-md animate-pulse"></div>
+    </div>
+  } @else if (financialSummary(); as fs) {
+    <div class="px-4 md:px-8 mb-6 flex-shrink-0">
+      <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-2">Visão Geral — Assinaturas</p>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+        <div class="bg-surface-container-low rounded-md p-4">
+          <p class="text-outline text-[9px] font-headline uppercase tracking-widest mb-1">MRR (receita recorrente)</p>
+          <p class="text-primary-fixed font-headline font-black text-xl">{{ fmtCents(fs.mrrCents) }}</p>
+          <p class="text-outline text-[10px] mt-0.5">{{ fs.totalActive }} assinatura(s) ativa(s)</p>
+        </div>
+        <div class="bg-surface-container-low rounded-md p-4">
+          <p class="text-outline text-[9px] font-headline uppercase tracking-widest mb-1">Inadimplência</p>
+          <p class="font-headline font-black text-xl" [class.text-error]="fs.totalPastDue > 0" [class.text-on-surface]="fs.totalPastDue === 0">
+            {{ fs.pastDueRatePercent }}%
+          </p>
+          <p class="text-outline text-[10px] mt-0.5">{{ fs.totalPastDue }} assinatura(s) em atraso</p>
+        </div>
+        <div class="bg-surface-container-low rounded-md p-4">
+          <p class="text-outline text-[9px] font-headline uppercase tracking-widest mb-1" title="Cancelados este mês ÷ quem já era assinante antes do mês começar">
+            Churn mensal
+          </p>
+          <p class="font-headline font-black text-xl" [class.text-error]="fs.churn.ratePercent > 0" [class.text-on-surface]="fs.churn.ratePercent === 0">
+            {{ fs.churn.ratePercent }}%
+          </p>
+          <p class="text-outline text-[10px] mt-0.5">{{ fs.churn.canceledThisMonth }} cancelamento(s) este mês</p>
+        </div>
+        <div class="bg-surface-container-low rounded-md p-4">
+          <p class="text-outline text-[9px] font-headline uppercase tracking-widest mb-1" title="Ticket médio mensal ÷ taxa de churn — projeção, não garantia">
+            LTV Projetado
+          </p>
+          @if (fs.ltvProjectedCents !== null) {
+            <p class="text-on-surface font-headline font-black text-xl">{{ fmtCents(fs.ltvProjectedCents) }}</p>
+          } @else {
+            <p class="text-outline font-headline font-bold text-sm">Sem churn no mês</p>
+          }
+        </div>
+      </div>
+
+      @if (fs.revenueByPlan.length > 0) {
+        <div class="bg-surface-container-low rounded-md p-4">
+          <p class="text-outline text-[9px] font-headline uppercase tracking-widest mb-3">Receita por plano</p>
+          <div class="flex flex-col gap-2">
+            @for (p of fs.revenueByPlan; track p.planId) {
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex-1 min-w-0">
+                  <p class="text-on-surface font-headline font-bold text-sm truncate">{{ p.planName }}</p>
+                  <p class="text-outline text-[10px]">{{ p.activeCount }} assinante(s) · {{ fmtCents(p.priceCents) }}/mês cada</p>
+                </div>
+                <p class="text-primary-fixed font-headline font-black text-sm flex-shrink-0">{{ fmtCents(p.mrrCents) }}</p>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Log manual de cobranças -->
+  <p class="px-4 md:px-8 text-outline text-[10px] font-headline uppercase tracking-widest mb-2 flex-shrink-0">Cobranças manuais</p>
+
   <!-- Summary cards -->
   @if (summary()) {
     <div class="px-4 md:px-8 mb-6 grid grid-cols-2 lg:grid-cols-4 gap-3 flex-shrink-0">

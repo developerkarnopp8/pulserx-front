@@ -6,7 +6,7 @@ import {
   ExerciseLibraryItem, Payment, PaymentSummary, SkipReason, SkipDecision,
   Movement, PersonalRecord, AppNotification,
   WorkoutSessionRecord, SessionTimeSummary, SessionTimeDetail, CoachAvgDuration,
-  SubscriptionPlan, Subscription, MySubscription, CoachContract, PlatformSettings, FreeConfig,
+  SubscriptionPlan, Subscription, MySubscription, CoachContract, PlatformSettings, FreeConfig, FinancialSummary,
   CoachProfile, UpdateCoachProfileInput, PublicCoachProfile, CreateLeadInput,
   Testimonial, UpsertTestimonialInput, FaqItem, UpsertFaqItemInput,
 } from '../models';
@@ -642,6 +642,11 @@ export class ApiService {
   /** Aluno: a própria assinatura + o que ela libera hoje. */
   getMySubscription(): Observable<MySubscription> {
     return this.http.get<MySubscription>(`${this.base}/subscriptions/me`);
+  }
+
+  /** Coach: MRR/receita por plano, inadimplência e churn/LTV projetado — dado real, sem invenção. */
+  getFinancialSummary(): Observable<FinancialSummary> {
+    return this.http.get<FinancialSummary>(`${this.base}/subscriptions/financial-summary`);
   }
 
   // ── Admin: contrato do coach e configurações da plataforma ────────────────
