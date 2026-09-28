@@ -10,6 +10,7 @@ function build(apiOver: Record<string, unknown> = {}) {
     getMovements: vi.fn().mockReturnValue(of([mv('squat', 'Strength'), mv('snatch', 'LPO'), mv('clean', 'LPO')])),
     getMyPersonalRecords: vi.fn().mockReturnValue(of([])),
     logPersonalRecord: vi.fn().mockReturnValue(of(rec('snatch', 90))),
+    createMovement: vi.fn().mockReturnValue(of(mv('zercher', 'Força', 'Zercher Squat'))),
     ...apiOver,
   };
   return { component: new RecordsComponent(api as any), api };
@@ -112,5 +113,102 @@ describe('RecordsComponent — registrar PR', () => {
     expect(api.logPersonalRecord).toHaveBeenCalledWith('snatch', undefined, 5, undefined);
     expect(component.saving()).toBe(false);
     expect(component.showForm()?.id).toBe('snatch');
+  });
+});
+
+describe('RecordsComponent — busca e grupo', () => {
+  it('grupos disponíveis vêm do catálogo carregado, em ordem', () => {
+    const { component } = build();
+    component.ngOnInit();
+    expect(component.availableCategories()).toEqual(['LPO', 'Strength']);
+  });
+
+  it('busca filtra e abre todo grupo com resultado', () => {
+    const { component } = build();
+    component.ngOnInit();
+    component.search.set('SQU');
+    expect(component.isFiltering()).toBe(true);
+    expect(component.groupedMovements().map(([cat, list]) => [cat, list.map(i => i.movement.id)])).toEqual([['Strength', ['squat']]]);
+    expect(component.isCategoryExpanded('Strength')).toBe(true);
+  });
+
+  it('grupo selecionado filtra; "Todos" (null) volta', () => {
+    const { component } = build();
+    component.ngOnInit();
+    component.selectedCategory.set('LPO');
+    expect(component.groupedMovements().map(([cat]) => cat)).toEqual(['LPO']);
+    component.selectedCategory.set(null);
+    expect(component.isFiltering()).toBe(false);
+    expect(component.groupedMovements()).toHaveLength(2);
+  });
+});
+
+describe('RecordsComponent — novo movimento', () => {
+  it('abrir pré-preenche com a busca e o grupo selecionado', () => {
+    const { component } = build();
+    component.search.set('  Zercher ');
+    component.selectedCategory.set('Core');
+    component.newMovementError.set('antigo');
+    component.openNewMovement();
+    expect(component.showNewMovement()).toBe(true);
+    expect(component.newMovementName()).toBe('Zercher');
+    expect(component.newMovementCategory()).toBe('Core');
+    expect(component.newMovementError()).toBe('');
+    component.closeNewMovement();
+    expect(component.showNewMovement()).toBe(false);
+  });
+
+  it('sem grupo selecionado, sugere Força', () => {
+    const { component } = build();
+    component.openNewMovement();
+    expect(component.newMovementCategory()).toBe('Força');
+  });
+
+  it('cria, entra no catálogo, limpa a busca e já abre o registro do PR', () => {
+    const { component, api } = build();
+    component.ngOnInit();
+    component.search.set('zer');
+    component.openNewMovement();
+    component.newMovementName.set(' Zercher Squat ');
+    component.createMovement();
+    expect(api.createMovement).toHaveBeenCalledWith('Zercher Squat', 'Força');
+    expect(component.movements().some(m => m.id === 'zercher')).toBe(true);
+    expect(component.showNewMovement()).toBe(false);
+    expect(component.search()).toBe('');
+    expect(component.showForm()?.id).toBe('zercher');
+  });
+
+  it('não envia nome vazio nem clique duplo', () => {
+    const { component, api } = build();
+    component.newMovementName.set('   ');
+    component.createMovement();
+    component.newMovementName.set('X');
+    component.creatingMovement.set(true);
+    component.createMovement();
+    expect(api.createMovement).not.toHaveBeenCalled();
+  });
+
+  it('erro da API: mostra a mensagem dela (ex.: nome repetido) e mantém o formulário', () => {
+    const { component } = build({
+      createMovement: vi.fn().mockReturnValue(throwError(() => ({ error: { message: 'Já existe um movimento com esse nome no seu catálogo.' } }))),
+    });
+    component.openNewMovement();
+    component.newMovementName.set('Back Squat');
+    component.createMovement();
+    expect(component.newMovementError()).toContain('Já existe');
+    expect(component.showNewMovement()).toBe(true);
+    expect(component.creatingMovement()).toBe(false);
+  });
+
+  it('erro de validação em lista usa a primeira; sem mensagem usa o texto padrão', () => {
+    const listErr = build({ createMovement: vi.fn().mockReturnValue(throwError(() => ({ error: { message: ['nome longo demais'] } }))) });
+    listErr.component.newMovementName.set('X');
+    listErr.component.createMovement();
+    expect(listErr.component.newMovementError()).toBe('nome longo demais');
+
+    const noMsg = build({ createMovement: vi.fn().mockReturnValue(throwError(() => ({}))) });
+    noMsg.component.newMovementName.set('X');
+    noMsg.component.createMovement();
+    expect(noMsg.component.newMovementError()).toBe('Não foi possível cadastrar o movimento.');
   });
 });

@@ -10,6 +10,37 @@
       <span class="material-symbols-outlined text-outline text-[40px] animate-pulse-subtle">military_tech</span>
     </div>
   } @else {
+    @if (!errorMsg()) {
+      <!-- Busca + grupo + novo movimento -->
+      <div class="space-y-3 mb-5">
+        <div>
+          <label for="pr-search" class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">Pesquisar por nome</label>
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]" aria-hidden="true">search</span>
+            <input id="pr-search" type="search" placeholder="Ex: Snatch"
+              [ngModel]="search()" (ngModelChange)="search.set($event)"
+              class="w-full min-h-[44px] bg-surface-container-low text-on-surface placeholder:text-outline rounded-md pl-10 pr-3 text-sm"/>
+          </div>
+        </div>
+        <div class="flex gap-2 items-end">
+          <div class="flex-1">
+            <label for="pr-group" class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">Selecione um grupo</label>
+            <select id="pr-group" [ngModel]="selectedCategory()" (ngModelChange)="selectedCategory.set($event)"
+              class="w-full min-h-[44px] bg-surface-container-low text-on-surface rounded-md px-3 text-sm">
+              <option [ngValue]="null">Todos</option>
+              @for (cat of availableCategories(); track cat) {
+                <option [ngValue]="cat">{{ cat }}</option>
+              }
+            </select>
+          </div>
+          <button type="button" (click)="openNewMovement()"
+            class="min-h-[44px] px-3 rounded-md bg-primary-fixed/15 text-primary-fixed text-[10px] font-headline font-bold uppercase tracking-wider flex items-center gap-1 flex-shrink-0">
+            <span class="material-symbols-outlined text-[16px]" aria-hidden="true">add</span>
+            Novo movimento
+          </button>
+        </div>
+      </div>
+    }
     @for (group of groupedMovements(); track group[0]) {
       <div class="mb-3">
         <button type="button" (click)="toggleCategory(group[0])"
@@ -54,16 +85,61 @@
       @if (errorMsg()) {
         <div role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-3 text-error text-sm">{{ errorMsg() }}</div>
       } @else {
-        <!-- Os movimentos vêm do catálogo do coach; sem eles não há onde registrar um PR. -->
+        <!-- Nada no catálogo (ou nada que case com a busca): o próprio atleta pode cadastrar. -->
         <div class="bg-surface-container-low rounded-md p-5 text-center">
           <span class="material-symbols-outlined text-[32px] text-outline" aria-hidden="true">emoji_events</span>
-          <p class="text-on-surface text-sm font-semibold mt-2">Ainda não há movimentos para registrar</p>
-          <p class="text-on-surface-variant text-xs mt-1">Seu coach cadastra os movimentos (Snatch, Back Squat…). Assim que ele cadastrar, você registra seus recordes aqui.</p>
+          <p class="text-on-surface text-sm font-semibold mt-2">
+            {{ isFiltering() ? 'Nenhum movimento encontrado' : 'Ainda não há movimentos para registrar' }}
+          </p>
+          <p class="text-on-surface-variant text-xs mt-1">Não achou o seu? Cadastre e ele fica só no seu catálogo.</p>
+          <button type="button" (click)="openNewMovement()"
+            class="mt-3 min-h-[44px] px-4 rounded-md bg-primary-fixed text-on-primary-fixed text-xs font-headline font-black uppercase tracking-tighter">
+            {{ search().trim() ? 'Cadastrar "' + search().trim() + '"' : 'Novo movimento' }}
+          </button>
         </div>
       }
     }
   }
 </div>
+
+@if (showNewMovement()) {
+  <div class="fixed inset-0 bg-black/80 flex items-end sm:items-center justify-center z-[60] animate-fade-in"
+    (click)="closeNewMovement()">
+    <div class="bg-surface-container-low rounded-t-md sm:rounded-md w-full sm:max-w-sm p-6 animate-slide-up"
+      role="dialog" aria-modal="true" aria-labelledby="novo-movimento-titulo" (click)="$event.stopPropagation()">
+      <h3 id="novo-movimento-titulo" class="font-headline font-black text-lg text-on-surface tracking-tighter mb-1">Novo movimento</h3>
+      <p class="text-on-surface-variant text-xs mb-4">Fica só no seu catálogo. Depois é só registrar o PR.</p>
+
+      <label for="novo-mov-nome" class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">Nome</label>
+      <input id="novo-mov-nome" type="text" maxlength="80" placeholder="Ex: Zercher Squat"
+        [ngModel]="newMovementName()" (ngModelChange)="newMovementName.set($event)" (keyup.enter)="createMovement()"
+        class="w-full min-h-[44px] bg-surface-container text-on-surface placeholder:text-outline rounded-sm px-3 text-sm mb-3"/>
+
+      <label for="novo-mov-grupo" class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">Grupo</label>
+      <select id="novo-mov-grupo" [ngModel]="newMovementCategory()" (ngModelChange)="newMovementCategory.set($event)"
+        class="w-full min-h-[44px] bg-surface-container text-on-surface rounded-sm px-3 text-sm mb-3">
+        @for (cat of movementCategories; track cat) {
+          <option [ngValue]="cat">{{ cat }}</option>
+        }
+      </select>
+
+      @if (newMovementError()) {
+        <p role="alert" class="text-error text-xs mb-3">{{ newMovementError() }}</p>
+      }
+
+      <div class="flex gap-3">
+        <button type="button" (click)="closeNewMovement()"
+          class="flex-1 min-h-[44px] rounded-sm border border-outline-variant/30 text-on-surface-variant font-headline text-xs uppercase tracking-wider">
+          Cancelar
+        </button>
+        <button type="button" (click)="createMovement()" [disabled]="!newMovementName().trim() || creatingMovement()"
+          class="flex-1 min-h-[44px] rounded-sm bg-primary-fixed disabled:opacity-40 text-on-primary-fixed font-headline font-black text-xs uppercase tracking-tighter">
+          {{ creatingMovement() ? 'Salvando...' : 'Cadastrar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
 
 @if (showForm(); as movement) {
   <div class="fixed inset-0 bg-black/80 flex items-end sm:items-center justify-center z-[60] animate-fade-in"
