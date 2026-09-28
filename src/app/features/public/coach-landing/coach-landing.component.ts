@@ -1,5 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
@@ -10,7 +11,7 @@ import { YoutubeEmbedComponent } from '../../../shared/components/youtube-embed/
 @Component({
   selector: 'app-coach-landing',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, YoutubeEmbedComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, YoutubeEmbedComponent],
   templateUrl: './coach-landing.component.html',
 })
 export class CoachLandingComponent implements OnInit {
@@ -29,7 +30,7 @@ export class CoachLandingComponent implements OnInit {
   readonly fmtPrice = formatCents;
   readonly categoryLabel = TRAINING_CATEGORY_LABEL;
 
-  private slug = '';
+  slug = '';
 
   constructor(private api: ApiService, private route: ActivatedRoute, private fb: FormBuilder) {
     this.leadForm = this.fb.group({

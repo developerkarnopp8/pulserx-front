@@ -14,6 +14,42 @@
     </button>
   </div>
 
+  <!-- Recebimento: carteira Asaas do coach (split automático de cada cobrança) -->
+  @if (!walletLoading()) {
+    <section class="rounded-xl border p-5 mb-6"
+      [class.border-yellow-500/40]="!walletId()" [class.bg-yellow-500/5]="!walletId()"
+      [class.border-outline-variant/10]="walletId()" [class.bg-surface-container-low]="walletId()"
+      aria-labelledby="wallet-titulo">
+      <div class="flex items-start gap-3 mb-3">
+        <span class="material-symbols-outlined text-[22px]" aria-hidden="true"
+          [class.text-yellow-300]="!walletId()" [class.text-green-400]="walletId()">{{ walletId() ? 'account_balance_wallet' : 'warning' }}</span>
+        <div>
+          <h3 id="wallet-titulo" class="text-on-surface font-semibold text-sm">Recebimento (Asaas)</h3>
+          <p class="text-on-surface-variant text-xs mt-0.5">
+            @if (walletId()) {
+              Configurado. A sua parte de cada pagamento cai direto na sua conta Asaas.
+            } @else {
+              <strong class="text-yellow-300">Sem carteira configurada, nenhum aluno consegue assinar um plano pago.</strong>
+              Cole o <em>Wallet ID</em> (identificador da carteira) da sua conta Asaas, disponível no painel do Asaas.
+            }
+          </p>
+        </div>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <label for="wallet-id" class="sr-only">Wallet ID do Asaas</label>
+        <input id="wallet-id" type="text" autocomplete="off" placeholder="Ex.: 3f2b6a1c-...-9e1d"
+          [value]="walletInput()" (input)="walletInput.set($any($event.target).value)"
+          class="flex-1 min-w-[220px] min-h-[44px] bg-surface-container text-on-surface rounded-lg px-3 text-sm font-mono" />
+        <button type="button" (click)="saveWallet()" [disabled]="savingWallet()"
+          class="min-h-[44px] px-5 rounded-lg bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black text-xs uppercase tracking-tighter">
+          {{ savingWallet() ? 'Salvando...' : 'Salvar carteira' }}
+        </button>
+      </div>
+      @if (walletError()) { <p role="alert" class="text-error text-xs mt-2">{{ walletError() }}</p> }
+      @if (walletMsg()) { <p class="text-green-400 text-xs mt-2" aria-live="polite">{{ walletMsg() }}</p> }
+    </section>
+  }
+
   @if (errorMsg()) {
     <div role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-3 text-error text-sm mb-4">
       {{ errorMsg() }}

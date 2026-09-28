@@ -157,7 +157,7 @@
               <p class="text-on-surface font-headline font-black text-2xl mt-auto mb-4">
                 {{ plan.isFree ? 'Grátis' : (fmtPrice(plan.priceCents) + '/mês') }}
               </p>
-              <a href="#contato" (click)="scrollToSection('contato', $event)" class="text-center bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-4 py-3 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px] flex items-center justify-center">
+              <a [routerLink]="['/c', slug, 'assinar', plan.id]" class="text-center bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-4 py-3 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px] flex items-center justify-center">
                 Assinar {{ plan.name }}
               </a>
             </div>

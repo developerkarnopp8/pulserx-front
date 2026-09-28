@@ -155,6 +155,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/public/coach-landing/coach-landing.component').then(m => m.CoachLandingComponent)
   },
+  {
+    // Pública (sem guard): inscrição + pagamento do plano escolhido na landing do coach.
+    path: 'c/:slug/assinar/:planId',
+    loadComponent: () =>
+      import('./features/public/signup/signup.component').then(m => m.PublicSignupComponent)
+  },
 
   { path: '**', redirectTo: 'login' }
 ];

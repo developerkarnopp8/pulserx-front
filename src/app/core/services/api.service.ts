@@ -6,8 +6,8 @@ import {
   ExerciseLibraryItem, Payment, PaymentSummary, SkipReason, SkipDecision,
   Movement, PersonalRecord, AppNotification,
   WorkoutSessionRecord, SessionTimeSummary, SessionTimeDetail, CoachAvgDuration,
-  SubscriptionPlan, Subscription, MySubscription, MyGatewayPayment, CoachGatewayPayment, MonthlyBreakdown, CoachContract, PlatformSettings, FreeConfig, FinancialSummary,
-  CoachProfile, UpdateCoachProfileInput, PublicCoachProfile, CreateLeadInput,
+  SubscriptionPlan, Subscription, MySubscription, MyGatewayPayment, CheckoutResult, CoachGatewayPayment, MonthlyBreakdown, CoachContract, PlatformSettings, FreeConfig, FinancialSummary,
+  CoachProfile, UpdateCoachProfileInput, PublicCoachProfile, CreateLeadInput, PublicSignupInput, PublicSignupResult,
   Testimonial, UpsertTestimonialInput, FaqItem, UpsertFaqItemInput,
 } from '../models';
 import { environment } from '../../../environments/environment';
@@ -654,6 +654,20 @@ export class ApiService {
     return this.http.get<MySubscription>(`${this.base}/subscriptions/me`);
   }
 
+  /** Aluno: assina o plano (Free direto; pago cria a cobrança PIX no Asaas e devolve o link). */
+  checkoutSubscription(planId: string, cpf?: string): Observable<CheckoutResult> {
+    return this.http.put<CheckoutResult>(`${this.base}/subscriptions/checkout`, cpf ? { planId, cpf } : { planId });
+  }
+
+  /** Coach: carteira Asaas onde recebe a parte dele de cada cobrança. */
+  getMyWallet(): Observable<{ walletId: string | null }> {
+    return this.http.get<{ walletId: string | null }>(`${this.base}/subscriptions/wallet`);
+  }
+
+  setMyWallet(walletId: string): Observable<{ walletId: string }> {
+    return this.http.put<{ walletId: string }>(`${this.base}/subscriptions/wallet`, { walletId });
+  }
+
   /** Aluno: histórico real das próprias cobranças (Asaas). */
   getMyPayments(): Observable<MyGatewayPayment[]> {
     return this.http.get<MyGatewayPayment[]>(`${this.base}/subscriptions/me/payments`);
@@ -756,6 +770,11 @@ export class ApiService {
   }
 
   /** Visitante (sem auth): landing page pública do coach */
+  /** Público: visitante vira aluno deste coach e sai logado (segue pro pagamento). */
+  publicSignup(slug: string, dto: PublicSignupInput): Observable<PublicSignupResult> {
+    return this.http.post<PublicSignupResult>(`${this.base}/public/coaches/${slug}/signup`, dto);
+  }
+
   getPublicCoachProfile(slug: string): Observable<PublicCoachProfile> {
     return this.http.get<PublicCoachProfile>(`${this.base}/public/coaches/${slug}`);
   }

@@ -42,8 +42,43 @@ export class CoachSubscriptionsComponent implements OnInit {
     });
   }
 
+  // ── Recebimento (carteira Asaas) — sem ela, nenhum plano pago consegue ser cobrado ──
+  walletId      = signal<string | null>(null);
+  walletInput   = signal('');
+  walletLoading = signal(true);
+  savingWallet  = signal(false);
+  walletMsg     = signal('');
+  walletError   = signal('');
+
   ngOnInit(): void {
     this.load();
+    this.api.getMyWallet().subscribe({
+      next: w => { this.walletId.set(w.walletId); this.walletInput.set(w.walletId ?? ''); this.walletLoading.set(false); },
+      error: () => this.walletLoading.set(false),
+    });
+  }
+
+  saveWallet(): void {
+    const value = this.walletInput().trim();
+    if (value.length < 10 || this.savingWallet()) {
+      this.walletError.set('Cole o Wallet ID completo da sua conta Asaas.');
+      return;
+    }
+    this.savingWallet.set(true);
+    this.walletError.set('');
+    this.walletMsg.set('');
+    this.api.setMyWallet(value).subscribe({
+      next: w => {
+        this.walletId.set(w.walletId);
+        this.savingWallet.set(false);
+        this.walletMsg.set('Carteira salva. Seus alunos já podem assinar planos pagos.');
+      },
+      error: err => {
+        this.savingWallet.set(false);
+        const msg = err?.error?.message;
+        this.walletError.set(Array.isArray(msg) ? msg[0] : (msg ?? 'Não foi possível salvar a carteira.'));
+      },
+    });
   }
 
   private load(): void {

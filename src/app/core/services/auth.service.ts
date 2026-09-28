@@ -51,12 +51,17 @@ export class AuthService {
               `Este e-mail pertence a um perfil diferente. Use o acesso ${labels[res.user.role] ?? res.user.role}.`,
             );
           }
-          localStorage.setItem(TOKEN_KEY, res.access_token);
-          localStorage.setItem(USER_KEY, JSON.stringify(res.user));
-          this.currentUser.set(res.user);
-          this.socket.connect(res.access_token);
+          this.startSession(res.access_token, res.user);
         }),
       );
+  }
+
+  /** Grava a sessão (token + usuário) e abre o tempo real — usado pelo login e pela inscrição pública. */
+  startSession(accessToken: string, user: User): void {
+    localStorage.setItem(TOKEN_KEY, accessToken);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    this.currentUser.set(user);
+    this.socket.connect(accessToken);
   }
 
   logout(): void {

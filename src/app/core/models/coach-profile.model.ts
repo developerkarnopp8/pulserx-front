@@ -91,3 +91,19 @@ export interface CreateLeadInput {
   phone?: string;
   message?: string;
 }
+
+/** Inscrição do visitante na landing do coach (POST /public/coaches/:slug/signup). */
+export interface PublicSignupInput {
+  name: string;
+  email: string;
+  password: string;
+  planId: string;
+  acceptTerms: true;
+}
+
+export interface PublicSignupResult {
+  access_token: string;
+  user: { id: string; name: string; email: string; role: 'athlete' };
+  planId: string;
+}
+

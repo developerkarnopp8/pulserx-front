@@ -13,6 +13,8 @@ function build(apiOver: Record<string, unknown> = {}) {
     getSubscriptionPlans: vi.fn().mockReturnValue(of([plan()])),
     createSubscriptionPlan: vi.fn().mockReturnValue(of(plan({ id: 'novo' }))),
     updateSubscriptionPlan: vi.fn().mockReturnValue(of(plan({ active: true }))),
+    getMyWallet: vi.fn().mockReturnValue(of({ walletId: null })),
+    setMyWallet: vi.fn().mockReturnValue(of({ walletId: 'wallet-abc-123456' })),
     ...apiOver,
   };
   const component = new CoachSubscriptionsComponent(api as any, new FormBuilder());
@@ -122,3 +124,56 @@ describe('CoachSubscriptionsComponent', () => {
     expect(component.plans()[0].active).toBe(true);
   });
 });
+
+describe('CoachSubscriptionsComponent — carteira Asaas', () => {
+  it('carrega a carteira atual (sem carteira = null)', () => {
+    const { component, api } = build({ getMyWallet: vi.fn().mockReturnValue(of({ walletId: 'w-atual-12345' })) });
+    component.ngOnInit();
+    expect(api.getMyWallet).toHaveBeenCalled();
+    expect(component.walletId()).toBe('w-atual-12345');
+    expect(component.walletInput()).toBe('w-atual-12345');
+    expect(component.walletLoading()).toBe(false);
+  });
+
+  it('erro ao carregar só libera o cartão', () => {
+    const { component } = build({ getMyWallet: vi.fn().mockReturnValue(throwError(() => new Error('x'))) });
+    component.ngOnInit();
+    expect(component.walletLoading()).toBe(false);
+    expect(component.walletId()).toBeNull();
+  });
+
+  it('salva o Wallet ID (sem espaços) e confirma', () => {
+    const { component, api } = build();
+    component.walletInput.set('  wallet-abc-123456 ');
+    component.saveWallet();
+    expect(api.setMyWallet).toHaveBeenCalledWith('wallet-abc-123456');
+    expect(component.walletId()).toBe('wallet-abc-123456');
+    expect(component.walletMsg()).toContain('já podem assinar');
+  });
+
+  it('valor curto ou salvando: não envia', () => {
+    const { component, api } = build();
+    component.walletInput.set('curto');
+    component.saveWallet();
+    expect(component.walletError()).toContain('Wallet ID completo');
+    component.walletInput.set('wallet-abc-123456');
+    component.savingWallet.set(true);
+    component.saveWallet();
+    expect(api.setMyWallet).not.toHaveBeenCalled();
+  });
+
+  it('erro da API: mostra a mensagem (lista, texto ou padrão)', () => {
+    for (const [error, expected] of [
+      [{ error: { message: ['walletId inválido'] } }, 'walletId inválido'],
+      [{ error: { message: 'Recusado' } }, 'Recusado'],
+      [{}, 'Não foi possível salvar a carteira.'],
+    ] as const) {
+      const { component } = build({ setMyWallet: vi.fn().mockReturnValue(throwError(() => error)) });
+      component.walletInput.set('wallet-abc-123456');
+      component.saveWallet();
+      expect(component.walletError()).toBe(expected);
+      expect(component.savingWallet()).toBe(false);
+    }
+  });
+});
+

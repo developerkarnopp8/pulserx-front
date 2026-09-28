@@ -244,3 +244,15 @@ describe('AuthService — sessão trocada em outra aba', () => {
     }
   });
 });
+
+describe('AuthService.startSession (inscrição pública)', () => {
+  it('grava token/usuário, seta currentUser e abre o socket', () => {
+    localStorage.clear();
+    const { http, router, socket } = build();
+    const service = new AuthService(http as any, router as any, socket as any);
+    service.startSession('tok-novo', user({ role: 'athlete' }));
+    expect(localStorage.getItem('pulserx_token')).toBe('tok-novo');
+    expect(service.currentUser()?.role).toBe('athlete');
+    expect(socket.connect).toHaveBeenCalledWith('tok-novo');
+  });
+});
