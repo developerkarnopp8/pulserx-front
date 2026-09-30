@@ -2,6 +2,9 @@ import { FormBuilder } from '@angular/forms';
 import { of, throwError } from 'rxjs';
 import { CoachesComponent } from './coaches.component';
 import { PlatformSettings } from '../../../core/models';
+import { confirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
+
+afterEach(() => vi.restoreAllMocks());
 
 /** Cobre contrato (%) e o bloqueio por assinatura, adicionados na R3. */
 
@@ -28,7 +31,7 @@ function build(apiOver: Record<string, unknown> = {}) {
 }
 
 describe('CoachesComponent — bloqueio por assinatura', () => {
-  it('carrega as configurações ao iniciar', () => {
+  it('carrega as configurações ao iniciar', async () => {
     const { component, api } = build();
     component.ngOnInit();
     expect(api.getPlatformSettings).toHaveBeenCalled();
@@ -36,61 +39,61 @@ describe('CoachesComponent — bloqueio por assinatura', () => {
     expect(component.loadingSettings()).toBe(false);
   });
 
-  it('erro ao carregar mostra mensagem', () => {
+  it('erro ao carregar mostra mensagem', async () => {
     const { component } = build({ getPlatformSettings: vi.fn().mockReturnValue(throwError(() => new Error('x'))) });
     component.ngOnInit();
     expect(component.settingsError()).toContain('Não foi possível carregar');
   });
 
-  it('desligar não pede confirmação', () => {
+  it('desligar não pede confirmação', async () => {
     const { component, api } = build();
     component.platformSettings.set(settings({ enforceSubscriptionAccess: true, studentsWithoutAccess: 3 }));
-    const confirmSpy = vi.spyOn(window, 'confirm');
+    const confirmSpy = vi.spyOn(confirmDialog, 'ask');
 
-    component.toggleEnforcement();
+    await component.toggleEnforcement();
 
     expect(confirmSpy).not.toHaveBeenCalled();
     expect(api.setPlatformSettings).toHaveBeenCalledWith(false, false);
   });
 
-  it('ligar sem ninguém a perder não pede confirmação', () => {
+  it('ligar sem ninguém a perder não pede confirmação', async () => {
     const { component, api } = build();
     component.platformSettings.set(settings({ studentsWithoutAccess: 0 }));
-    const confirmSpy = vi.spyOn(window, 'confirm');
+    const confirmSpy = vi.spyOn(confirmDialog, 'ask');
 
-    component.toggleEnforcement();
+    await component.toggleEnforcement();
 
     expect(confirmSpy).not.toHaveBeenCalled();
     expect(api.setPlatformSettings).toHaveBeenCalledWith(true, true);
   });
 
-  it('ligar com alunos sem acesso pede confirmação; cancelando não chama a API', () => {
+  it('ligar com alunos sem acesso pede confirmação; cancelando não chama a API', async () => {
     const { component, api } = build();
     component.platformSettings.set(settings({ studentsWithoutAccess: 2 }));
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
+    vi.spyOn(confirmDialog, 'ask').mockResolvedValue(false);
 
-    component.toggleEnforcement();
+    await component.toggleEnforcement();
 
     expect(api.setPlatformSettings).not.toHaveBeenCalled();
   });
 
-  it('ligar confirmando manda confirmLockout=true', () => {
+  it('ligar confirmando manda confirmLockout=true', async () => {
     const { component, api } = build();
     component.platformSettings.set(settings({ studentsWithoutAccess: 2 }));
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.spyOn(confirmDialog, 'ask').mockResolvedValue(true);
 
-    component.toggleEnforcement();
+    await component.toggleEnforcement();
 
     expect(api.setPlatformSettings).toHaveBeenCalledWith(true, true);
   });
 
-  it('erro ao atualizar mostra a mensagem do backend', () => {
+  it('erro ao atualizar mostra a mensagem do backend', async () => {
     const { component } = build({
       setPlatformSettings: vi.fn().mockReturnValue(throwError(() => ({ error: { message: '2 aluno(s) ficariam sem acesso' } }))),
     });
     component.platformSettings.set(settings({ studentsWithoutAccess: 0 }));
 
-    component.toggleEnforcement();
+    await component.toggleEnforcement();
 
     expect(component.settingsError()).toBe('2 aluno(s) ficariam sem acesso');
     expect(component.updatingSettings()).toBe(false);
@@ -98,7 +101,7 @@ describe('CoachesComponent — bloqueio por assinatura', () => {
 });
 
 describe('CoachesComponent — contrato (% da plataforma)', () => {
-  it('abrir carrega o contrato do coach', () => {
+  it('abrir carrega o contrato do coach', async () => {
     const { component, api } = build();
     component.openContract(coach);
     expect(api.getCoachContract).toHaveBeenCalledWith('coach-1');
@@ -106,14 +109,14 @@ describe('CoachesComponent — contrato (% da plataforma)', () => {
     expect(component.contractFeePercent()).toBe(20);
   });
 
-  it('clicar de novo no mesmo coach fecha (toggle)', () => {
+  it('clicar de novo no mesmo coach fecha (toggle)', async () => {
     const { component } = build();
     component.openContract(coach);
     component.openContract(coach);
     expect(component.contractTargetId()).toBeNull();
   });
 
-  it('salvar chama setCoachContract e fecha o painel', () => {
+  it('salvar chama setCoachContract e fecha o painel', async () => {
     const { component, api } = build();
     component.openContract(coach);
     component.contractFeePercent.set(25);
@@ -125,7 +128,7 @@ describe('CoachesComponent — contrato (% da plataforma)', () => {
     expect(component.savingContractId()).toBeNull();
   });
 
-  it('salvar com sucesso recarrega a lista — sem isso a % ficava desatualizada na linha até um F5', () => {
+  it('salvar com sucesso recarrega a lista — sem isso a % ficava desatualizada na linha até um F5', async () => {
     const { component, api } = build();
     component.ngOnInit();
     api.getCoaches.mockClear();
@@ -136,7 +139,7 @@ describe('CoachesComponent — contrato (% da plataforma)', () => {
     expect(api.getCoaches).toHaveBeenCalledTimes(1);
   });
 
-  it('erro ao salvar NÃO recarrega a lista', () => {
+  it('erro ao salvar NÃO recarrega a lista', async () => {
     const { component, api } = build({
       setCoachContract: vi.fn().mockReturnValue(throwError(() => ({ error: { message: 'Coach não encontrado' } }))),
     });
@@ -149,7 +152,7 @@ describe('CoachesComponent — contrato (% da plataforma)', () => {
     expect(api.getCoaches).not.toHaveBeenCalled();
   });
 
-  it('erro ao salvar mantém o painel aberto e mostra a mensagem', () => {
+  it('erro ao salvar mantém o painel aberto e mostra a mensagem', async () => {
     const { component } = build({
       setCoachContract: vi.fn().mockReturnValue(throwError(() => ({ error: { message: 'Coach não encontrado' } }))),
     });
@@ -164,7 +167,7 @@ describe('CoachesComponent — contrato (% da plataforma)', () => {
 });
 
 describe('CoachesComponent.platformTotals — governança/repasses', () => {
-  it('soma alunos/receita/repasse real de todos os coaches carregados', () => {
+  it('soma alunos/receita/repasse real de todos os coaches carregados', async () => {
     const coach2 = { ...coach, id: 'coach-2', studentCount: 50, totalPaid: 5000, platformCut: 150, coachCut: 4850 };
     const { component } = build({ getCoaches: vi.fn().mockReturnValue(of([coach, coach2])) });
     component.ngOnInit();
@@ -174,10 +177,86 @@ describe('CoachesComponent.platformTotals — governança/repasses', () => {
     });
   });
 
-  it('sem nenhum coach: tudo zero, não quebra', () => {
+  it('sem nenhum coach: tudo zero, não quebra', async () => {
     const { component } = build({ getCoaches: vi.fn().mockReturnValue(of([])) });
     component.ngOnInit();
 
     expect(component.platformTotals()).toEqual({ studentCount: 0, totalPaid: 0, platformCut: 0, coachCut: 0 });
+  });
+});
+
+describe('CoachesComponent — resetar senha e copiar', () => {
+  const coachAlvo = { id: 'coach-1', name: 'Luan', email: 'luan@example.com' } as any;
+
+  it('pede confirmação na caixa do app; sem confirmar, não reseta', async () => {
+    const { component, api } = build({ resetCoachPassword: vi.fn() });
+    const ask = vi.spyOn(confirmDialog, 'ask').mockResolvedValue(false);
+    await component.resetPassword(coachAlvo);
+    expect(ask.mock.calls[0][0]).toMatchObject({ title: 'Resetar a senha de Luan?', danger: true });
+    expect((api as any).resetCoachPassword).not.toHaveBeenCalled();
+  });
+
+  it('confirmado: mostra a senha nova; copiar leva e-mail + senha prontos para enviar', async () => {
+    const { component } = build({ resetCoachPassword: vi.fn().mockReturnValue(of({ password: 'Nova-Senha-123' })) });
+    vi.spyOn(confirmDialog, 'ask').mockResolvedValue(true);
+    const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+    await component.resetPassword(coachAlvo);
+    expect(component.revealedPassword()).toEqual({ email: 'luan@example.com', password: 'Nova-Senha-123' });
+    expect(scroll).toHaveBeenCalled();
+
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    await component.copyRevealedPassword();
+    expect(writeText).toHaveBeenCalledWith('Acesso ao PulseRx\nE-mail: luan@example.com\nSenha: Nova-Senha-123');
+    expect(component.copyMsg()).toBe('Copiado! Cole na conversa com o coach.');
+
+    component.dismissRevealedPassword();
+    expect(component.revealedPassword()).toBeNull();
+    expect(component.copyMsg()).toBe('');
+  });
+
+  it('copiar falhou (navegador bloqueou): orienta a copiar à mão; sem senha na tela, não faz nada', async () => {
+    const { component } = build();
+    const writeText = vi.fn().mockRejectedValue(new Error('negado'));
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    await component.copyRevealedPassword();
+    expect(writeText).not.toHaveBeenCalled();
+    component.revealedPassword.set({ email: 'a@example.com', password: 'x' });
+    await component.copyRevealedPassword();
+    expect(component.copyMsg()).toBe('Não deu para copiar automaticamente: selecione a senha e copie.');
+  });
+
+  it('erro ao resetar: mensagem traduzida, sem texto técnico', async () => {
+    const { component } = build({ resetCoachPassword: vi.fn().mockReturnValue(throwError(() => ({ status: 500, error: { message: 'Internal server error' } }))) });
+    vi.spyOn(confirmDialog, 'ask').mockResolvedValue(true);
+    await component.resetPassword(coachAlvo);
+    expect(component.listErrorMsg()).toBe('Erro ao resetar a senha. Tente novamente.');
+    expect(component.resettingId()).toBeNull();
+  });
+});
+
+describe('CoachesComponent — erros com mensagem traduzida', () => {
+  const erroEmIngles = () => throwError(() => ({ status: 500, error: { message: 'Internal server error' } }));
+
+  it('falha ao carregar a lista', () => {
+    const { component } = build({ getCoaches: vi.fn().mockReturnValue(erroEmIngles()) });
+    component.ngOnInit();
+    expect(component.listErrorMsg()).toBe('Erro ao carregar a lista de coaches.');
+  });
+
+  it('falha ao criar coach: mensagem da API em português aparece', () => {
+    const { component } = build({
+      createCoach: vi.fn().mockReturnValue(throwError(() => ({ status: 409, error: { message: 'E-mail já cadastrado' } }))),
+    });
+    component.form.setValue({ name: 'Novo', email: 'novo@example.com' });
+    component.createCoach();
+    expect(component.errorMsg()).toBe('E-mail já cadastrado');
+    expect(component.saving()).toBe(false);
+  });
+
+  it('falha ao trocar a permissão de IA', () => {
+    const { component } = build({ toggleCoachAi: vi.fn().mockReturnValue(erroEmIngles()) });
+    component.toggleAi(coach as any);
+    expect(component.listErrorMsg()).toBe('Erro ao atualizar a permissão de IA. Tente novamente.');
   });
 });

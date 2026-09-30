@@ -6,6 +6,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { Payment, PaymentSummary, Student, FinancialSummary, MonthlyBreakdown, CoachGatewayPayment, GATEWAY_PAYMENT_STATUS_LABEL } from '../../../core/models';
 import { formatCents } from '../../../shared/utils/currency';
 import { SplitSegment, shareOfMax, splitSegments } from '../../../shared/utils/split-bar';
+import { confirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-financial',
@@ -127,8 +128,11 @@ export class FinancialComponent implements OnInit {
     this.api.getPaymentSummary().subscribe(s => this.summary.set(s));
   }
 
-  deletePayment(payment: Payment): void {
-    if (!confirm('Remover este lançamento?')) return;
+  async deletePayment(payment: Payment): Promise<void> {
+    const ok = await confirmDialog.ask({
+      title: 'Remover lançamento?', message: 'Ele sai do seu financeiro.', confirmLabel: 'Remover', danger: true,
+    });
+    if (!ok) return;
     this.api.deletePayment(payment.id).subscribe({
       next: () => {
         this.payments.update(list => list.filter(p => p.id !== payment.id));

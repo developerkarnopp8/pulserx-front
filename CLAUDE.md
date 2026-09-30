@@ -27,6 +27,23 @@
 > atualiza o usuário salvo sem trocar o token. Textos legais atualizados (`LEGAL_LAST_UPDATED = 30/09/2026`). Atenção: o lcov do builder novo
 > **omite** código que nenhum teste importa (em vez de mostrar 0%) — conferir cobertura por arquivo novo, não só pelo total.
 
+> **LGPD item 3 — desvincular e excluir conta (2026-09-30, branch `feat-lgpd-exclusao-termo-coach`):** na lista de alunos o coach
+> **desvincula** (`api.unlinkStudent`, confirmação explicando que a conta não é apagada; erro aparece acima da lista). Componente
+> `shared/components/delete-account` ("Excluir minha conta": senha + caixa de confirmação) no Perfil e na página `/conta-encerrada`
+> (`features/athlete/account-closed`, para onde o `jwtInterceptor` leva ao receber 403 `UNLINKED`; 401 "Sessão encerrada" faz logout).
+> Admin: `features/admin/athlete-deletion` (busca por e-mail exato + excluir) dentro da tela de coaches. Política cita o caminho no app.
+
+> **Confirmações e mensagens de erro (pedido do dono, 2026-09-30 — "popup feio", "mensagens de erro não estão legais"):**
+> - **Nunca `confirm()` do navegador.** Usar `confirmDialog.ask({ title, message, confirmLabel, cancelLabel?, danger? })`
+>   (`shared/components/confirm-dialog`) — devolve `Promise<boolean>`, o método vira `async`. É um objeto único sem injeção (não muda
+>   construtores); o `<app-confirm-dialog />` fica na raiz (`app.ts`); Esc/clicar fora = "não". Botão de desistir padrão é "Voltar"
+>   (nunca "Cancelar", que confunde com "cancelar assinatura"). Teste: `vi.spyOn(confirmDialog, 'ask').mockResolvedValue(true)` + `await`
+>   no método + `afterEach(() => vi.restoreAllMocks())`.
+> - **Erro de API sempre por `apiMessage(err, fallback)`** (`shared/utils/signup-flow.ts`), nunca `err.message`/`err.error.message` cru: ela
+>   descarta textos padrão em inglês do Nest/Angular ("Http failure response…", "Unauthorized", "ThrottlerException", validação "x must be…")
+>   e dá frase própria para sem conexão (0), 429, 401 e 403. Login usa `loginErrorMessage` (401 = "E-mail ou senha incorretos.").
+> - Senha gerada pelo admin (criar coach/resetar) tem botão **"Copiar e-mail e senha"** (texto pronto para mandar ao coach).
+
 ## Visão Geral
 
 **PulseRx** é uma plataforma SaaS para gestão de academias. O frontend é construído em Angular 21 e consome dados mock (json-server) — o backend real NestJS será integrado posteriormente.

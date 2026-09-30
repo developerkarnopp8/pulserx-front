@@ -1,0 +1,14 @@
+<main class="min-h-screen bg-surface px-5 py-8 flex justify-center">
+  <div class="w-full max-w-lg flex flex-col gap-5 animate-fade-in">
+    <div>
+      <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-1">Acesso encerrado</p>
+      <h1 class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none">Seu vínculo com o treinador terminou</h1>
+    </div>
+    <p class="text-on-surface-variant text-sm">
+      Seu treinador encerrou o acompanhamento e a sua assinatura foi cancelada — não haverá novas cobranças. Seus dados
+      continuam guardados. Se quiser, você pode excluir a sua conta abaixo.
+    </p>
+    <app-delete-account />
+    <button type="button" (click)="auth.logout()" class="text-on-surface-variant text-sm underline min-h-[44px]">Sair</button>
+  </div>
+</main>

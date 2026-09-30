@@ -13,6 +13,16 @@ export interface User {
 }
 
 /** GET /consents/me */
+/** Admin: aluno achado pelo e-mail do pedido de exclusão (LGPD Art. 18). */
+export interface AthleteLookup {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+  coachName: string | null;
+  unlinked: boolean;
+}
+
 export interface ConsentStatus {
   termsVersion: string;
   termsAccepted: boolean;

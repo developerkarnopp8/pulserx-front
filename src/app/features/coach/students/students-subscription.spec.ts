@@ -2,6 +2,9 @@ import { FormBuilder } from '@angular/forms';
 import { of, throwError } from 'rxjs';
 import { StudentsComponent } from './students.component';
 import { Student, SubscriptionPlan, Subscription } from '../../../core/models';
+import { confirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
+
+afterEach(() => vi.restoreAllMocks());
 
 /** Cobre só a atribuição de assinatura ao aluno (o resto do componente já existia antes da R3). */
 
@@ -30,6 +33,7 @@ function build(apiOver: Record<string, unknown> = {}) {
     getStudentSubscription: vi.fn().mockReturnValue(of(null)),
     assignSubscription: vi.fn().mockReturnValue(of(subscription())),
     removeSubscription: vi.fn().mockReturnValue(of({ removed: true })),
+    unlinkStudent: vi.fn().mockReturnValue(of({ unlinked: true })),
     ...apiOver,
   };
   const auth = { currentUser: () => ({ id: 'coach-1' }) };
@@ -38,7 +42,7 @@ function build(apiOver: Record<string, unknown> = {}) {
 }
 
 describe('StudentsComponent — atribuir assinatura', () => {
-  it('abre o modal, carrega o catálogo (uma vez) e a assinatura atual do aluno', () => {
+  it('abre o modal, carrega o catálogo (uma vez) e a assinatura atual do aluno', async () => {
     const { component, api } = build();
     component.openSubscriptionModal(student);
 
@@ -50,14 +54,14 @@ describe('StudentsComponent — atribuir assinatura', () => {
     expect(component.selectedPlanId()).toBe('');
   });
 
-  it('aluno já com assinatura: pré-seleciona o plano atual', () => {
+  it('aluno já com assinatura: pré-seleciona o plano atual', async () => {
     const { component } = build({ getStudentSubscription: vi.fn().mockReturnValue(of(subscription())) });
     component.openSubscriptionModal(student);
     expect(component.currentSubscription()?.plan.name).toBe('Core');
     expect(component.selectedPlanId()).toBe('p1');
   });
 
-  it('reabrir o modal para outro aluno NÃO recarrega o catálogo de novo', () => {
+  it('reabrir o modal para outro aluno NÃO recarrega o catálogo de novo', async () => {
     const { component, api } = build();
     component.openSubscriptionModal(student);
     component.openSubscriptionModal({ ...student, id: 's2' });
@@ -65,21 +69,21 @@ describe('StudentsComponent — atribuir assinatura', () => {
     expect(api.getStudentSubscription).toHaveBeenLastCalledWith('s2');
   });
 
-  it('erro ao carregar a assinatura mostra mensagem', () => {
+  it('erro ao carregar a assinatura mostra mensagem', async () => {
     const { component } = build({ getStudentSubscription: vi.fn().mockReturnValue(throwError(() => new Error('x'))) });
     component.openSubscriptionModal(student);
     expect(component.subscriptionError()).toContain('Não foi possível carregar');
     expect(component.loadingSubscription()).toBe(false);
   });
 
-  it('assignPlan sem plano selecionado não chama a API', () => {
+  it('assignPlan sem plano selecionado não chama a API', async () => {
     const { component, api } = build();
     component.openSubscriptionModal(student);
     component.assignPlan();
     expect(api.assignSubscription).not.toHaveBeenCalled();
   });
 
-  it('assignPlan atribui o plano selecionado e atualiza a assinatura exibida', () => {
+  it('assignPlan atribui o plano selecionado e atualiza a assinatura exibida', async () => {
     const { component, api } = build();
     component.openSubscriptionModal(student);
     component.selectedPlanId.set('p1');
@@ -91,7 +95,7 @@ describe('StudentsComponent — atribuir assinatura', () => {
     expect(component.assigning()).toBe(false);
   });
 
-  it('erro do backend (ex.: plano de outro coach) aparece na mensagem', () => {
+  it('erro do backend (ex.: plano de outro coach) aparece na mensagem', async () => {
     const { component } = build({
       assignSubscription: vi.fn().mockReturnValue(throwError(() => ({ error: { message: 'Plano não encontrado' } }))),
     });
@@ -104,35 +108,101 @@ describe('StudentsComponent — atribuir assinatura', () => {
     expect(component.assigning()).toBe(false);
   });
 
-  it('removePlan pede confirmação; cancelando não chama a API', () => {
+  it('removePlan pede confirmação; cancelando não chama a API', async () => {
     const { component, api } = build();
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
+    vi.spyOn(confirmDialog, 'ask').mockResolvedValue(false);
     component.openSubscriptionModal(student);
 
-    component.removePlan();
+    await component.removePlan();
 
     expect(api.removeSubscription).not.toHaveBeenCalled();
   });
 
-  it('removePlan confirmado remove a assinatura e limpa a seleção', () => {
+  it('removePlan confirmado remove a assinatura e limpa a seleção', async () => {
     const { component, api } = build();
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.spyOn(confirmDialog, 'ask').mockResolvedValue(true);
     component.openSubscriptionModal(student);
     component.currentSubscription.set(subscription());
     component.selectedPlanId.set('p1');
 
-    component.removePlan();
+    await component.removePlan();
 
     expect(api.removeSubscription).toHaveBeenCalledWith('s1');
     expect(component.currentSubscription()).toBeNull();
     expect(component.selectedPlanId()).toBe('');
   });
 
-  it('closeSubscriptionModal limpa o alvo', () => {
+  it('closeSubscriptionModal limpa o alvo', async () => {
     const { component } = build();
     component.openSubscriptionModal(student);
     component.closeSubscriptionModal();
     expect(component.showSubscriptionModal()).toBe(false);
     expect(component.subscriptionTarget()).toBeNull();
+  });
+});
+
+describe('StudentsComponent — desvincular aluno', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('pede confirmação explicando o que acontece; sem confirmar, nada muda', async () => {
+    const { component, api } = build({ unlinkStudent: vi.fn() });
+    const confirmSpy = vi.spyOn(confirmDialog, 'ask').mockResolvedValue(false);
+    await component.unlinkStudent(student);
+    expect(confirmSpy.mock.lastCall?.[0].message).toContain('não são apagados');
+    expect(api.unlinkStudent).not.toHaveBeenCalled();
+  });
+
+  it('confirmado: desvincula e tira da lista', async () => {
+    const { component, api } = build({ unlinkStudent: vi.fn().mockReturnValue(of({ unlinked: true })) });
+    component.students.set([student]);
+    vi.spyOn(confirmDialog, 'ask').mockResolvedValue(true);
+    await component.unlinkStudent(student);
+    expect(api.unlinkStudent).toHaveBeenCalledWith('s1');
+    expect(component.students()).toEqual([]);
+    expect(component.deleting()).toBeNull();
+  });
+
+  it('erro (ex.: Asaas recusou cancelar a cobrança): mostra a mensagem e o aluno continua na lista', async () => {
+    const { component } = build({
+      unlinkStudent: vi.fn().mockReturnValue(throwError(() => ({ error: { message: 'Asaas indisponível' } }))),
+    });
+    component.students.set([student]);
+    vi.spyOn(confirmDialog, 'ask').mockResolvedValue(true);
+    await component.unlinkStudent(student);
+    expect(component.listErrorMsg()).toBe('Asaas indisponível');
+    expect(component.students()).toEqual([student]);
+    expect(component.deleting()).toBeNull();
+
+    const semMsg = build({ unlinkStudent: vi.fn().mockReturnValue(throwError(() => new Error('x'))) });
+    await semMsg.component.unlinkStudent(student);
+    expect(semMsg.component.listErrorMsg()).toBe('Não foi possível desvincular. Tente de novo.');
+  });
+});
+
+describe('StudentsComponent — erros com mensagem traduzida', () => {
+  it('criar atleta: e-mail repetido mostra a mensagem da API; texto técnico em inglês nunca aparece', () => {
+    const { component } = build({
+      createStudent: vi.fn().mockReturnValue(throwError(() => ({ status: 409, error: { message: 'E-mail já cadastrado' } }))),
+    });
+    component.form.patchValue({ name: 'Ana', email: 'ana@example.com', password: 'senha123', goal: 'x' });
+    component.saveStudent();
+    expect(component.errorMsg()).toBe('E-mail já cadastrado');
+    expect(component.saving()).toBe(false);
+
+    const ingles = build({
+      createStudent: vi.fn().mockReturnValue(throwError(() => ({ status: 400, error: { message: ['email must be an email'] } }))),
+    });
+    ingles.component.form.patchValue({ name: 'Ana', email: 'ana@example.com', password: 'senha123', goal: 'x' });
+    ingles.component.saveStudent();
+    expect(ingles.component.errorMsg()).toBe('Erro ao criar atleta.');
+  });
+
+  it('editar atleta: falha mostra a frase padrão', () => {
+    const { component } = build({ updateStudent: vi.fn().mockReturnValue(throwError(() => ({ status: 500 }))) });
+    component.openEditModal(student);
+    component.editForm.patchValue({ goal: 'novo' });
+    component.saveEdit();
+    expect(component.errorMsg()).toBe('Erro ao atualizar atleta.');
+    expect(component.saving()).toBe(false);
   });
 });

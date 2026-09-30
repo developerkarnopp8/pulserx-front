@@ -1,6 +1,9 @@
 import { of, throwError } from 'rxjs';
 import { AthleteSubscriptionComponent } from './subscription.component';
 import { MySubscription, MyGatewayPayment } from '../../../core/models';
+import { confirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
+
+afterEach(() => vi.restoreAllMocks());
 
 const mySub = (over: Partial<MySubscription> = {}): MySubscription => ({
   subscription: {
@@ -31,7 +34,7 @@ function build(apiOver: Record<string, unknown> = {}) {
 }
 
 describe('AthleteSubscriptionComponent', () => {
-  it('carrega a própria assinatura ao iniciar', () => {
+  it('carrega a própria assinatura ao iniciar', async () => {
     const { component, api } = build();
     component.ngOnInit();
     expect(api.getMySubscription).toHaveBeenCalled();
@@ -39,14 +42,14 @@ describe('AthleteSubscriptionComponent', () => {
     expect(component.loading()).toBe(false);
   });
 
-  it('sem assinatura (plano null) não quebra — o template trata o caso vazio', () => {
+  it('sem assinatura (plano null) não quebra — o template trata o caso vazio', async () => {
     const { component } = build({ getMySubscription: vi.fn().mockReturnValue(of(mySub({ subscription: null, categories: [] }))) });
     component.ngOnInit();
     expect(component.data()?.subscription).toBeNull();
     expect(component.data()?.categories).toEqual([]);
   });
 
-  it('erro ao carregar mostra mensagem e libera o loading', () => {
+  it('erro ao carregar mostra mensagem e libera o loading', async () => {
     const { component } = build({ getMySubscription: vi.fn().mockReturnValue(throwError(() => new Error('x'))) });
     component.ngOnInit();
     expect(component.errorMsg()).toContain('Não foi possível carregar');
@@ -55,7 +58,7 @@ describe('AthleteSubscriptionComponent', () => {
 });
 
 describe('AthleteSubscriptionComponent — faturas', () => {
-  it('carrega o histórico real de cobranças junto com a assinatura', () => {
+  it('carrega o histórico real de cobranças junto com a assinatura', async () => {
     const list = [pay()];
     const { component, api } = build({ getMyPayments: vi.fn().mockReturnValue(of(list)) });
     component.ngOnInit();
@@ -64,7 +67,7 @@ describe('AthleteSubscriptionComponent — faturas', () => {
     expect(component.paymentsLoading()).toBe(false);
   });
 
-  it('erro no histórico não derruba a tela: plano continua carregado', () => {
+  it('erro no histórico não derruba a tela: plano continua carregado', async () => {
     const { component } = build({ getMyPayments: vi.fn().mockReturnValue(throwError(() => new Error('x'))) });
     component.ngOnInit();
     expect(component.paymentsError()).toContain('Não foi possível carregar suas faturas');
@@ -73,7 +76,7 @@ describe('AthleteSubscriptionComponent — faturas', () => {
     expect(component.data()?.subscription?.plan.name).toBe('Core');
   });
 
-  it('próxima cobrança = fatura em aberto de vencimento mais antigo (ignora as pagas)', () => {
+  it('próxima cobrança = fatura em aberto de vencimento mais antigo (ignora as pagas)', async () => {
     const { component } = build({
       getMyPayments: vi.fn().mockReturnValue(of([
         pay({ id: 'a', status: 'pending', dueDate: '2026-11-10T00:00:00.000Z' }),
@@ -85,13 +88,13 @@ describe('AthleteSubscriptionComponent — faturas', () => {
     expect(component.nextCharge()?.id).toBe('b');
   });
 
-  it('sem fatura em aberto: próxima cobrança é null (não inventa data)', () => {
+  it('sem fatura em aberto: próxima cobrança é null (não inventa data)', async () => {
     const { component } = build({ getMyPayments: vi.fn().mockReturnValue(of([pay()])) });
     component.ngOnInit();
     expect(component.nextCharge()).toBeNull();
   });
 
-  it('mostra 3 faturas e expande/recolhe o resto', () => {
+  it('mostra 3 faturas e expande/recolhe o resto', async () => {
     const list = [1, 2, 3, 4, 5].map(i => pay({ id: `p${i}` }));
     const { component } = build({ getMyPayments: vi.fn().mockReturnValue(of(list)) });
     component.ngOnInit();
@@ -102,13 +105,13 @@ describe('AthleteSubscriptionComponent — faturas', () => {
     expect(component.visiblePayments()).toHaveLength(3);
   });
 
-  it('fmtAmount converte reais (Float do gateway) pra moeda formatada sem erro de arredondamento', () => {
+  it('fmtAmount converte reais (Float do gateway) pra moeda formatada sem erro de arredondamento', async () => {
     const { component } = build();
     expect(component.fmtAmount(149.9)).toBe(component.fmtPrice(14990));
     expect(component.fmtAmount(0.1 + 0.2)).toBe(component.fmtPrice(30));
   });
 
-  it('safeInvoiceUrl só aceita https (bloqueia javascript:, http e vazio)', () => {
+  it('safeInvoiceUrl só aceita https (bloqueia javascript:, http e vazio)', async () => {
     const { component } = build();
     expect(component.safeInvoiceUrl('https://www.asaas.com/i/abc')).toBe('https://www.asaas.com/i/abc');
     expect(component.safeInvoiceUrl('javascript:alert(1)')).toBeNull();
@@ -119,23 +122,21 @@ describe('AthleteSubscriptionComponent — faturas', () => {
 });
 
 describe('AthleteSubscriptionComponent.cancel', () => {
-  const originalConfirm = window.confirm;
-  afterEach(() => { window.confirm = originalConfirm; });
 
-  it('sem confirmar (confirm() false): não chama a API', () => {
-    window.confirm = vi.fn().mockReturnValue(false);
+  it('sem confirmar (confirm() false): não chama a API', async () => {
+    vi.spyOn(confirmDialog, 'ask').mockResolvedValue(false);
     const { component, api } = build();
-    component.cancel();
+    await component.cancel();
     expect(api.cancelMySubscription).not.toHaveBeenCalled();
   });
 
-  it('confirmando: cancela, mostra mensagem e recarrega a assinatura', () => {
-    window.confirm = vi.fn().mockReturnValue(true);
+  it('confirmando: cancela, mostra mensagem e recarrega a assinatura', async () => {
+    vi.spyOn(confirmDialog, 'ask').mockResolvedValue(true);
     const { component, api } = build();
     component.ngOnInit();
     api.getMySubscription.mockClear();
 
-    component.cancel();
+    await component.cancel();
 
     expect(api.cancelMySubscription).toHaveBeenCalled();
     expect(component.cancelMsg()).toBe('Assinatura cancelada.');
@@ -143,11 +144,11 @@ describe('AthleteSubscriptionComponent.cancel', () => {
     expect(api.getMySubscription).toHaveBeenCalled(); // recarrega
   });
 
-  it('erro ao cancelar: mostra mensagem de erro, libera o botão', () => {
-    window.confirm = vi.fn().mockReturnValue(true);
+  it('erro ao cancelar: mostra mensagem de erro, libera o botão', async () => {
+    vi.spyOn(confirmDialog, 'ask').mockResolvedValue(true);
     const { component } = build({ cancelMySubscription: vi.fn().mockReturnValue(throwError(() => new Error('x'))) });
 
-    component.cancel();
+    await component.cancel();
 
     expect(component.cancelMsg()).toContain('Não foi possível cancelar');
     expect(component.canceling()).toBe(false);
@@ -167,7 +168,7 @@ describe('AthleteSubscriptionComponent — dados de saúde (LGPD)', () => {
     return { component, api, auth };
   }
 
-  it('mostra se o aluno autorizou (só true conta como autorizado)', () => {
+  it('mostra se o aluno autorizou (só true conta como autorizado)', async () => {
     expect(buildSaude(true).component.saudeAutorizada).toBe(true);
     expect(buildSaude(false).component.saudeAutorizada).toBe(false);
     expect(buildSaude(null).component.saudeAutorizada).toBe(false);
@@ -175,7 +176,7 @@ describe('AthleteSubscriptionComponent — dados de saúde (LGPD)', () => {
     expect(semSessao.saudeAutorizada).toBe(false);
   });
 
-  it('autorizar: grava direto, atualiza a sessão e confirma', () => {
+  it('autorizar: grava direto, atualiza a sessão e confirma', async () => {
     const { component, api, auth } = buildSaude(false);
     component.alterarSaude(true);
     expect(api.setHealthConsent).toHaveBeenCalledWith(true);
@@ -184,14 +185,14 @@ describe('AthleteSubscriptionComponent — dados de saúde (LGPD)', () => {
     expect(component.saudeMsg()).toBe('Compartilhamento de dados de saúde ativado.');
   });
 
-  it('retirar: primeiro pede confirmação, sem chamar a API', () => {
+  it('retirar: primeiro pede confirmação, sem chamar a API', async () => {
     const { component, api } = buildSaude(true);
     component.alterarSaude(false);
     expect(component.confirmandoRetirar()).toBe(true);
     expect(api.setHealthConsent).not.toHaveBeenCalled();
   });
 
-  it('retirar confirmado: grava, fecha a confirmação e avisa que apagou os registros', () => {
+  it('retirar confirmado: grava, fecha a confirmação e avisa que apagou os registros', async () => {
     const { component, api, auth } = buildSaude(true);
     component.alterarSaude(false);
     component.alterarSaude(false);
@@ -201,7 +202,7 @@ describe('AthleteSubscriptionComponent — dados de saúde (LGPD)', () => {
     expect(component.saudeMsg()).toBe('Autorização retirada. Motivos de lesão e observações já registrados foram apagados.');
   });
 
-  it('desistir de retirar fecha a confirmação sem gravar', () => {
+  it('desistir de retirar fecha a confirmação sem gravar', async () => {
     const { component, api } = buildSaude(true);
     component.alterarSaude(false);
     component.cancelarRetirar();
@@ -209,7 +210,7 @@ describe('AthleteSubscriptionComponent — dados de saúde (LGPD)', () => {
     expect(api.setHealthConsent).not.toHaveBeenCalled();
   });
 
-  it('erro ao gravar: mostra a mensagem, libera o botão e não mexe na sessão', () => {
+  it('erro ao gravar: mostra a mensagem, libera o botão e não mexe na sessão', async () => {
     const { component, auth } = buildSaude(false, {
       setHealthConsent: vi.fn().mockReturnValue(throwError(() => ({ error: { message: 'Tente mais tarde' } }))),
     });

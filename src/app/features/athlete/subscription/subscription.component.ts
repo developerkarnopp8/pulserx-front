@@ -7,11 +7,13 @@ import {
 } from '../../../core/models';
 import { formatCents } from '../../../shared/utils/currency';
 import { apiMessage } from '../../../shared/utils/signup-flow';
+import { DeleteAccountComponent } from '../../../shared/components/delete-account/delete-account.component';
+import { confirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-athlete-subscription',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DeleteAccountComponent],
   templateUrl: './subscription.component.html',
   styleUrl: './subscription.component.scss',
 })
@@ -122,8 +124,15 @@ export class AthleteSubscriptionComponent implements OnInit {
     this.showAllPayments.update(v => !v);
   }
 
-  cancel(): void {
-    if (!confirm('Cancelar sua assinatura? Seu treinador será avisado.')) return;
+  async cancel(): Promise<void> {
+    const ok = await confirmDialog.ask({
+      title: 'Cancelar sua assinatura?',
+      message: 'As próximas cobranças param e seu treinador é avisado.',
+      confirmLabel: 'Cancelar assinatura',
+      cancelLabel: 'Manter assinatura',
+      danger: true,
+    });
+    if (!ok) return;
     this.canceling.set(true);
     this.cancelMsg.set('');
     this.api.cancelMySubscription().subscribe({

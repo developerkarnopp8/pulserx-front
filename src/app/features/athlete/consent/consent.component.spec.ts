@@ -90,7 +90,7 @@ describe('ConsentComponent — enviar', () => {
     expect(api.acceptConsents).toHaveBeenCalledTimes(1);
   });
 
-  it('erro ao salvar: mostra a mensagem, libera o botão e não abre sessão', () => {
+  it('erro ao salvar: validação em inglês do servidor vira a frase em português; libera o botão e não abre sessão', () => {
     const { component, auth, router } = build({
       acceptConsents: vi.fn().mockReturnValue(throwError(() => ({ error: { message: ['acceptTerms must be equal to true'] } }))),
     });
@@ -99,7 +99,7 @@ describe('ConsentComponent — enviar', () => {
     component.health.set(false);
     component.submit();
     expect(component.busy()).toBe(false);
-    expect(component.errorMsg()).toBe('acceptTerms must be equal to true');
+    expect(component.errorMsg()).toBe('Não foi possível salvar. Tente de novo.');
     expect(auth.startSession).not.toHaveBeenCalled();
     expect(router.navigate).not.toHaveBeenCalled();
   });

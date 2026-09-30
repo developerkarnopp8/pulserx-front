@@ -6,6 +6,7 @@ import { ApiService, WorkoutLogEntry } from '../../../core/services/api.service'
 import { ExerciseLibraryItem, Student } from '../../../core/models';
 import { WorkoutHistoryCalendarComponent } from '../../../shared/components/workout-history-calendar/workout-history-calendar.component';
 import { YoutubeEmbedComponent } from '../../../shared/components/youtube-embed/youtube-embed.component';
+import { confirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 type DrawerMode = 'add' | 'edit';
 type LibraryTab = 'exercises' | 'history';
@@ -194,11 +195,16 @@ export class LibraryComponent implements OnInit {
     this.items.update(list => list.map(i => (i.id === updated.id ? updated : i)));
   }
 
-  delete(item: ExerciseLibraryItem): void {
-    const msg = item.autoImported
-      ? `Remover "${item.name}" da biblioteca? Ele continua nos planos em que já foi usado e não volta a aparecer aqui.`
-      : `Remover "${item.name}" da biblioteca?`;
-    if (!confirm(msg)) return;
+  async delete(item: ExerciseLibraryItem): Promise<void> {
+    const ok = await confirmDialog.ask({
+      title: `Remover "${item.name}" da biblioteca?`,
+      message: item.autoImported
+        ? 'Ele continua nos planos em que já foi usado e não volta a aparecer aqui.'
+        : 'Ele deixa de aparecer na sua biblioteca.',
+      confirmLabel: 'Remover',
+      danger: true,
+    });
+    if (!ok) return;
     this.api.deleteLibraryItem(item.id).subscribe({
       next: () => this.items.update(list => list.filter(i => i.id !== item.id)),
     });

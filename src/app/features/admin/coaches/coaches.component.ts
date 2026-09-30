@@ -4,6 +4,9 @@ import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } 
 import { ApiService } from '../../../core/services/api.service';
 import { PlatformSettings } from '../../../core/models';
 import { formatReais } from '../../../shared/utils/currency';
+import { AthleteDeletionComponent } from '../athlete-deletion/athlete-deletion.component';
+import { confirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { apiMessage } from '../../../shared/utils/signup-flow';
 
 interface Coach {
   id: string;
@@ -22,7 +25,7 @@ interface Coach {
 @Component({
   selector: 'app-coaches',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, AthleteDeletionComponent],
   templateUrl: './coaches.component.html',
   styleUrl: './coaches.component.scss',
 })
@@ -35,6 +38,7 @@ export class CoachesComponent implements OnInit {
   togglingId   = signal<string | null>(null);
   resettingId  = signal<string | null>(null);
   revealedPassword = signal<{ email: string; password: string } | null>(null);
+  copyMsg = signal('');
 
   // ── Contrato (% da plataforma) ─────────────────────────────────────────────
   contractTargetId = signal<string | null>(null);
@@ -86,16 +90,19 @@ export class CoachesComponent implements OnInit {
     });
   }
 
-  toggleEnforcement(): void {
+  async toggleEnforcement(): Promise<void> {
     const current = this.platformSettings();
     if (!current) return;
     const enable = !current.enforceSubscriptionAccess;
     this.settingsError.set('');
 
     if (enable && current.studentsWithoutAccess > 0) {
-      const ok = confirm(
-        `${current.studentsWithoutAccess} aluno(s) ainda não têm plano ativo e ficariam SEM acesso ao ligar o bloqueio. Ligar mesmo assim?`,
-      );
+      const ok = await confirmDialog.ask({
+        title: 'Ligar o bloqueio por assinatura?',
+        message: `${current.studentsWithoutAccess} aluno(s) ainda não têm plano ativo e ficariam SEM acesso ao conteúdo.`,
+        confirmLabel: 'Ligar mesmo assim',
+        danger: true,
+      });
       if (!ok) return;
     }
 
@@ -103,8 +110,7 @@ export class CoachesComponent implements OnInit {
     this.api.setPlatformSettings(enable, enable).subscribe({
       next: s => { this.platformSettings.set(s); this.updatingSettings.set(false); },
       error: err => {
-        const msg = err?.error?.message;
-        this.settingsError.set(Array.isArray(msg) ? msg[0] : (msg ?? 'Não foi possível atualizar a configuração.'));
+        this.settingsError.set(apiMessage(err, 'Não foi possível atualizar a configuração.'));
         this.updatingSettings.set(false);
       },
     });
@@ -133,8 +139,7 @@ export class CoachesComponent implements OnInit {
         this.load();
       },
       error: err => {
-        const msg = err?.error?.message;
-        this.contractError.set(Array.isArray(msg) ? msg[0] : (msg ?? 'Não foi possível salvar o contrato.'));
+        this.contractError.set(apiMessage(err, 'Não foi possível salvar o contrato.'));
         this.savingContractId.set(null);
       },
     });
@@ -145,8 +150,7 @@ export class CoachesComponent implements OnInit {
     this.api.getCoaches().subscribe({
       next: list => this.coaches.set(list),
       error: err => {
-        const msg = err?.error?.message;
-        this.listErrorMsg.set(Array.isArray(msg) ? msg[0] : (msg ?? 'Erro ao carregar a lista de coaches.'));
+        this.listErrorMsg.set(apiMessage(err, 'Erro ao carregar a lista de coaches.'));
       },
     });
   }
@@ -177,15 +181,20 @@ export class CoachesComponent implements OnInit {
         this.load();
       },
       error: err => {
-        const msg = err?.error?.message;
-        this.errorMsg.set(Array.isArray(msg) ? msg[0] : (msg ?? 'Erro ao criar coach.'));
+        this.errorMsg.set(apiMessage(err, 'Erro ao criar coach.'));
         this.saving.set(false);
       },
     });
   }
 
-  resetPassword(coach: Coach): void {
-    if (!confirm(`Resetar a senha de ${coach.name}? A senha atual deixa de funcionar imediatamente.`)) return;
+  async resetPassword(coach: Coach): Promise<void> {
+    const ok = await confirmDialog.ask({
+      title: `Resetar a senha de ${coach.name}?`,
+      message: 'A senha atual deixa de funcionar na hora. Uma senha nova aparece aqui para você copiar e enviar ao coach.',
+      confirmLabel: 'Resetar senha',
+      danger: true,
+    });
+    if (!ok) return;
     this.resettingId.set(coach.id);
     this.api.resetCoachPassword(coach.id).subscribe({
       next: res => {
@@ -195,8 +204,7 @@ export class CoachesComponent implements OnInit {
       },
       error: err => {
         this.resettingId.set(null);
-        const msg = err?.error?.message;
-        this.listErrorMsg.set(Array.isArray(msg) ? msg[0] : (msg ?? 'Erro ao resetar a senha. Tente novamente.'));
+        this.listErrorMsg.set(apiMessage(err, 'Erro ao resetar a senha. Tente novamente.'));
       },
     });
   }
@@ -211,14 +219,27 @@ export class CoachesComponent implements OnInit {
       },
       error: err => {
         this.togglingId.set(null);
-        const msg = err?.error?.message;
-        this.listErrorMsg.set(Array.isArray(msg) ? msg[0] : (msg ?? 'Erro ao atualizar a permissão de IA. Tente novamente.'));
+        this.listErrorMsg.set(apiMessage(err, 'Erro ao atualizar a permissão de IA. Tente novamente.'));
       },
     });
   }
 
   dismissRevealedPassword(): void {
     this.revealedPassword.set(null);
+    this.copyMsg.set('');
+  }
+
+  /** Copia e-mail + senha nova num texto pronto para mandar ao coach (WhatsApp/e-mail). */
+  async copyRevealedPassword(): Promise<void> {
+    const revealed = this.revealedPassword();
+    if (!revealed) return;
+    const texto = `Acesso ao PulseRx\nE-mail: ${revealed.email}\nSenha: ${revealed.password}`;
+    try {
+      await navigator.clipboard.writeText(texto);
+      this.copyMsg.set('Copiado! Cole na conversa com o coach.');
+    } catch {
+      this.copyMsg.set('Não deu para copiar automaticamente: selecione a senha e copie.');
+    }
   }
 
   getInitials(name: string): string {

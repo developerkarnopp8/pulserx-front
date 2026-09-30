@@ -69,9 +69,17 @@
       <div>
         <p class="text-primary-fixed text-xs font-headline font-bold uppercase tracking-widest mb-2">Anote agora — não aparece de novo</p>
         <p class="text-on-surface text-sm">{{ revealed.email }}</p>
-        <p class="text-on-surface font-headline font-black text-lg tracking-wider">{{ revealed.password }}</p>
+        <p class="text-on-surface font-headline font-black text-lg tracking-wider select-all">{{ revealed.password }}</p>
+        <div class="flex items-center gap-3 mt-3 flex-wrap">
+          <button type="button" (click)="copyRevealedPassword()"
+            class="min-h-[44px] px-4 rounded-sm bg-primary-fixed text-on-primary-fixed font-headline font-black text-xs uppercase tracking-wider inline-flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">content_copy</span>
+            Copiar e-mail e senha
+          </button>
+          <p class="text-on-surface-variant text-xs" aria-live="polite">{{ copyMsg() }}</p>
+        </div>
       </div>
-      <button type="button" (click)="dismissRevealedPassword()"
+      <button type="button" (click)="dismissRevealedPassword()" aria-label="Fechar"
         class="text-outline hover:text-on-surface transition-colors">
         <span class="material-symbols-outlined text-[20px]">close</span>
       </button>
@@ -220,5 +228,7 @@
       </div>
     </div>
   }
+
+  <app-athlete-deletion />
 
 </div>

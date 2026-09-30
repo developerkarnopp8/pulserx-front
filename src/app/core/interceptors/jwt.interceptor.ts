@@ -20,6 +20,14 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
         auth.updateUser({ termsPending: true });
         void router.navigate(['/consentimento']);
       }
+      // O coach desvinculou o aluno: só resta sair ou excluir a conta.
+      if (err instanceof HttpErrorResponse && err.status === 403 && err.error?.code === 'UNLINKED') {
+        void router.navigate(['/conta-encerrada']);
+      }
+      // Conta excluída (anonimizada) com a sessão ainda aberta: a API recusa o token — sai de vez.
+      if (err instanceof HttpErrorResponse && err.status === 401 && err.error?.message === 'Sessão encerrada. Entre novamente.') {
+        auth.logout();
+      }
       return throwError(() => err);
     }),
   );

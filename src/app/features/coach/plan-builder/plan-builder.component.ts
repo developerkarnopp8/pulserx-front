@@ -7,6 +7,7 @@ import { PlanCalendarModalComponent } from '../../../shared/components/plan-cale
 import { YoutubeEmbedComponent } from '../../../shared/components/youtube-embed/youtube-embed.component';
 import { exportWeekToPdf, exportMonthToPdf } from '../../../shared/utils/plan-pdf-export';
 import { formatDurationShort } from '../../../shared/utils/format-duration';
+import { confirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 type DrawerMode = 'add' | 'edit';
 
@@ -397,8 +398,11 @@ export class PlanBuilderComponent implements OnInit, OnChanges {
     });
   }
 
-  deleteSession(sessionId: string): void {
-    if (!confirm('Remover esta sessão e todos os exercícios?')) return;
+  async deleteSession(sessionId: string): Promise<void> {
+    const ok = await confirmDialog.ask({
+      title: 'Remover sessão?', message: 'A sessão e todos os exercícios dela saem do plano.', confirmLabel: 'Remover', danger: true,
+    });
+    if (!ok) return;
     this.api.deleteSession(sessionId).subscribe({
       next: () => {
         this.plan.update(p => {

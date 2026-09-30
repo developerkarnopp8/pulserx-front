@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserRole } from '../../../core/models';
+import { loginErrorMessage } from '../../../shared/utils/signup-flow';
 
 @Component({
   selector: 'app-login',
@@ -65,9 +66,9 @@ export class LoginComponent {
         const destination = role === 'coach' ? '/coach/dashboard' : role === 'admin' ? '/admin/coaches' : '/athlete/home';
         this.router.navigate([destination]);
       },
-      error: (err: Error) => {
+      error: (err: unknown) => {
         this.loading.set(false);
-        this.error.set(err.message ?? 'Erro ao entrar. Verifique suas credenciais.');
+        this.error.set(loginErrorMessage(err));
       },
     });
   }

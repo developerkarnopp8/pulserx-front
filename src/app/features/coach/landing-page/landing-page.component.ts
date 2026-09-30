@@ -4,6 +4,7 @@ import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } fr
 import { DEFAULT_PILLARS, buildPageCopy } from '../../../shared/utils/landing-copy';
 import { ApiService } from '../../../core/services/api.service';
 import { CoachProfile, Testimonial, FaqItem } from '../../../core/models';
+import { confirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -278,8 +279,11 @@ export class LandingPageComponent implements OnInit {
     });
   }
 
-  removeTestimonial(id: string): void {
-    if (!confirm('Remover este depoimento?')) return;
+  async removeTestimonial(id: string): Promise<void> {
+    const ok = await confirmDialog.ask({
+      title: 'Remover depoimento?', message: 'Ele sai da sua página.', confirmLabel: 'Remover', danger: true,
+    });
+    if (!ok) return;
     this.api.deleteTestimonial(id).subscribe(() => this.loadTestimonials());
   }
 
@@ -323,8 +327,11 @@ export class LandingPageComponent implements OnInit {
     });
   }
 
-  removeFaqItem(id: string): void {
-    if (!confirm('Remover esta pergunta?')) return;
+  async removeFaqItem(id: string): Promise<void> {
+    const ok = await confirmDialog.ask({
+      title: 'Remover pergunta?', message: 'Ela sai das perguntas frequentes da sua página.', confirmLabel: 'Remover', danger: true,
+    });
+    if (!ok) return;
     this.api.deleteFaqItem(id).subscribe(() => this.loadFaqItems());
   }
 }
