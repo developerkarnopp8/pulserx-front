@@ -1,0 +1,33 @@
+<section class="bg-surface-container-low rounded-md p-5 flex flex-col gap-3 mt-8" aria-labelledby="titulo-exclusao-aluno">
+  <h3 id="titulo-exclusao-aluno" class="font-headline font-black text-lg text-on-surface">Excluir conta de aluno (LGPD)</h3>
+  <p class="text-on-surface-variant text-xs">
+    Para pedidos que chegam por e-mail. Confirme a identidade de quem pediu antes. O aluno também pode excluir a própria
+    conta no Perfil.
+  </p>
+  <form class="flex flex-wrap gap-2" (submit)="$event.preventDefault(); search()">
+    <label class="sr-only" for="email-exclusao">E-mail do aluno</label>
+    <input id="email-exclusao" type="email" placeholder="e-mail exato do aluno" [value]="email()"
+      (input)="email.set($any($event.target).value)"
+      class="flex-1 min-w-[220px] bg-surface-container text-on-surface rounded-sm px-3 py-2.5 text-sm" />
+    <button type="submit" [disabled]="busy() || !email().trim()"
+      class="min-h-[44px] px-4 rounded-sm border border-outline-variant/30 text-on-surface font-headline text-xs uppercase tracking-wider disabled:opacity-40">
+      Buscar
+    </button>
+  </form>
+  @if (found(); as a) {
+    <div class="border border-outline-variant/20 rounded-sm p-3 text-sm text-on-surface flex flex-col gap-1">
+      <p><strong>{{ a.name }}</strong> — {{ a.email }}</p>
+      <p class="text-on-surface-variant text-xs">
+        Coach: {{ a.coachName ?? '—' }}{{ a.unlinked ? ' (desvinculado)' : '' }} · conta criada em {{ a.createdAt | date: 'dd/MM/yyyy' }}
+      </p>
+      <button type="button" (click)="anonymize()" [disabled]="busy()"
+        class="self-start mt-2 min-h-[44px] px-4 rounded-sm bg-error text-on-error font-headline font-black text-xs uppercase tracking-wider disabled:opacity-40">
+        {{ busy() ? 'Excluindo…' : 'Excluir conta' }}
+      </button>
+    </div>
+  }
+  <div aria-live="polite">
+    @if (errorMsg()) { <p role="alert" class="text-error text-xs">{{ errorMsg() }}</p> }
+    @if (doneMsg()) { <p class="text-on-surface text-xs">{{ doneMsg() }}</p> }
+  </div>
+</section>

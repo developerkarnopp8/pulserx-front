@@ -80,6 +80,12 @@ export const routes: Routes = [
   },
 
   // Aceite dos termos atuais + resposta sobre dados de saúde (LGPD), antes da área do aluno.
+  // O coach desvinculou o aluno: só sair ou excluir a conta (LGPD).
+  {
+    path: 'conta-encerrada',
+    loadComponent: () => import('./features/athlete/account-closed/account-closed.component').then(m => m.AccountClosedComponent),
+    canActivate: [authGuard, athleteGuard],
+  },
   {
     path: 'consentimento',
     loadComponent: () => import('./features/athlete/consent/consent.component').then(m => m.ConsentComponent),

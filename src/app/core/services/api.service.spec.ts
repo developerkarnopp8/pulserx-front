@@ -65,9 +65,9 @@ describe('ApiService — students', () => {
     expect(result.goal).toBe('G2');
   });
 
-  it('deleteStudent chama DELETE', () => {
+  it('unlinkStudent (desvincular) chama DELETE /students/:id', () => {
     const { service, http } = build();
-    service.deleteStudent('s1');
+    service.unlinkStudent('s1');
     expect(http.delete).toHaveBeenCalledWith(`${BASE}/students/s1`);
   });
 
@@ -644,5 +644,17 @@ describe('ApiService — consentimentos do aluno (LGPD)', () => {
     expect(http.put).toHaveBeenCalledWith(`${BASE}/consents/me`, { acceptTerms: true, healthConsent: false });
     service.setHealthConsent(true);
     expect(http.patch).toHaveBeenCalledWith(`${BASE}/consents/me/health`, { healthConsent: true });
+  });
+});
+
+describe('ApiService — exclusão de conta (LGPD)', () => {
+  it('aluno exclui a própria conta com a senha; admin busca pelo e-mail e anonimiza pelo id', () => {
+    const { service, http } = build();
+    service.deleteMyAccount('senha');
+    expect(http.post).toHaveBeenCalledWith(`${BASE}/account/delete`, { password: 'senha' });
+    service.adminFindAthlete('ana@example.com');
+    expect(http.get).toHaveBeenCalledWith(`${BASE}/admin/athletes`, { params: { email: 'ana@example.com' } });
+    service.adminAnonymizeAthlete('u1');
+    expect(http.post).toHaveBeenCalledWith(`${BASE}/admin/athletes/u1/anonymize`, {});
   });
 });

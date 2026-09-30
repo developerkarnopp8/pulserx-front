@@ -1,8 +1,31 @@
-/** Mensagem da API (Nest manda string ou lista de strings de validação). */
+/** Textos padrão do Nest/Angular em inglês — nunca vão para a tela (o dono viu "Http failure response…" no login). */
+const TEXTO_PADRAO_EM_INGLES =
+  /^(Unauthorized|Forbidden|Forbidden resource|Not Found|Bad Request|Conflict|Internal server error|Too Many Requests|Invalid credentials)$|^ThrottlerException|^Cannot (GET|POST|PUT|PATCH|DELETE) |^Http failure/i;
+/** Validação do class-validator sem mensagem própria ("email must be an email"). */
+const VALIDACAO_EM_INGLES = /^[\w.]+ (must|should) /;
+
+/**
+ * Mensagem de erro para mostrar ao usuário, sempre em português: a da API quando ela escreveu uma (Nest manda
+ * string ou lista de strings de validação); senão, uma frase pelo tipo do problema; por fim, o `fallback` da tela.
+ */
 export function apiMessage(err: unknown, fallback: string): string {
-  const msg = (err as { error?: { message?: unknown } })?.error?.message;
-  if (Array.isArray(msg) && typeof msg[0] === 'string') return msg[0];
-  return typeof msg === 'string' && msg ? msg : fallback;
+  const e = err as { status?: number; error?: { message?: unknown } } | null;
+  if (e?.status === 0) return 'Sem conexão com o servidor. Confira sua internet e tente de novo.';
+  if (e?.status === 429) return 'Muitas tentativas seguidas. Aguarde alguns minutos e tente de novo.';
+  const raw = e?.error?.message;
+  const msg = Array.isArray(raw) ? raw[0] : raw;
+  if (typeof msg === 'string' && msg && !TEXTO_PADRAO_EM_INGLES.test(msg) && !VALIDACAO_EM_INGLES.test(msg)) return msg;
+  if (e?.status === 401) return 'Sua sessão terminou. Entre novamente.';
+  if (e?.status === 403) return 'Você não tem permissão para fazer isso.';
+  return fallback;
+}
+
+/** Login: senha/e-mail errados (401) têm frase própria; o "perfil errado" já vem com texto nosso (Error sem status). */
+export function loginErrorMessage(err: unknown): string {
+  const e = err as { status?: number; message?: string } | null;
+  if (e instanceof Error && !('status' in e)) return e.message;
+  if (e?.status === 401) return 'E-mail ou senha incorretos.';
+  return apiMessage(err, 'Não foi possível entrar agora. Tente de novo em instantes.');
 }
 
 /** Inscrição: o e-mail já tem conta → a tela troca pro "entre para continuar". */

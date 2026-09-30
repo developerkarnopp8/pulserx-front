@@ -9,7 +9,7 @@ import {
   SubscriptionPlan, Subscription, MySubscription, MyGatewayPayment, CheckoutResult, CoachGatewayPayment, MonthlyBreakdown, CoachContract, PlatformSettings, FreeConfig, FinancialSummary,
   CoachProfile, UpdateCoachProfileInput, PublicCoachProfile, CreateLeadInput, PublicSignupInput, PublicSignupResult,
   Testimonial, UpsertTestimonialInput, FaqItem, UpsertFaqItemInput,
-  ConsentStatus, User,
+  ConsentStatus, User, AthleteLookup,
 } from '../models';
 import { environment } from '../../../environments/environment';
 
@@ -169,9 +169,9 @@ export class ApiService {
       .pipe(map(s => this.mapStudent(s)));
   }
 
-  /** Coach: remove aluno e conta de usuário */
-  deleteStudent(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/students/${id}`);
+  /** Coach: desvincula o aluno (cancela a cobrança, tira da lista, corta o acesso) — a conta NÃO é apagada. */
+  unlinkStudent(id: string): Observable<{ unlinked: boolean }> {
+    return this.http.delete<{ unlinked: boolean }>(`${this.base}/students/${id}`);
   }
 
   /** Atleta: retorna o próprio perfil de aluno */
@@ -779,6 +779,21 @@ export class ApiService {
   /** Aceita os termos atuais e responde sobre saúde; devolve uma sessão NOVA (o token antigo segue barrado). */
   acceptConsents(healthConsent: boolean): Observable<{ access_token: string; user: User }> {
     return this.http.put<{ access_token: string; user: User }>(`${this.base}/consents/me`, { acceptTerms: true, healthConsent });
+  }
+
+  /** Aluno: exclui (anonimiza) a própria conta, confirmando a senha. */
+  deleteMyAccount(password: string): Observable<{ deleted: boolean }> {
+    return this.http.post<{ deleted: boolean }>(`${this.base}/account/delete`, { password });
+  }
+
+  /** Admin: acha o aluno pelo e-mail exato de um pedido de exclusão. */
+  adminFindAthlete(email: string): Observable<AthleteLookup> {
+    return this.http.get<AthleteLookup>(`${this.base}/admin/athletes`, { params: { email } });
+  }
+
+  /** Admin: exclui (anonimiza) a conta do aluno. */
+  adminAnonymizeAthlete(id: string): Observable<{ deleted: boolean }> {
+    return this.http.post<{ deleted: boolean }>(`${this.base}/admin/athletes/${id}/anonymize`, {});
   }
 
   setHealthConsent(healthConsent: boolean): Observable<{ healthConsent: boolean; healthConsentAt: string }> {

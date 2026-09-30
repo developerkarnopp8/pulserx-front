@@ -159,7 +159,7 @@ export const LEGAL_DOCS: Record<LegalDocKey, LegalDoc> = {
       {
         title: '7. Seus direitos',
         paragraphs: [
-          `Você pode pedir a qualquer momento: confirmação e acesso aos seus dados, correção, anonimização, bloqueio ou eliminação, portabilidade, informação sobre compartilhamentos e revogação de consentimento (LGPD art. 18). Envie o pedido para ${C.email}. Respondemos em até 15 dias. Você também pode reclamar à Autoridade Nacional de Proteção de Dados (ANPD).`,
+          `Você pode pedir a qualquer momento: confirmação e acesso aos seus dados, correção, anonimização, bloqueio ou eliminação, portabilidade, informação sobre compartilhamentos e revogação de consentimento (LGPD art. 18). Envie o pedido para ${C.email}. Respondemos em até 15 dias. Para excluir sua conta você também pode usar o próprio app, em Perfil → Excluir minha conta. Você também pode reclamar à Autoridade Nacional de Proteção de Dados (ANPD).`,
         ],
       },
       {

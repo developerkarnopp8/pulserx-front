@@ -2,6 +2,7 @@ import { FormBuilder } from '@angular/forms';
 import { of, throwError } from 'rxjs';
 import { FinancialComponent } from './financial.component';
 import { FinancialSummary } from '../../../core/models';
+import { confirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 /** Cobre só o carregamento da Visão Geral (MRR/inadimplência/churn/LTV) — o resto do componente (log manual de cobranças) não tem harness de teste ainda. */
 
@@ -122,3 +123,26 @@ describe('FinancialComponent — repasse do mês (Asaas → AEVON → coach)', (
   });
 });
 
+
+describe('FinancialComponent — remover lançamento (caixa de confirmação do app)', () => {
+  afterEach(() => vi.restoreAllMocks());
+  const lancamento = { id: 'pay-1' } as any;
+
+  it('sem confirmar: nada é removido', async () => {
+    const { component, api } = build({ deletePayment: vi.fn() });
+    vi.spyOn(confirmDialog, 'ask').mockResolvedValue(false);
+    await component.deletePayment(lancamento);
+    expect((api as any).deletePayment).not.toHaveBeenCalled();
+  });
+
+  it('confirmado: remove da lista e recarrega o resumo', async () => {
+    const { component, api } = build({ deletePayment: vi.fn().mockReturnValue(of(undefined)) });
+    component.payments.set([lancamento, { id: 'pay-2' } as any]);
+    const ask = vi.spyOn(confirmDialog, 'ask').mockResolvedValue(true);
+    await component.deletePayment(lancamento);
+    expect(ask.mock.calls[0][0]).toMatchObject({ title: 'Remover lançamento?', danger: true });
+    expect((api as any).deletePayment).toHaveBeenCalledWith('pay-1');
+    expect(component.payments().map((p: any) => p.id)).toEqual(['pay-2']);
+    expect(api.getPaymentSummary).toHaveBeenCalled();
+  });
+});

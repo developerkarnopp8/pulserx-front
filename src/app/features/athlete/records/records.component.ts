@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
 import { Movement, PersonalRecord } from '../../../core/models';
 import { MOVEMENT_CATEGORIES, filterMovements } from '../../../shared/utils/movement-filter';
+import { apiMessage } from '../../../shared/utils/signup-flow';
 
 interface MovementWithPR {
   movement: Movement;
@@ -142,8 +143,7 @@ export class RecordsComponent implements OnInit {
       },
       error: err => {
         this.creatingMovement.set(false);
-        const msg = err?.error?.message;
-        this.newMovementError.set(Array.isArray(msg) ? msg[0] : (msg ?? 'Não foi possível cadastrar o movimento.'));
+        this.newMovementError.set(apiMessage(err, 'Não foi possível cadastrar o movimento.'));
       },
     });
   }

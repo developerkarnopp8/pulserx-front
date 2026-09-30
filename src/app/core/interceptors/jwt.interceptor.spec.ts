@@ -13,12 +13,12 @@ function fakeReq(url: string) {
 }
 
 describe('jwtInterceptor', () => {
-  let auth: { updateUser: ReturnType<typeof vi.fn> };
+  let auth: { updateUser: ReturnType<typeof vi.fn>; logout: ReturnType<typeof vi.fn> };
   let router: { navigate: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     localStorage.clear();
-    auth = { updateUser: vi.fn() };
+    auth = { updateUser: vi.fn(), logout: vi.fn() };
     router = { navigate: vi.fn().mockResolvedValue(true) };
     TestBed.configureTestingModule({
       providers: [
@@ -75,7 +75,29 @@ describe('jwtInterceptor', () => {
     expect(onError).toHaveBeenCalledWith(err);
   });
 
+  it('403 UNLINKED (coach desvinculou): leva à tela de vínculo encerrado e repassa o erro', () => {
+    const err = new HttpErrorResponse({ status: 403, error: { code: 'UNLINKED' } });
+    const onError = vi.fn();
+
+    run(fakeReq('/api/athlete/home'), vi.fn(() => throwError(() => err))).subscribe({ error: onError });
+
+    expect(router.navigate).toHaveBeenCalledWith(['/conta-encerrada']);
+    expect(auth.logout).not.toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledWith(err);
+  });
+
+  it('401 "Sessão encerrada" (conta excluída com sessão aberta): sai da conta', () => {
+    const err = new HttpErrorResponse({ status: 401, error: { message: 'Sessão encerrada. Entre novamente.' } });
+    const onError = vi.fn();
+
+    run(fakeReq('/api/x'), vi.fn(() => throwError(() => err))).subscribe({ error: onError });
+
+    expect(auth.logout).toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledWith(err);
+  });
+
   it.each([
+    ['401 de senha errada (login/excluir conta)', new HttpErrorResponse({ status: 401, error: { message: 'Senha incorreta.' } })],
     ['403 com outro código', new HttpErrorResponse({ status: 403, error: { code: 'HEALTH_CONSENT_REQUIRED' } })],
     ['403 sem corpo', new HttpErrorResponse({ status: 403 })],
     ['401 com TERMS_PENDING', new HttpErrorResponse({ status: 401, error: { code: 'TERMS_PENDING' } })],
@@ -87,6 +109,7 @@ describe('jwtInterceptor', () => {
     run(fakeReq('/api/x'), next).subscribe({ error: onError });
 
     expect(auth.updateUser).not.toHaveBeenCalled();
+    expect(auth.logout).not.toHaveBeenCalled();
     expect(router.navigate).not.toHaveBeenCalled();
     expect(onError).toHaveBeenCalledWith(err);
   });

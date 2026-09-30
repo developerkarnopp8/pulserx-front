@@ -7,6 +7,8 @@ import { AuthService } from '../../../core/services/auth.service';
 import { Student, SubscriptionPlan, Subscription, SubscriptionStatus, SUBSCRIPTION_STATUS_LABEL, TRAINING_CATEGORY_LABEL } from '../../../core/models';
 import { formatCents } from '../../../shared/utils/currency';
 import { formatDurationShort } from '../../../shared/utils/format-duration';
+import { apiMessage } from '../../../shared/utils/signup-flow';
+import { confirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 type ModalMode = 'add' | 'edit';
 
@@ -38,6 +40,7 @@ export class StudentsComponent implements OnInit {
   saving        = signal(false);
   deleting      = signal<string | null>(null);
   errorMsg      = signal('');
+  listErrorMsg  = signal('');
   editingId     = signal<string | null>(null);
 
   // ── Assinatura (atribuir plano ao aluno) ──────────────────────────────────
@@ -171,17 +174,22 @@ export class StudentsComponent implements OnInit {
     this.api.assignSubscription(student.id, { planId }).subscribe({
       next: sub => { this.currentSubscription.set(sub); this.assigning.set(false); },
       error: err => {
-        const msg = err?.error?.message;
-        this.subscriptionError.set(Array.isArray(msg) ? msg[0] : (msg ?? 'Não foi possível atribuir o plano.'));
+        this.subscriptionError.set(apiMessage(err, 'Não foi possível atribuir o plano.'));
         this.assigning.set(false);
       },
     });
   }
 
-  removePlan(): void {
+  async removePlan(): Promise<void> {
     const student = this.subscriptionTarget();
     if (!student) return;
-    if (!confirm('Remover a assinatura deste aluno? Ele volta a ficar sem plano.')) return;
+    const ok = await confirmDialog.ask({
+      title: 'Remover a assinatura?',
+      message: 'O aluno volta a ficar sem plano. Se ele paga pelo app, a cobrança no Asaas é cancelada.',
+      confirmLabel: 'Remover assinatura',
+      danger: true,
+    });
+    if (!ok) return;
     this.assigning.set(true);
     this.api.removeSubscription(student.id).subscribe({
       next: () => { this.currentSubscription.set(null); this.selectedPlanId.set(''); this.assigning.set(false); },
@@ -228,8 +236,7 @@ export class StudentsComponent implements OnInit {
         this.closeModal();
       },
       error: err => {
-        const msg = err?.error?.message;
-        this.errorMsg.set(Array.isArray(msg) ? msg[0] : (msg ?? 'Erro ao criar atleta.'));
+        this.errorMsg.set(apiMessage(err, 'Erro ao criar atleta.'));
         this.saving.set(false);
       },
     });
@@ -250,22 +257,37 @@ export class StudentsComponent implements OnInit {
         this.closeModal();
       },
       error: err => {
-        const msg = err?.error?.message;
-        this.errorMsg.set(Array.isArray(msg) ? msg[0] : (msg ?? 'Erro ao atualizar atleta.'));
+        this.errorMsg.set(apiMessage(err, 'Erro ao atualizar atleta.'));
         this.saving.set(false);
       },
     });
   }
 
-  deleteStudent(student: Student): void {
-    if (!confirm(`Remover ${student.name}? Esta ação é irreversível e remove todos os dados do atleta.`)) return;
+  /**
+   * Desvincular (LGPD, decisão do dono 2026-09-30): encerra o vínculo e a cobrança; a conta e os dados do aluno
+   * só são apagados a pedido dele. Erro (ex.: o Asaas recusou o cancelamento) aparece acima da lista.
+   */
+  async unlinkStudent(student: Student): Promise<void> {
+    const ok = await confirmDialog.ask({
+      title: `Desvincular ${student.name}?`,
+      message:
+        'A assinatura dele é cancelada (inclusive a cobrança no Asaas), ele sai da sua lista e perde o acesso ao app. ' +
+        'A conta e os dados dele não são apagados — isso só a pedido dele.',
+      confirmLabel: 'Desvincular',
+      danger: true,
+    });
+    if (!ok) return;
     this.deleting.set(student.id);
-    this.api.deleteStudent(student.id).subscribe({
+    this.listErrorMsg.set('');
+    this.api.unlinkStudent(student.id).subscribe({
       next: () => {
         this.students.update(list => list.filter(s => s.id !== student.id));
         this.deleting.set(null);
       },
-      error: () => this.deleting.set(null),
+      error: err => {
+        this.deleting.set(null);
+        this.listErrorMsg.set(apiMessage(err, 'Não foi possível desvincular. Tente de novo.'));
+      },
     });
   }
 

@@ -1,0 +1,37 @@
+<section class="bg-surface-container-low rounded-md p-4 flex flex-col gap-3" aria-labelledby="titulo-excluir-conta">
+  <h3 id="titulo-excluir-conta" class="font-headline font-bold text-sm text-on-surface uppercase tracking-wider">Excluir minha conta</h3>
+  <p class="text-on-surface-variant text-xs">
+    Apaga seus treinos, registros, recordes, mensagens e dados pessoais, e cancela sua assinatura. Guardamos só o
+    histórico de pagamentos, sem seu nome, porque a lei fiscal exige. Não dá para desfazer.
+  </p>
+  @if (!open()) {
+    <button type="button" (click)="toggle()"
+      class="self-start min-h-[44px] px-4 rounded-sm border border-error/40 text-error font-headline text-xs uppercase tracking-wider">
+      Excluir minha conta
+    </button>
+  } @else {
+    <label class="flex flex-col gap-1 text-xs text-on-surface">
+      Sua senha
+      <input type="password" autocomplete="current-password" [value]="password()"
+        (input)="password.set($any($event.target).value)"
+        class="bg-surface-container text-on-surface rounded-sm px-3 py-2.5 text-sm" />
+    </label>
+    <label class="flex items-start gap-3 text-xs text-on-surface cursor-pointer min-h-[44px]">
+      <input type="checkbox" [checked]="confirmed()" (change)="confirmed.set($any($event.target).checked)" class="mt-0.5 w-5 h-5" />
+      Entendo que minha conta e meus dados serão excluídos e que isso não tem volta.
+    </label>
+    @if (errorMsg()) {
+      <p role="alert" class="text-error text-xs">{{ errorMsg() }}</p>
+    }
+    <div class="flex gap-2">
+      <button type="button" (click)="submit()" [disabled]="!canSubmit"
+        class="min-h-[44px] px-4 rounded-sm bg-error text-on-error disabled:opacity-40 font-headline font-black text-xs uppercase tracking-wider">
+        {{ busy() ? 'Excluindo…' : 'Excluir definitivamente' }}
+      </button>
+      <button type="button" (click)="toggle()" [disabled]="busy()"
+        class="min-h-[44px] px-4 rounded-sm border border-outline-variant/30 text-on-surface-variant font-headline text-xs uppercase tracking-wider">
+        Voltar
+      </button>
+    </div>
+  }
+</section>

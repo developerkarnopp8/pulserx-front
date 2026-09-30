@@ -1,0 +1,22 @@
+@if (dialog.current(); as q) {
+  <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4" (click)="dialog.answer(false)">
+    <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-titulo" aria-describedby="confirm-texto"
+      class="w-full max-w-md bg-surface-container-low border border-outline-variant/20 rounded-md p-6 shadow-2xl animate-fade-in"
+      (click)="$event.stopPropagation()">
+      <h2 id="confirm-titulo" class="font-headline font-black text-xl text-on-surface tracking-tight mb-2">{{ q.title }}</h2>
+      <p id="confirm-texto" class="text-on-surface-variant text-sm leading-relaxed mb-6">{{ q.message }}</p>
+      <div class="flex gap-3 justify-end">
+        <button type="button" (click)="dialog.answer(false)" autofocus
+          class="min-h-[44px] px-5 rounded-sm border border-outline-variant/30 text-on-surface-variant hover:text-on-surface font-headline text-xs uppercase tracking-wider transition-colors">
+          {{ q.cancelLabel ?? 'Voltar' }}
+        </button>
+        <button type="button" (click)="dialog.answer(true)"
+          class="min-h-[44px] px-5 rounded-sm font-headline font-black text-xs uppercase tracking-wider transition-colors"
+          [class.bg-error]="q.danger" [class.text-on-error]="q.danger"
+          [class.bg-primary-fixed]="!q.danger" [class.text-on-primary-fixed]="!q.danger">
+          {{ q.confirmLabel ?? 'Confirmar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

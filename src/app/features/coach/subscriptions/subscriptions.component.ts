@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { ApiService } from '../../../core/services/api.service';
 import { SubscriptionPlan, TrainingCategory, TRAINING_CATEGORY_LABEL } from '../../../core/models';
 import { formatCents, reaisToCents, centsToReaisInput } from '../../../shared/utils/currency';
+import { apiMessage } from '../../../shared/utils/signup-flow';
 
 type ModalMode = 'add' | 'edit';
 
@@ -75,8 +76,7 @@ export class CoachSubscriptionsComponent implements OnInit {
       },
       error: err => {
         this.savingWallet.set(false);
-        const msg = err?.error?.message;
-        this.walletError.set(Array.isArray(msg) ? msg[0] : (msg ?? 'Não foi possível salvar a carteira.'));
+        this.walletError.set(apiMessage(err, 'Não foi possível salvar a carteira.'));
       },
     });
   }
@@ -147,8 +147,7 @@ export class CoachSubscriptionsComponent implements OnInit {
         this.closeModal();
       },
       error: err => {
-        const msg = err?.error?.message;
-        this.formError.set(Array.isArray(msg) ? msg[0] : (msg ?? 'Não foi possível salvar o plano.'));
+        this.formError.set(apiMessage(err, 'Não foi possível salvar o plano.'));
         this.saving.set(false);
       },
     });
