@@ -10,7 +10,7 @@ export function tokenFromHash(hash: string): string | null {
   return m ? m[1] : null;
 }
 
-const senhasIguais = (g: AbstractControl): ValidationErrors | null =>
+export const senhasIguais = (g: AbstractControl): ValidationErrors | null =>
   g.get('password')?.value === g.get('confirm')?.value ? null : { diferentes: true };
 
 /** Cria a senha nova pelo link recebido por e-mail (esqueci minha senha, coach pediu, ou boas-vindas). */

@@ -688,8 +688,8 @@ describe('ApiService — senha por e-mail', () => {
 
   it('confirmar e-mail e reenviar a confirmação', () => {
     const { service, http } = build();
-    service.verifyEmail('tok');
-    expect(http.post).toHaveBeenCalledWith(`${BASE}/auth/verify-email`, { token: 'tok' });
+    service.verifyEmail('tok', 'senha-forte');
+    expect(http.post).toHaveBeenCalledWith(`${BASE}/auth/verify-email`, { token: 'tok', password: 'senha-forte' });
     service.resendVerification('ana@example.com');
     expect(http.post).toHaveBeenCalledWith(`${BASE}/auth/resend-verification`, { email: 'ana@example.com' });
   });
