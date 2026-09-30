@@ -10,7 +10,7 @@ afterEach(() => vi.restoreAllMocks());
 
 const coach = {
   id: 'coach-1', name: 'Luan', email: 'luan@example.com', aiImportEnabled: true, createdAt: '2026-01-01T00:00:00.000Z',
-  platformFeePercent: 10, studentCount: 100, totalPaid: 10000, platformCut: 1000, coachCut: 9000,
+  platformFeePercent: 10, studentCount: 100, totalPaid: 10000, gatewayFee: 0, platformCut: 1000, coachCut: 9000, pendingBreakdown: 0,
 };
 
 const settings = (over: Partial<PlatformSettings> = {}): PlatformSettings => ({

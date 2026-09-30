@@ -1,0 +1,116 @@
+<div class="p-6 md:p-10 flex flex-col gap-6">
+  <div>
+    <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-1">Admin</p>
+    <h2 class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none">Financeiro</h2>
+    <p class="text-on-surface-variant text-sm mt-2">
+      Cobranças pagas pelo Asaas, pelo mês do pagamento: bruto, taxa do Asaas, parte da AEVON (pelo % gravado em cada
+      assinatura) e parte do coach.
+    </p>
+  </div>
+
+  @if (loading()) {
+    <div class="h-40 bg-surface-container-low rounded-md animate-pulse" aria-busy="true" aria-label="Carregando"></div>
+  } @else if (errorMsg()) {
+    <p role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-3 text-error text-sm">{{ errorMsg() }}</p>
+  } @else if (data(); as d) {
+    <div class="flex flex-wrap gap-2" role="tablist" aria-label="Mês">
+      @for (m of d.months; track m; let i = $index) {
+        <button type="button" role="tab" [attr.aria-selected]="selected() === i" (click)="select(i)"
+          class="min-h-[44px] px-4 rounded-sm font-headline text-xs uppercase tracking-wider transition-colors"
+          [class.bg-primary-fixed]="selected() === i" [class.text-on-primary-fixed]="selected() === i"
+          [class.bg-surface-container-low]="selected() !== i" [class.text-on-surface-variant]="selected() !== i">
+          {{ monthLabel(m) }}
+        </button>
+      }
+    </div>
+
+    @if (monthTotals(); as t) {
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="bg-surface-container-low rounded-md p-4">
+          <p class="text-outline text-[10px] font-headline uppercase tracking-widest">Recebido (bruto)</p>
+          <p class="text-on-surface font-headline font-black text-xl">{{ fmt(t.gross) }}</p>
+          <p class="text-outline text-xs">{{ t.count }} cobrança(s) paga(s)</p>
+        </div>
+        <div class="bg-surface-container-low rounded-md p-4">
+          <p class="text-outline text-[10px] font-headline uppercase tracking-widest">Taxa do Asaas</p>
+          <p class="text-on-surface font-headline font-black text-xl">{{ fmt(t.gatewayFee) }}</p>
+        </div>
+        <div class="bg-surface-container-low rounded-md p-4">
+          <p class="text-outline text-[10px] font-headline uppercase tracking-widest">AEVON</p>
+          <p class="text-primary-fixed font-headline font-black text-xl">{{ fmt(t.platformFee) }}</p>
+        </div>
+        <div class="bg-surface-container-low rounded-md p-4">
+          <p class="text-outline text-[10px] font-headline uppercase tracking-widest">Coaches</p>
+          <p class="text-on-surface font-headline font-black text-xl">{{ fmt(t.coachNet) }}</p>
+        </div>
+      </div>
+      @if (t.pendingBreakdown > 0) {
+        <p class="text-on-surface-variant text-xs">
+          {{ t.pendingBreakdown }} cobrança(s) paga(s) ainda sem o valor líquido do Asaas: entram no bruto, mas ficam fora
+          da taxa e dos repasses até o Asaas informar.
+        </p>
+      }
+    }
+
+    <div class="bg-surface-container-low rounded-md overflow-x-auto">
+      <table class="w-full text-sm min-w-[640px]">
+        <caption class="sr-only">Financeiro por coach em {{ monthLabel(d.months[selected()]) }}</caption>
+        <thead>
+          <tr class="text-outline text-[10px] font-headline uppercase tracking-widest text-left border-b border-outline-variant/10">
+            <th scope="col" class="px-5 py-3">Coach</th>
+            <th scope="col" class="px-3 py-3 text-right">Cobranças</th>
+            <th scope="col" class="px-3 py-3 text-right">Bruto</th>
+            <th scope="col" class="px-3 py-3 text-right">Taxa Asaas</th>
+            <th scope="col" class="px-3 py-3 text-right">AEVON</th>
+            <th scope="col" class="px-5 py-3 text-right">Coach</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of rows(); track r.id) {
+            <tr class="border-b border-outline-variant/10 last:border-0">
+              <td class="px-5 py-3">
+                <p class="text-on-surface font-headline font-bold">{{ r.name }}</p>
+                <p class="text-outline text-xs">{{ r.email }}</p>
+              </td>
+              <td class="px-3 py-3 text-right text-on-surface-variant">{{ r.totals.count }}</td>
+              <td class="px-3 py-3 text-right text-on-surface">{{ fmt(r.totals.gross) }}</td>
+              <td class="px-3 py-3 text-right text-on-surface-variant">{{ fmt(r.totals.gatewayFee) }}</td>
+              <td class="px-3 py-3 text-right text-primary-fixed font-headline font-bold">{{ fmt(r.totals.platformFee) }}</td>
+              <td class="px-5 py-3 text-right text-on-surface">{{ fmt(r.totals.coachNet) }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="px-5 py-8 text-center text-outline">Nenhum coach cadastrado.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <section class="bg-surface-container-low rounded-md p-5" aria-labelledby="titulo-historico">
+      <h3 id="titulo-historico" class="font-headline font-bold text-sm text-on-surface uppercase tracking-wider mb-3">Últimos 6 meses (plataforma)</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm min-w-[480px]">
+          <thead>
+            <tr class="text-outline text-[10px] font-headline uppercase tracking-widest text-left">
+              <th scope="col" class="py-2">Mês</th>
+              <th scope="col" class="py-2 text-right">Bruto</th>
+              <th scope="col" class="py-2 text-right">Taxa Asaas</th>
+              <th scope="col" class="py-2 text-right">AEVON</th>
+              <th scope="col" class="py-2 text-right">Coaches</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (t of d.totals; track $index; let i = $index) {
+              <tr class="border-t border-outline-variant/10" [class.font-bold]="selected() === i">
+                <td class="py-2 text-on-surface">{{ monthLabel(d.months[i]) }}</td>
+                <td class="py-2 text-right text-on-surface">{{ fmt(t.gross) }}</td>
+                <td class="py-2 text-right text-on-surface-variant">{{ fmt(t.gatewayFee) }}</td>
+                <td class="py-2 text-right text-primary-fixed">{{ fmt(t.platformFee) }}</td>
+                <td class="py-2 text-right text-on-surface">{{ fmt(t.coachNet) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+</div>

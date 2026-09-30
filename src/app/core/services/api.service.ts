@@ -9,7 +9,7 @@ import {
   SubscriptionPlan, Subscription, MySubscription, MyGatewayPayment, CheckoutResult, CoachGatewayPayment, MonthlyBreakdown, CoachContract, PlatformSettings, FreeConfig, FinancialSummary,
   CoachProfile, UpdateCoachProfileInput, PublicCoachProfile, CreateLeadInput, PublicSignupInput, PublicSignupResult,
   Testimonial, UpsertTestimonialInput, FaqItem, UpsertFaqItemInput,
-  ConsentStatus, User, AthleteLookup,
+  ConsentStatus, User, AthleteLookup, AdminFinancialOverview,
 } from '../models';
 import { environment } from '../../../environments/environment';
 
@@ -590,12 +590,19 @@ export class ApiService {
 
   getCoaches(): Observable<{
     id: string; name: string; email: string; aiImportEnabled: boolean; createdAt: string;
-    platformFeePercent: number; studentCount: number; totalPaid: number; platformCut: number; coachCut: number;
+    platformFeePercent: number; studentCount: number; totalPaid: number; gatewayFee: number; platformCut: number; coachCut: number;
+    pendingBreakdown: number;
   }[]> {
     return this.http.get<{
       id: string; name: string; email: string; aiImportEnabled: boolean; createdAt: string;
-      platformFeePercent: number; studentCount: number; totalPaid: number; platformCut: number; coachCut: number;
+      platformFeePercent: number; studentCount: number; totalPaid: number; gatewayFee: number; platformCut: number; coachCut: number;
+      pendingBreakdown: number;
     }[]>(`${this.base}/admin/coaches`);
+  }
+
+  /** Admin: financeiro por coach, mês atual e os 5 anteriores. */
+  getAdminFinancial(): Observable<AdminFinancialOverview> {
+    return this.http.get<AdminFinancialOverview>(`${this.base}/admin/financial`);
   }
 
   createCoach(name: string, email: string): Observable<{ id: string; name: string; email: string; password: string }> {

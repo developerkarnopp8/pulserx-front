@@ -666,3 +666,11 @@ describe('ApiService — Termo do Coach', () => {
     expect(http.put).toHaveBeenCalledWith(`${BASE}/coach-terms/me`, { acceptTerms: true });
   });
 });
+
+describe('ApiService — admin financeiro', () => {
+  it('getAdminFinancial chama /admin/financial', () => {
+    const { service, http } = build();
+    service.getAdminFinancial();
+    expect(http.get).toHaveBeenCalledWith(`${BASE}/admin/financial`);
+  });
+});
