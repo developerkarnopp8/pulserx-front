@@ -41,6 +41,8 @@ export class StudentsComponent implements OnInit {
   deleting      = signal<string | null>(null);
   errorMsg      = signal('');
   listErrorMsg  = signal('');
+  listInfoMsg   = signal('');
+  sendingResetId = signal<string | null>(null);
   editingId     = signal<string | null>(null);
 
   // ── Assinatura (atribuir plano ao aluno) ──────────────────────────────────
@@ -259,6 +261,29 @@ export class StudentsComponent implements OnInit {
       error: err => {
         this.errorMsg.set(apiMessage(err, 'Erro ao atualizar atleta.'));
         this.saving.set(false);
+      },
+    });
+  }
+
+  /** Manda ao aluno o link por e-mail para criar uma senha nova (decisão do dono: nada de senha por WhatsApp). */
+  async sendPasswordReset(student: Student): Promise<void> {
+    const ok = await confirmDialog.ask({
+      title: `Enviar link de nova senha para ${student.name}?`,
+      message: `${student.email} recebe um link (vale 1 hora) para criar uma senha nova. As sessões abertas dele caem quando a senha for trocada.`,
+      confirmLabel: 'Enviar link',
+    });
+    if (!ok) return;
+    this.sendingResetId.set(student.id);
+    this.listErrorMsg.set('');
+    this.listInfoMsg.set('');
+    this.api.sendStudentPasswordReset(student.id).subscribe({
+      next: () => {
+        this.sendingResetId.set(null);
+        this.listInfoMsg.set(`Link enviado para ${student.email}.`);
+      },
+      error: err => {
+        this.sendingResetId.set(null);
+        this.listErrorMsg.set(apiMessage(err, 'Não foi possível enviar o link. Tente de novo.'));
       },
     });
   }

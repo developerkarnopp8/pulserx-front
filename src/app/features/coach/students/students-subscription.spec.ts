@@ -34,6 +34,7 @@ function build(apiOver: Record<string, unknown> = {}) {
     assignSubscription: vi.fn().mockReturnValue(of(subscription())),
     removeSubscription: vi.fn().mockReturnValue(of({ removed: true })),
     unlinkStudent: vi.fn().mockReturnValue(of({ unlinked: true })),
+    sendStudentPasswordReset: vi.fn().mockReturnValue(of({ sent: true })),
     ...apiOver,
   };
   const auth = { currentUser: () => ({ id: 'coach-1' }) };
@@ -204,5 +205,32 @@ describe('StudentsComponent — erros com mensagem traduzida', () => {
     component.saveEdit();
     expect(component.errorMsg()).toBe('Erro ao atualizar atleta.');
     expect(component.saving()).toBe(false);
+  });
+});
+
+describe('StudentsComponent — link de nova senha', () => {
+  it('pede confirmação; sem confirmar, não envia', async () => {
+    const { component, api } = build();
+    vi.spyOn(confirmDialog, 'ask').mockResolvedValue(false);
+    await component.sendPasswordReset(student);
+    expect(api.sendStudentPasswordReset).not.toHaveBeenCalled();
+  });
+
+  it('confirmado: envia e avisa para qual e-mail foi', async () => {
+    const { component, api } = build();
+    const ask = vi.spyOn(confirmDialog, 'ask').mockResolvedValue(true);
+    await component.sendPasswordReset(student);
+    expect(ask.mock.calls[0][0].message).toContain('ana@example.com');
+    expect(api.sendStudentPasswordReset).toHaveBeenCalledWith('s1');
+    expect(component.listInfoMsg()).toBe('Link enviado para ana@example.com.');
+    expect(component.sendingResetId()).toBeNull();
+  });
+
+  it('erro: mensagem em português e libera o botão', async () => {
+    const { component } = build({ sendStudentPasswordReset: vi.fn().mockReturnValue(throwError(() => ({ status: 429 }))) });
+    vi.spyOn(confirmDialog, 'ask').mockResolvedValue(true);
+    await component.sendPasswordReset(student);
+    expect(component.listErrorMsg()).toBe('Muitas tentativas seguidas. Aguarde alguns minutos e tente de novo.');
+    expect(component.sendingResetId()).toBeNull();
   });
 });
