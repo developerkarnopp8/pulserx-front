@@ -11,6 +11,9 @@ afterEach(() => vi.restoreAllMocks());
 const coach = {
   id: 'coach-1', name: 'Luan', email: 'luan@example.com', aiImportEnabled: true, createdAt: '2026-01-01T00:00:00.000Z',
   platformFeePercent: 10, studentCount: 100, totalPaid: 10000, gatewayFee: 0, platformCut: 1000, coachCut: 9000, pendingBreakdown: 0,
+  subscriptions: { active: 0, trialing: 0, pastDue: 0, canceled: 0, withoutPlan: 0, mrrCents: 0 },
+  alerts: [] as any[],
+  usage: { plans: 0, aiImportedPlans: 0, completedWorkouts30d: 0, lastLoginAt: null, lastPlanUpdateAt: null },
 };
 
 const settings = (over: Partial<PlatformSettings> = {}): PlatformSettings => ({
@@ -258,5 +261,31 @@ describe('CoachesComponent — erros com mensagem traduzida', () => {
     const { component } = build({ toggleCoachAi: vi.fn().mockReturnValue(erroEmIngles()) });
     component.toggleAi(coach as any);
     expect(component.listErrorMsg()).toBe('Erro ao atualizar a permissão de IA. Tente novamente.');
+  });
+});
+
+describe('CoachesComponent — detalhes (assinaturas e uso) e alertas', () => {
+  it('Detalhes abre e fecha por coach; abrir outro troca', () => {
+    const { component } = build();
+    component.toggleDetails(coach as any);
+    expect(component.detailsId()).toBe('coach-1');
+    component.toggleDetails({ ...coach, id: 'coach-2' } as any);
+    expect(component.detailsId()).toBe('coach-2');
+    component.toggleDetails({ ...coach, id: 'coach-2' } as any);
+    expect(component.detailsId()).toBeNull();
+  });
+
+  it('data em pt-BR; sem dado mostra "sem registro" (ou o texto pedido)', () => {
+    const { component } = build();
+    expect(component.formatDate('2026-09-30T15:00:00.000Z')).toBe('30/09/2026');
+    expect(component.formatDate(null)).toBe('sem registro');
+    expect(component.formatDate(null, '—')).toBe('—');
+  });
+
+  it('rótulo em português para cada alerta', () => {
+    const { component } = build();
+    expect(component.alertLabel.NO_CONTRACT).toBe('Sem % de contrato');
+    expect(component.alertLabel.NO_WALLET).toBe('Sem carteira Asaas');
+    expect(component.alertLabel.PAGE_UNPUBLISHED).toBe('Página despublicada');
   });
 });

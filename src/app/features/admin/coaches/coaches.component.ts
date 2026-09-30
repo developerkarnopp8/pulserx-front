@@ -2,7 +2,9 @@ import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
-import { PlatformSettings } from '../../../core/models';
+import {
+  COACH_ALERT_LABEL, CoachAlert, CoachSubscriptionSummary, CoachUsage, PlatformSettings,
+} from '../../../core/models';
 import { formatReais } from '../../../shared/utils/currency';
 import { AthleteDeletionComponent } from '../athlete-deletion/athlete-deletion.component';
 import { confirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
@@ -23,6 +25,9 @@ interface Coach {
   coachCut: number;
   /** Cobranças pagas ainda sem o líquido do Asaas (fora do repasse até ele informar). */
   pendingBreakdown: number;
+  subscriptions: CoachSubscriptionSummary;
+  alerts: CoachAlert[];
+  usage: CoachUsage;
 }
 
 @Component({
@@ -45,6 +50,10 @@ export class CoachesComponent implements OnInit {
 
   // ── Contrato (% da plataforma) ─────────────────────────────────────────────
   contractTargetId = signal<string | null>(null);
+
+  // ── Detalhes do coach (assinaturas e uso) ──────────────────────────────────
+  detailsId = signal<string | null>(null);
+  readonly alertLabel = COACH_ALERT_LABEL;
   contractFeePercent = signal(0);
   savingContractId = signal<string | null>(null);
   contractError = signal('');
@@ -243,6 +252,16 @@ export class CoachesComponent implements OnInit {
     } catch {
       this.copyMsg.set('Não deu para copiar automaticamente: selecione a senha e copie.');
     }
+  }
+
+  toggleDetails(coach: Coach): void {
+    this.detailsId.update(id => (id === coach.id ? null : coach.id));
+  }
+
+  /** Data curta em pt-BR, ou o texto de "sem registro" (último login/plano por IA só existem desde 30/09/2026). */
+  formatDate(iso: string | null, semValor = 'sem registro'): string {
+    if (!iso) return semValor;
+    return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 
   getInitials(name: string): string {

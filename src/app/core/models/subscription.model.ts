@@ -167,3 +167,31 @@ export interface AdminFinancialOverview {
   coaches: { id: string; name: string; email: string; months: MonthTotals[] }[];
   totals: MonthTotals[];
 }
+
+/** Admin: o que falta configurar num coach para ele cobrar direito. */
+export type CoachAlert = 'NO_CONTRACT' | 'NO_WALLET' | 'PAGE_UNPUBLISHED';
+
+export const COACH_ALERT_LABEL: Record<CoachAlert, string> = {
+  NO_CONTRACT: 'Sem % de contrato',
+  NO_WALLET: 'Sem carteira Asaas',
+  PAGE_UNPUBLISHED: 'Página despublicada',
+};
+
+/** Admin: assinaturas dos alunos ativos do coach (MRR = ativas + em teste, mesma conta do Financeiro do coach). */
+export interface CoachSubscriptionSummary {
+  active: number;
+  trialing: number;
+  pastDue: number;
+  canceled: number;
+  withoutPlan: number;
+  mrrCents: number;
+}
+
+/** Admin: uso do coach. Último login e planos por IA são registrados desde 30/09/2026 (antes: sem registro). */
+export interface CoachUsage {
+  plans: number;
+  aiImportedPlans: number;
+  completedWorkouts30d: number;
+  lastLoginAt: string | null;
+  lastPlanUpdateAt: string | null;
+}
