@@ -112,12 +112,12 @@ export const LEGAL_DOCS: Record<LegalDocKey, LegalDoc> = {
         title: '2. Dados que tratamos',
         paragraphs: [],
         items: [
-          'Conta: nome, e-mail e senha (guardada de forma irreversível, com hash), além da data e da versão em que você aceitou estes termos.',
+          'Conta: nome, e-mail e senha (guardada de forma irreversível, com hash), além da data e da versão em que você aceitou estes termos, da data em que você confirmou o e-mail e da data do seu último login.',
           'Treino e evolução: treinos concluídos, pulos de treino e o motivo informado, recordes pessoais (PRs), hidratação e calorias que você registrar, e as mensagens trocadas com o treinador.',
           'Dados de saúde — somente se você autorizar: o motivo "Lesão / dor" e as observações que você escrever ao pular um treino (que também chegam ao seu treinador como mensagem e notificação). O que você escrever sobre saúde nas mensagens também é dado de saúde; sem a autorização, o app avisa para não enviar esse tipo de informação por ali.',
           'Assinatura e pagamento: plano, status, histórico de cobranças, CPF (exigido pelo meio de pagamento para emitir a cobrança) e o identificador do cliente no Asaas. Não guardamos dados de cartão.',
           'Contato pela página do treinador: nome, e-mail, telefone e mensagem que você enviar.',
-          'Dados técnicos: endereço IP, usado em tempo real para limitar tentativas abusivas (não fica guardado em cadastro).',
+          'Dados técnicos: endereço IP, usado em tempo real para limitar tentativas abusivas (não fica guardado em cadastro). Os links enviados por e-mail (confirmar o e-mail, criar ou trocar a senha) valem por pouco tempo, só podem ser usados uma vez e ficam guardados apenas de forma irreversível (hash).',
         ],
       },
       {
@@ -154,6 +154,7 @@ export const LEGAL_DOCS: Record<LegalDocKey, LegalDoc> = {
         title: '6. Por quanto tempo guardamos',
         paragraphs: [
           'Enquanto sua conta estiver ativa. Depois de um pedido de exclusão, apagamos ou anonimizamos os dados, exceto os que precisamos manter para cumprir obrigações legais (por exemplo, registros de pagamento), pelo prazo exigido em lei.',
+          'Inscrição feita pela página do treinador e não confirmada pelo link enviado por e-mail em 7 dias é apagada automaticamente, junto com o aviso de inscrição enviado ao treinador.',
         ],
       },
       {
