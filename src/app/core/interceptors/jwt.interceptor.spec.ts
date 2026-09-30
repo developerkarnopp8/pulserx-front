@@ -75,6 +75,17 @@ describe('jwtInterceptor', () => {
     expect(onError).toHaveBeenCalledWith(err);
   });
 
+  it('403 COACH_TERMS_PENDING: marca o termo como pendente e leva ao aceite do coach', () => {
+    const err = new HttpErrorResponse({ status: 403, error: { code: 'COACH_TERMS_PENDING' } });
+    const onError = vi.fn();
+
+    run(fakeReq('/api/students'), vi.fn(() => throwError(() => err))).subscribe({ error: onError });
+
+    expect(auth.updateUser).toHaveBeenCalledWith({ termsPending: true });
+    expect(router.navigate).toHaveBeenCalledWith(['/aceite-coach']);
+    expect(onError).toHaveBeenCalledWith(err);
+  });
+
   it('403 UNLINKED (coach desvinculou): leva à tela de vínculo encerrado e repassa o erro', () => {
     const err = new HttpErrorResponse({ status: 403, error: { code: 'UNLINKED' } });
     const onError = vi.fn();

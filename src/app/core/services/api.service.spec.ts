@@ -658,3 +658,11 @@ describe('ApiService — exclusão de conta (LGPD)', () => {
     expect(http.post).toHaveBeenCalledWith(`${BASE}/admin/athletes/u1/anonymize`, {});
   });
 });
+
+describe('ApiService — Termo do Coach', () => {
+  it('acceptCoachTerms manda o aceite explícito', () => {
+    const { service, http } = build();
+    service.acceptCoachTerms();
+    expect(http.put).toHaveBeenCalledWith(`${BASE}/coach-terms/me`, { acceptTerms: true });
+  });
+});

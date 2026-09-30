@@ -44,6 +44,11 @@
 >   e dá frase própria para sem conexão (0), 429, 401 e 403. Login usa `loginErrorMessage` (401 = "E-mail ou senha incorretos.").
 > - Senha gerada pelo admin (criar coach/resetar) tem botão **"Copiar e-mail e senha"** (texto pronto para mandar ao coach).
 
+> **LGPD item 4 — Termo do Coach (2026-09-30, branch `feat-lgpd-termo-coach`):** texto em `legal-content.ts` (doc `termo-coach`, também
+> público em `/termo-coach`; rascunho para advogado). Tela `/aceite-coach` (`features/coach/coach-terms`: texto + "Li e aceito" → sessão nova
+> → `/coach/dashboard`). `coachTermsGuard` no shell do coach (`AuthService.needsCoachTerms()`: coach com `termsPending !== false`) e o
+> `jwtInterceptor` leva para lá ao receber 403 `COACH_TERMS_PENDING`.
+
 ## Visão Geral
 
 **PulseRx** é uma plataforma SaaS para gestão de academias. O frontend é construído em Angular 21 e consome dados mock (json-server) — o backend real NestJS será integrado posteriormente.

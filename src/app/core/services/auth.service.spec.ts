@@ -299,3 +299,28 @@ describe('AuthService — consentimento (LGPD)', () => {
     expect(withUser(null).needsConsent()).toBe(false);
   });
 });
+
+describe('AuthService.needsCoachTerms', () => {
+  beforeEach(() => localStorage.clear());
+  const comUsuario = (u: User | null) => {
+    if (u) localStorage.setItem('pulserx_user', JSON.stringify(u));
+    const { http, router, socket } = build();
+    return new AuthService(http as any, router as any, socket as any);
+  };
+
+  it('coach com termo aceito não vai para a tela; pendente ou sessão antiga sem o campo, vai', () => {
+    expect(comUsuario(user({ role: 'coach', termsPending: false })).needsCoachTerms()).toBe(false);
+    localStorage.clear();
+    expect(comUsuario(user({ role: 'coach', termsPending: true })).needsCoachTerms()).toBe(true);
+    localStorage.clear();
+    expect(comUsuario(user({ role: 'coach' })).needsCoachTerms()).toBe(true);
+  });
+
+  it('aluno, admin e visitante nunca vão para o termo do coach', () => {
+    expect(comUsuario(user({ role: 'athlete', termsPending: true })).needsCoachTerms()).toBe(false);
+    localStorage.clear();
+    expect(comUsuario(user({ role: 'admin' as any })).needsCoachTerms()).toBe(false);
+    localStorage.clear();
+    expect(comUsuario(null).needsCoachTerms()).toBe(false);
+  });
+});

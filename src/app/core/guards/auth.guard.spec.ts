@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { authGuard, coachGuard, athleteGuard, adminGuard, consentGuard } from './auth.guard';
+import { authGuard, coachGuard, athleteGuard, adminGuard, consentGuard, coachTermsGuard } from './auth.guard';
 import { AuthService } from '../services/auth.service';
 
 function build(authOver: Record<string, unknown> = {}) {
@@ -10,6 +10,7 @@ function build(authOver: Record<string, unknown> = {}) {
     isAthlete: vi.fn().mockReturnValue(false),
     isAdmin: vi.fn().mockReturnValue(false),
     needsConsent: vi.fn().mockReturnValue(false),
+    needsCoachTerms: vi.fn().mockReturnValue(false),
     ...authOver,
   };
   const tree = { treeMarker: true };
@@ -105,5 +106,19 @@ describe('consentGuard', () => {
     const { router, tree } = build({ needsConsent: vi.fn().mockReturnValue(true) });
     expect(run(() => consentGuard({} as never, {} as never))).toBe(tree);
     expect(router.createUrlTree).toHaveBeenCalledWith(['/consentimento']);
+  });
+});
+
+describe('coachTermsGuard', () => {
+  it('coach com o termo aceito: permite', () => {
+    const { router } = build();
+    expect(run(() => coachTermsGuard({} as never, {} as never))).toBe(true);
+    expect(router.createUrlTree).not.toHaveBeenCalled();
+  });
+
+  it('coach com o termo pendente: vai para o aceite', () => {
+    const { router, tree } = build({ needsCoachTerms: vi.fn().mockReturnValue(true) });
+    expect(run(() => coachTermsGuard({} as never, {} as never))).toBe(tree);
+    expect(router.createUrlTree).toHaveBeenCalledWith(['/aceite-coach']);
   });
 });

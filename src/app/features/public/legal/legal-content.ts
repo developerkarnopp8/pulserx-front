@@ -14,7 +14,7 @@ export const LEGAL_COMPANY = {
 
 export const LEGAL_LAST_UPDATED = '30/09/2026';
 
-export type LegalDocKey = 'termos' | 'privacidade' | 'cookies' | 'reembolso';
+export type LegalDocKey = 'termos' | 'privacidade' | 'cookies' | 'reembolso' | 'termo-coach';
 
 export interface LegalSection {
   title: string;
@@ -235,6 +235,83 @@ export const LEGAL_DOCS: Record<LegalDocKey, LegalDoc> = {
       {
         title: '4. Formas de pagamento',
         paragraphs: ['As cobranças são feitas pelo Asaas. Na página de pagamento você escolhe PIX, boleto ou cartão de crédito.'],
+      },
+    ],
+  },
+  // Termo do Coach (LGPD, decisão do dono 2026-09-30): aceito no próximo acesso ao painel; versão no backend
+  // (COACH_TERMS_VERSION). RASCUNHO para revisão de advogado — não afirma o papel de cada parte na LGPD
+  // (controlador/operador), que é decisão jurídica. Mudou o texto: trocar também a versão no backend.
+  'termo-coach': {
+    key: 'termo-coach',
+    title: 'Termo do Coach',
+    intro: `Este Termo vale para quem usa o painel de coach da plataforma PulseRx, mantida pela ${C.name} (CNPJ ${C.cnpj}). No painel você acessa dados pessoais dos seus alunos. Ao aceitar, você se compromete a usá-los só como descrito aqui.`,
+    sections: [
+      {
+        title: '1. Quais dados você acessa',
+        paragraphs: ['Pelo painel você vê dados dos alunos vinculados a você:'],
+        items: [
+          'nome, e-mail e objetivo;',
+          'planos, treinos realizados, tempo de treino, recordes pessoais, hidratação e calorias registradas;',
+          'mensagens trocadas com você;',
+          'dados de assinatura e pagamento (plano, situação e valores — nunca o número do cartão);',
+          'dados de saúde, só dos alunos que autorizaram: motivo "lesão/dor" e observações ao pular um treino.',
+        ],
+      },
+      {
+        title: '2. Para que você pode usar',
+        paragraphs: [
+          'Somente para planejar, acompanhar e ajustar o treino dos seus alunos e para falar com eles sobre o serviço que eles contrataram com você.',
+          'É proibido usar esses dados para outra finalidade: vender, ceder ou repassar a terceiros, montar listas de contato para outros negócios, divulgar resultados de alunos identificados sem autorização deles, ou treinar sistemas de terceiros com eles.',
+        ],
+      },
+      {
+        title: '3. Sigilo',
+        paragraphs: [
+          'Você mantém em sigilo tudo o que vê dos seus alunos. Prints, exportações (planilha, PDF) e anotações fora da plataforma só podem ser feitos para a finalidade do item 2, e devem ser guardados com o mesmo cuidado.',
+        ],
+      },
+      {
+        title: '4. Dados de saúde',
+        paragraphs: [
+          'Lesão, dor e observações de saúde são dados sensíveis (LGPD, art. 11). Eles só aparecem para você com o consentimento do aluno, e só podem ser usados para ajustar o treino dele — nunca divulgados.',
+          'Se o aluno retirar o consentimento, esses registros são apagados da plataforma; não guarde cópias deles.',
+        ],
+      },
+      {
+        title: '5. Segurança da sua conta',
+        paragraphs: [
+          'Sua senha é pessoal e intransferível: não compartilhe o acesso ao painel com ninguém. Saia da conta em computadores e celulares de uso compartilhado.',
+        ],
+      },
+      {
+        title: '6. Incidentes',
+        paragraphs: [
+          `Se você suspeitar de acesso indevido à sua conta, de vazamento ou de uso indevido de dados dos seus alunos, avise a ${C.name} imediatamente pelo e-mail ${C.email}, com o que souber do ocorrido.`,
+        ],
+      },
+      {
+        title: '7. Direitos dos alunos',
+        paragraphs: [
+          `Cada aluno pode pedir acesso, correção ou exclusão dos próprios dados a qualquer momento — a exclusão pode ser feita no próprio app. Se um pedido desses chegar a você, encaminhe para ${C.email} e não dificulte o atendimento.`,
+        ],
+      },
+      {
+        title: '8. Fim do vínculo',
+        paragraphs: [
+          'Ao desvincular um aluno ou encerrar a sua conta, você não deve manter fora da plataforma cópias dos dados dele, exceto o que a lei obrigue a guardar (por exemplo, registros fiscais seus).',
+        ],
+      },
+      {
+        title: '9. Descumprimento',
+        paragraphs: [
+          `O uso dos dados em desacordo com este Termo pode levar à suspensão do acesso ao painel, e você responde pelos danos que esse uso causar aos alunos ou à ${C.name}.`,
+        ],
+      },
+      {
+        title: '10. Atualizações',
+        paragraphs: [
+          'Quando este Termo mudar, você será avisado no próximo acesso e precisará aceitar a nova versão para continuar usando o painel.',
+        ],
       },
     ],
   },
