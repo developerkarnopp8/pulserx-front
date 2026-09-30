@@ -48,14 +48,35 @@ export interface MySubscription {
   autoDebitCard?: { brand: string; last4: string } | null;
 }
 
-/** Status de uma cobrança do gateway (Asaas). */
-export type GatewayPaymentStatus = 'pending' | 'paid' | 'overdue';
+/** Status de uma cobrança do gateway (Asaas). Estornada e contestada não contam como recebido. */
+export type GatewayPaymentStatus = 'pending' | 'paid' | 'overdue' | 'refunded' | 'chargeback';
 
 export const GATEWAY_PAYMENT_STATUS_LABEL: Record<GatewayPaymentStatus, string> = {
   pending: 'Em aberto',
   paid: 'Paga',
   overdue: 'Vencida',
+  refunded: 'Estornada',
+  chargeback: 'Contestada',
 };
+
+/** Ícone (Material Symbols) de cada status. */
+export const GATEWAY_PAYMENT_STATUS_ICON: Record<GatewayPaymentStatus, string> = {
+  pending: 'schedule',
+  paid: 'task_alt',
+  overdue: 'error',
+  refunded: 'undo',
+  chargeback: 'gavel',
+};
+
+/** Ainda a pagar (entra em "próxima cobrança"); estornada/contestada não é cobrança em aberto. */
+export function isOpenGatewayPayment(status: GatewayPaymentStatus): boolean {
+  return status === 'pending' || status === 'overdue';
+}
+
+/** Dinheiro que não ficou com o coach: estornada (voltou ao aluno) ou contestada (em disputa). */
+export function isReversedGatewayPayment(status: GatewayPaymentStatus): boolean {
+  return status === 'refunded' || status === 'chargeback';
+}
 
 /** Cobrança real do próprio aluno (GET /subscriptions/me/payments). `amount` em reais. */
 export interface MyGatewayPayment {

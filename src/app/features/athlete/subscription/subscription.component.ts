@@ -4,6 +4,7 @@ import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
 import {
   MySubscription, MyGatewayPayment, TRAINING_CATEGORY_LABEL, SUBSCRIPTION_STATUS_LABEL, GATEWAY_PAYMENT_STATUS_LABEL,
+  GATEWAY_PAYMENT_STATUS_ICON, isOpenGatewayPayment,
 } from '../../../core/models';
 import { formatCents } from '../../../shared/utils/currency';
 import { apiMessage } from '../../../shared/utils/signup-flow';
@@ -35,13 +36,15 @@ export class AthleteSubscriptionComponent implements OnInit {
   readonly categoryLabel = TRAINING_CATEGORY_LABEL;
   readonly statusLabel = SUBSCRIPTION_STATUS_LABEL;
   readonly paymentStatusLabel = GATEWAY_PAYMENT_STATUS_LABEL;
+  readonly paymentStatusIcon = GATEWAY_PAYMENT_STATUS_ICON;
 
   /**
    * Próxima cobrança = a fatura real em aberto de vencimento mais antigo (vencida primeiro).
    * Não usa `renewsAt`: o backend ainda não preenche esse campo (só com cobrança recorrente — R4).
    */
   readonly nextCharge = computed<MyGatewayPayment | null>(() => {
-    const open = this.payments().filter(p => p.status !== 'paid');
+    // Só o que ainda é a pagar — estornada ou contestada não é "próxima cobrança".
+    const open = this.payments().filter(p => isOpenGatewayPayment(p.status));
     if (!open.length) return null;
     return [...open].sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
   });
