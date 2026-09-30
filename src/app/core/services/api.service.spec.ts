@@ -29,9 +29,9 @@ describe('ApiService — students', () => {
       currentWeek: 2, currentMonth: 1, completionPercent: 50,
     }));
 
-    const result = firstValue(service.createStudent({ name: 'Ana', email: 'ana@x.com', password: 'x', goal: 'Emagrecer' }));
+    const result = firstValue(service.createStudent({ name: 'Ana', email: 'ana@x.com', goal: 'Emagrecer' }));
 
-    expect(http.post).toHaveBeenCalledWith(`${BASE}/students`, { name: 'Ana', email: 'ana@x.com', password: 'x', goal: 'Emagrecer' });
+    expect(http.post).toHaveBeenCalledWith(`${BASE}/students`, { name: 'Ana', email: 'ana@x.com', goal: 'Emagrecer' });
     expect(result).toEqual({
       id: 's1', name: 'Ana', email: 'ana@x.com', goal: 'Emagrecer',
       currentWeek: 2, currentMonth: 1, coachId: '', completionPercent: 50,
@@ -684,5 +684,13 @@ describe('ApiService — senha por e-mail', () => {
     expect(http.post).toHaveBeenCalledWith(`${BASE}/auth/reset-password`, { token: 'tok', password: 'senha-forte' });
     service.sendStudentPasswordReset('s1');
     expect(http.post).toHaveBeenCalledWith(`${BASE}/students/s1/password-reset`, {});
+  });
+
+  it('confirmar e-mail e reenviar a confirmação', () => {
+    const { service, http } = build();
+    service.verifyEmail('tok');
+    expect(http.post).toHaveBeenCalledWith(`${BASE}/auth/verify-email`, { token: 'tok' });
+    service.resendVerification('ana@example.com');
+    expect(http.post).toHaveBeenCalledWith(`${BASE}/auth/resend-verification`, { email: 'ana@example.com' });
   });
 });

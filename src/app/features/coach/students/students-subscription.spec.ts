@@ -180,12 +180,26 @@ describe('StudentsComponent — desvincular aluno', () => {
   });
 });
 
+describe('StudentsComponent — cadastrar atleta sem senha', () => {
+  it('manda só nome, e-mail e objetivo; avisa que o link de criar senha foi enviado', () => {
+    const novo = { id: 's9', name: 'Ana', email: 'ana@example.com' };
+    const { component, api } = build({ createStudent: vi.fn().mockReturnValue(of(novo)) });
+    component.form.patchValue({ name: 'Ana', email: 'ana@example.com', goal: 'x' });
+    expect(component.form.valid).toBe(true);
+    component.saveStudent();
+    expect((api as any).createStudent).toHaveBeenCalledWith({ name: 'Ana', email: 'ana@example.com', goal: 'x' });
+    expect(component.students()[0]).toEqual(novo);
+    expect(component.showModal()).toBe(false);
+    expect(component.listInfoMsg()).toBe('Atleta cadastrado. Enviamos para ana@example.com o link para criar a senha.');
+  });
+});
+
 describe('StudentsComponent — erros com mensagem traduzida', () => {
   it('criar atleta: e-mail repetido mostra a mensagem da API; texto técnico em inglês nunca aparece', () => {
     const { component } = build({
       createStudent: vi.fn().mockReturnValue(throwError(() => ({ status: 409, error: { message: 'E-mail já cadastrado' } }))),
     });
-    component.form.patchValue({ name: 'Ana', email: 'ana@example.com', password: 'senha123', goal: 'x' });
+    component.form.patchValue({ name: 'Ana', email: 'ana@example.com', goal: 'x' });
     component.saveStudent();
     expect(component.errorMsg()).toBe('E-mail já cadastrado');
     expect(component.saving()).toBe(false);
@@ -193,7 +207,7 @@ describe('StudentsComponent — erros com mensagem traduzida', () => {
     const ingles = build({
       createStudent: vi.fn().mockReturnValue(throwError(() => ({ status: 400, error: { message: ['email must be an email'] } }))),
     });
-    ingles.component.form.patchValue({ name: 'Ana', email: 'ana@example.com', password: 'senha123', goal: 'x' });
+    ingles.component.form.patchValue({ name: 'Ana', email: 'ana@example.com', goal: 'x' });
     ingles.component.saveStudent();
     expect(ingles.component.errorMsg()).toBe('Erro ao criar atleta.');
   });

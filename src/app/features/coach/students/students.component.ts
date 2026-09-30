@@ -103,7 +103,6 @@ export class StudentsComponent implements OnInit {
     this.form = this.fb.group({
       name:     ['', Validators.required],
       email:    ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
       goal:     ['', Validators.required],
     });
 
@@ -229,13 +228,12 @@ export class StudentsComponent implements OnInit {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.saving.set(true);
     this.errorMsg.set('');
-    const { name, email, password, goal } = this.form.value as {
-      name: string; email: string; password: string; goal: string;
-    };
-    this.api.createStudent({ name, email, password, goal }).subscribe({
+    const { name, email, goal } = this.form.value as { name: string; email: string; goal: string };
+    this.api.createStudent({ name, email, goal }).subscribe({
       next: student => {
         this.students.update(list => [student, ...list]);
         this.closeModal();
+        this.listInfoMsg.set(`Atleta cadastrado. Enviamos para ${email} o link para criar a senha.`);
       },
       error: err => {
         this.errorMsg.set(apiMessage(err, 'Erro ao criar atleta.'));

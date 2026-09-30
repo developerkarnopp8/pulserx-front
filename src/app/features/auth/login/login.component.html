@@ -113,9 +113,16 @@
 
           <!-- Error -->
           @if (error()) {
-            <div class="bg-error/10 border border-error/30 rounded-sm px-4 py-2 text-error text-xs mb-4 animate-fade-in">
+            <div role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-2 text-error text-xs mb-4 animate-fade-in">
               {{ error() }}
+              @if (notVerified()) {
+                <button type="button" (click)="resendVerification()" [disabled]="loading()"
+                  class="block underline font-semibold mt-1 min-h-[44px]">Reenviar o e-mail de confirmação</button>
+              }
             </div>
+          }
+          @if (info()) {
+            <p role="status" class="bg-surface-container-low rounded-sm px-4 py-2 text-on-surface text-xs mb-4">{{ info() }}</p>
           }
 
           <!-- Submit -->

@@ -62,6 +62,14 @@
 > **Senha por e-mail (2026-09-30, branch `feat-senha-por-email`):** telas públicas `/esqueci-senha` (resposta genérica) e `/redefinir-senha`
 > (token lido do fragmento `#token=` por `tokenFromHash` e APAGADO da barra de endereço com `history.replaceState`; senha ≥ 8 + confirmação).
 > Link "Esqueci minha senha" no login. Coach: botão "Enviar link de nova senha" (ícone `lock_reset`) na lista de alunos, com `confirmDialog`.
+>
+> **Confirmação de e-mail + "crie sua senha" (2026-09-30, branch `feat-confirmar-email`):** inscrição da landing termina no passo **"Confirme
+> seu e-mail"** (sem sessão; botão "Reenviar o e-mail"). Página pública **`/confirmar-email`**: lê `#token=…&c=<slug>&plano=<id>`, apaga da
+> barra, e **só confirma no clique** (antivírus de e-mail que abre links não gasta o link de uso único); depois vai para `/c/<slug>/assinar/<id>`
+> — `continuePathFromHash` só aceita slug kebab-case ≤ 60 e plano UUID (nada do fragmento vira URL livre) — ou para a tela inicial do papel.
+> Login: 403 `EMAIL_NOT_VERIFIED` (`isEmailNotVerified`) mostra "Reenviar o e-mail de confirmação". Cadastro de aluno pelo coach **sem campo de
+> senha** (aviso de que o link foi enviado). Admin: criar coach e "Enviar link de nova senha" só mostram aviso de e-mail enviado — **acabou a
+> senha revelada/copiar**. Layout mobile do admin (lista de coaches e Financeiro) com margem menor, alertas compactos e números em 3 colunas.
 
 ## Visão Geral
 

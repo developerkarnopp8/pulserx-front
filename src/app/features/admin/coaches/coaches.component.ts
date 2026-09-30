@@ -45,8 +45,8 @@ export class CoachesComponent implements OnInit {
   listErrorMsg = signal('');
   togglingId   = signal<string | null>(null);
   resettingId  = signal<string | null>(null);
-  revealedPassword = signal<{ email: string; password: string } | null>(null);
-  copyMsg = signal('');
+  /** Aviso de e-mail enviado (conta nova ou link de nova senha). O admin nunca vê nem repassa senha. */
+  sentNotice = signal('');
 
   // ── Contrato (% da plataforma) ─────────────────────────────────────────────
   contractTargetId = signal<string | null>(null);
@@ -188,7 +188,7 @@ export class CoachesComponent implements OnInit {
     this.api.createCoach(name, email).subscribe({
       next: coach => {
         this.closeModal();
-        this.revealedPassword.set({ email: coach.email, password: coach.password });
+        this.sentNotice.set(`Coach criado. Enviamos para ${coach.email} o link para ele criar a própria senha (vale 7 dias).`);
         window.scrollTo({ top: 0, behavior: 'smooth' });
         this.load();
       },
@@ -201,22 +201,21 @@ export class CoachesComponent implements OnInit {
 
   async resetPassword(coach: Coach): Promise<void> {
     const ok = await confirmDialog.ask({
-      title: `Resetar a senha de ${coach.name}?`,
-      message: 'A senha atual deixa de funcionar na hora. Uma senha nova aparece aqui para você copiar e enviar ao coach.',
-      confirmLabel: 'Resetar senha',
-      danger: true,
+      title: `Enviar link de nova senha para ${coach.name}?`,
+      message: `O coach recebe em ${coach.email} um link para criar uma senha nova (vale 1 hora). A senha atual continua valendo até ele trocar.`,
+      confirmLabel: 'Enviar link',
     });
     if (!ok) return;
     this.resettingId.set(coach.id);
     this.api.resetCoachPassword(coach.id).subscribe({
-      next: res => {
+      next: () => {
         this.resettingId.set(null);
-        this.revealedPassword.set({ email: coach.email, password: res.password });
+        this.sentNotice.set(`Link de nova senha enviado para ${coach.email}.`);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       },
       error: err => {
         this.resettingId.set(null);
-        this.listErrorMsg.set(apiMessage(err, 'Erro ao resetar a senha. Tente novamente.'));
+        this.listErrorMsg.set(apiMessage(err, 'Não foi possível enviar o link. Tente novamente.'));
       },
     });
   }
@@ -236,22 +235,8 @@ export class CoachesComponent implements OnInit {
     });
   }
 
-  dismissRevealedPassword(): void {
-    this.revealedPassword.set(null);
-    this.copyMsg.set('');
-  }
-
-  /** Copia e-mail + senha nova num texto pronto para mandar ao coach (WhatsApp/e-mail). */
-  async copyRevealedPassword(): Promise<void> {
-    const revealed = this.revealedPassword();
-    if (!revealed) return;
-    const texto = `Acesso ao PulseRx\nE-mail: ${revealed.email}\nSenha: ${revealed.password}`;
-    try {
-      await navigator.clipboard.writeText(texto);
-      this.copyMsg.set('Copiado! Cole na conversa com o coach.');
-    } catch {
-      this.copyMsg.set('Não deu para copiar automaticamente: selecione a senha e copie.');
-    }
+  dismissSentNotice(): void {
+    this.sentNotice.set('');
   }
 
   toggleDetails(coach: Coach): void {

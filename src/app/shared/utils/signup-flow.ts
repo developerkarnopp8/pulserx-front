@@ -28,6 +28,12 @@ export function loginErrorMessage(err: unknown): string {
   return apiMessage(err, 'Não foi possível entrar agora. Tente de novo em instantes.');
 }
 
+/** Login: senha certa, mas o e-mail ainda não foi confirmado (conta nova) → a tela oferece reenviar a confirmação. */
+export function isEmailNotVerified(err: unknown): boolean {
+  const e = err as { status?: number; error?: { code?: string } } | null;
+  return e?.status === 403 && e.error?.code === 'EMAIL_NOT_VERIFIED';
+}
+
 /** Inscrição: o e-mail já tem conta → a tela troca pro "entre para continuar". */
 export function isEmailExists(err: unknown): boolean {
   const e = err as { status?: number; error?: { code?: string } };

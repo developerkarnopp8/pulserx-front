@@ -1,4 +1,4 @@
-<div class="px-8 py-6 animate-fade-in">
+<div class="px-4 md:px-8 py-6 animate-fade-in">
 
   <!-- Header -->
   <div class="flex items-center justify-between mb-6">
@@ -63,25 +63,13 @@
     }
   </div>
 
-  <!-- Senha revelada (única vez) -->
-  @if (revealedPassword(); as revealed) {
-    <div class="bg-primary-fixed/10 border border-primary-fixed/30 rounded-md p-5 mb-6 flex items-start justify-between gap-4">
-      <div>
-        <p class="text-primary-fixed text-xs font-headline font-bold uppercase tracking-widest mb-2">Anote agora — não aparece de novo</p>
-        <p class="text-on-surface text-sm">{{ revealed.email }}</p>
-        <p class="text-on-surface font-headline font-black text-lg tracking-wider select-all">{{ revealed.password }}</p>
-        <div class="flex items-center gap-3 mt-3 flex-wrap">
-          <button type="button" (click)="copyRevealedPassword()"
-            class="min-h-[44px] px-4 rounded-sm bg-primary-fixed text-on-primary-fixed font-headline font-black text-xs uppercase tracking-wider inline-flex items-center gap-2">
-            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">content_copy</span>
-            Copiar e-mail e senha
-          </button>
-          <p class="text-on-surface-variant text-xs" aria-live="polite">{{ copyMsg() }}</p>
-        </div>
-      </div>
-      <button type="button" (click)="dismissRevealedPassword()" aria-label="Fechar"
-        class="text-outline hover:text-on-surface transition-colors">
-        <span class="material-symbols-outlined text-[20px]">close</span>
+  <!-- E-mail enviado (conta nova ou nova senha): ninguém mais repassa senha -->
+  @if (sentNotice()) {
+    <div role="status" class="bg-primary-fixed/10 border border-primary-fixed/30 rounded-md p-5 mb-6 flex items-start justify-between gap-4">
+      <p class="text-on-surface text-sm">{{ sentNotice() }}</p>
+      <button type="button" (click)="dismissSentNotice()" aria-label="Fechar"
+        class="text-outline hover:text-on-surface transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
+        <span class="material-symbols-outlined text-[20px]" aria-hidden="true">close</span>
       </button>
     </div>
   }
@@ -101,7 +89,7 @@
         <span>Coach</span><span class="text-right">Alunos</span><span class="text-right">% AEVON</span><span class="text-right">Repasse AEVON</span><span>Contrato</span><span></span>
       </div>
       @for (coach of coaches(); track coach.id) {
-        <div class="px-5 py-4 border-b border-outline-variant/10 last:border-0 flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_72px_72px_112px_132px_44px] lg:items-center lg:gap-4">
+        <div class="px-4 md:px-5 py-4 border-b border-outline-variant/10 last:border-0 flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_72px_72px_112px_132px_44px] lg:items-center lg:gap-4">
           <div class="flex items-start gap-3 min-w-0">
             <div class="w-9 h-9 rounded-full bg-primary-fixed/20 flex items-center justify-center text-xs font-headline font-black text-primary-fixed flex-shrink-0">
               {{ getInitials(coach.name) }}
@@ -112,14 +100,14 @@
               @if (coach.alerts.length) {
                 <ul class="flex flex-wrap gap-1 mt-1.5" aria-label="Alertas do coach">
                   @for (a of coach.alerts; track a) {
-                    <li class="text-[10px] font-headline uppercase tracking-wider px-2 py-0.5 rounded-sm bg-error/10 text-error whitespace-nowrap">{{ alertLabel[a] }}</li>
+                    <li class="text-[10px] font-headline uppercase tracking-wide px-1.5 py-0.5 rounded-sm bg-error/10 text-error whitespace-nowrap">{{ alertLabel[a] }}</li>
                   }
                 </ul>
               }
             </div>
           </div>
 
-          <div class="flex gap-6 lg:contents">
+          <div class="grid grid-cols-3 gap-3 lg:contents">
             <div class="lg:text-right">
               <p class="text-on-surface font-headline font-bold text-sm">{{ coach.studentCount }}</p>
               <p class="text-outline text-[9px] font-headline uppercase tracking-widest lg:hidden">Alunos</p>
@@ -137,21 +125,21 @@
           <div class="flex items-center gap-2 lg:contents">
             <button type="button" (click)="openContract(coach)" [attr.aria-expanded]="contractTargetId() === coach.id"
               [attr.aria-label]="'Contrato de ' + coach.name + ': ' + coach.platformFeePercent + '% da AEVON'"
-              class="w-[132px] min-h-[40px] text-[11px] font-headline font-bold uppercase tracking-wider rounded-sm border transition-colors"
+              class="flex-1 lg:flex-none lg:w-[132px] min-h-[44px] lg:min-h-[40px] text-[11px] font-headline font-bold uppercase tracking-wider rounded-sm border transition-colors"
               [class.border-error]="coach.platformFeePercent === 0" [class.text-error]="coach.platformFeePercent === 0"
               [class.border-primary-fixed]="coach.platformFeePercent > 0" [class.text-primary-fixed]="coach.platformFeePercent > 0">
               {{ coach.platformFeePercent === 0 ? 'Definir %' : 'Contrato ' + coach.platformFeePercent + '%' }}
             </button>
             <button type="button" (click)="toggleDetails(coach)" [attr.aria-expanded]="detailsId() === coach.id"
               [attr.aria-label]="'Detalhes de ' + coach.name"
-              class="w-11 h-11 flex items-center justify-center rounded-sm text-outline hover:text-on-surface hover:bg-surface-container transition-colors">
+              class="w-11 h-11 flex-shrink-0 flex items-center justify-center rounded-sm text-outline hover:text-on-surface hover:bg-surface-container transition-colors">
               <span class="material-symbols-outlined text-[22px] transition-transform" [class.rotate-180]="detailsId() === coach.id" aria-hidden="true">expand_more</span>
             </button>
           </div>
         </div>
 
         @if (detailsId() === coach.id) {
-          <div class="px-5 pb-4 border-b border-outline-variant/10 grid md:grid-cols-3 gap-3">
+          <div class="px-4 md:px-5 pb-4 border-b border-outline-variant/10 grid md:grid-cols-3 gap-3">
             <section class="bg-surface-container rounded-sm p-4" [attr.aria-label]="'Assinaturas de ' + coach.name">
               <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-2">Assinaturas (alunos ativos)</p>
               <dl class="grid grid-cols-3 gap-2 text-sm">
@@ -187,7 +175,7 @@
               </div>
               <button type="button" [disabled]="resettingId() === coach.id" (click)="resetPassword(coach)"
                 class="self-start min-h-[40px] px-4 rounded-sm border border-outline-variant/30 text-on-surface-variant hover:text-on-surface text-[11px] font-headline font-bold uppercase tracking-wider disabled:opacity-50">
-                Resetar senha
+                Enviar link de nova senha
               </button>
             </section>
           </div>

@@ -243,16 +243,10 @@
           }
         </div>
 
-        <!-- Senha -->
-        <div class="mb-3">
-          <label class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">Senha de acesso *</label>
-          <input formControlName="password" type="password" placeholder="Mínimo 6 caracteres"
-            class="w-full bg-surface-container text-on-surface placeholder:text-outline rounded-sm px-4 py-3 text-sm"/>
-          @if (form.get('password')?.invalid && form.get('password')?.touched) {
-            <p class="text-error text-xs mt-1">Senha deve ter pelo menos 6 caracteres.</p>
-          }
-          <p class="text-outline text-[10px] mt-1">O atleta usará esta senha para fazer login no app.</p>
-        </div>
+        <!-- Sem senha: o atleta cria a própria pelo e-mail -->
+        <p class="text-outline text-xs mb-3">
+          O atleta recebe neste e-mail um link para criar a própria senha (vale 7 dias). Se vencer, use o botão de enviar link na lista.
+        </p>
 
         <!-- Objetivo -->
         <div class="mb-5">

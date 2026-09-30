@@ -113,6 +113,22 @@
               </form>
             }
 
+            @case ('verify') {
+              <h1 class="font-condensed font-extrabold text-3xl uppercase leading-tight">Confirme seu e-mail</h1>
+              <p class="text-on-surface-variant text-sm mt-1 mb-6">
+                Enviamos um link para <strong class="text-on-surface break-all">{{ pendingEmail() }}</strong>. Abra o e-mail e toque em
+                <strong class="text-on-surface">Confirmar meu e-mail</strong> — você volta direto para {{ p.isFree ? 'o acesso' : 'o pagamento' }}.
+                O link vale 48 horas. Não achou? Olhe também no spam.
+              </p>
+              @if (infoMsg()) {
+                <p role="status" class="bg-surface-container rounded-lg px-4 py-3 text-on-surface text-sm mb-4">{{ infoMsg() }}</p>
+              }
+              <button type="button" (click)="resendVerification()" [disabled]="busy()"
+                class="w-full min-h-[48px] rounded-lg border border-outline-variant text-on-surface font-semibold text-sm disabled:opacity-60">
+                {{ busy() ? 'Enviando...' : 'Reenviar o e-mail' }}
+              </button>
+            }
+
             @case ('payment') {
               <h1 class="font-condensed font-extrabold text-3xl uppercase leading-tight">Pagamento</h1>
               <p class="text-on-surface-variant text-sm mt-1 mb-6">
