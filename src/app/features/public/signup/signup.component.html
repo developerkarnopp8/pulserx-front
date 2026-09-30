@@ -71,6 +71,13 @@
                 @if (accountForm.get('acceptTerms')?.invalid && accountForm.get('acceptTerms')?.touched) {
                   <p class="text-error text-xs">É preciso aceitar para continuar.</p>
                 }
+                <label class="flex items-start gap-3 text-sm text-on-surface-variant cursor-pointer">
+                  <input type="checkbox" formControlName="healthConsent" class="mt-1 w-5 h-5 accent-[var(--color-primary-fixed)] flex-shrink-0" />
+                  <span>
+                    <strong>Opcional:</strong> autorizo registrar e compartilhar com meu treinador dados de saúde (lesão ou
+                    dor e observações ao pular um treino). Posso mudar isso a qualquer momento no Perfil.
+                  </span>
+                </label>
                 <button type="submit" [disabled]="busy()"
                   class="w-full min-h-[52px] rounded-lg bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-condensed font-extrabold text-lg uppercase tracking-wider transition-colors">
                   {{ busy() ? 'Criando conta...' : (p.isFree ? 'Criar conta e começar' : 'Continuar para o pagamento') }}

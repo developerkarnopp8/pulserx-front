@@ -256,3 +256,46 @@ describe('AuthService.startSession (inscrição pública)', () => {
     expect(socket.connect).toHaveBeenCalledWith('tok-novo');
   });
 });
+
+describe('AuthService — consentimento (LGPD)', () => {
+  beforeEach(() => localStorage.clear());
+
+  const withUser = (u: User | null) => {
+    if (u) localStorage.setItem('pulserx_user', JSON.stringify(u));
+    const { http, router, socket } = build();
+    return new AuthService(http as any, router as any, socket as any);
+  };
+
+  it('updateUser junta as mudanças no usuário da sessão e grava no localStorage', () => {
+    const service = withUser(user({ role: 'athlete', healthConsent: true }));
+    service.updateUser({ healthConsent: false });
+    expect(service.currentUser()?.healthConsent).toBe(false);
+    expect(service.currentUser()?.email).toBe('ana@x.com');
+    expect(JSON.parse(localStorage.getItem('pulserx_user')!).healthConsent).toBe(false);
+  });
+
+  it('updateUser sem sessão não cria usuário', () => {
+    const service = withUser(null);
+    service.updateUser({ healthConsent: true });
+    expect(service.currentUser()).toBeNull();
+    expect(localStorage.getItem('pulserx_user')).toBeNull();
+  });
+
+  it.each([
+    ['termos aceitos e saúde respondida (sim)', { termsPending: false, healthConsent: true }, false],
+    ['termos aceitos e saúde respondida (não)', { termsPending: false, healthConsent: false }, false],
+    ['termos pendentes', { termsPending: true, healthConsent: true }, true],
+    ['sessão antiga sem termsPending', { healthConsent: true }, true],
+    ['saúde sem resposta (null)', { termsPending: false, healthConsent: null }, true],
+    ['saúde sem resposta (ausente)', { termsPending: false }, true],
+  ])('aluno com %s → needsConsent %s', (_nome, over, esperado) => {
+    const service = withUser(user({ role: 'athlete', ...(over as Partial<User>) }));
+    expect(service.needsConsent()).toBe(esperado);
+  });
+
+  it('coach e visitante nunca vão para a tela de consentimento do aluno', () => {
+    expect(withUser(user({ role: 'coach' })).needsConsent()).toBe(false);
+    localStorage.clear();
+    expect(withUser(null).needsConsent()).toBe(false);
+  });
+});

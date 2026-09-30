@@ -6,6 +6,7 @@ import {
   MySubscription, MyGatewayPayment, TRAINING_CATEGORY_LABEL, SUBSCRIPTION_STATUS_LABEL, GATEWAY_PAYMENT_STATUS_LABEL,
 } from '../../../core/models';
 import { formatCents } from '../../../shared/utils/currency';
+import { apiMessage } from '../../../shared/utils/signup-flow';
 
 @Component({
   selector: 'app-athlete-subscription',
@@ -46,6 +47,47 @@ export class AthleteSubscriptionComponent implements OnInit {
   );
 
   constructor(private api: ApiService, public auth: AuthService) {}
+
+  // ── Privacidade: consentimento de dados de saúde (LGPD Art. 8 §5 — dar ou retirar a qualquer momento) ──
+  confirmandoRetirar = signal(false);
+  salvandoSaude = signal(false);
+  saudeMsg = signal('');
+  saudeErro = signal('');
+
+  get saudeAutorizada(): boolean {
+    return this.auth.currentUser()?.healthConsent === true;
+  }
+
+  /** Retirar pede confirmação antes (apaga o motivo "Lesão" e as observações já registrados). */
+  alterarSaude(autorizar: boolean): void {
+    if (!autorizar && !this.confirmandoRetirar()) {
+      this.confirmandoRetirar.set(true);
+      return;
+    }
+    this.salvandoSaude.set(true);
+    this.saudeMsg.set('');
+    this.saudeErro.set('');
+    this.api.setHealthConsent(autorizar).subscribe({
+      next: r => {
+        this.auth.updateUser({ healthConsent: r.healthConsent });
+        this.confirmandoRetirar.set(false);
+        this.salvandoSaude.set(false);
+        this.saudeMsg.set(
+          autorizar
+            ? 'Compartilhamento de dados de saúde ativado.'
+            : 'Autorização retirada. Motivos de lesão e observações já registrados foram apagados.',
+        );
+      },
+      error: err => {
+        this.salvandoSaude.set(false);
+        this.saudeErro.set(apiMessage(err, 'Não foi possível salvar. Tente de novo.'));
+      },
+    });
+  }
+
+  cancelarRetirar(): void {
+    this.confirmandoRetirar.set(false);
+  }
 
   ngOnInit(): void {
     this.load();

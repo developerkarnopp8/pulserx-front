@@ -9,6 +9,7 @@ import {
   SubscriptionPlan, Subscription, MySubscription, MyGatewayPayment, CheckoutResult, CoachGatewayPayment, MonthlyBreakdown, CoachContract, PlatformSettings, FreeConfig, FinancialSummary,
   CoachProfile, UpdateCoachProfileInput, PublicCoachProfile, CreateLeadInput, PublicSignupInput, PublicSignupResult,
   Testimonial, UpsertTestimonialInput, FaqItem, UpsertFaqItemInput,
+  ConsentStatus, User,
 } from '../models';
 import { environment } from '../../../environments/environment';
 
@@ -767,6 +768,21 @@ export class ApiService {
 
   deleteFaqItem(id: string): Observable<{ removed: boolean }> {
     return this.http.delete<{ removed: boolean }>(`${this.base}/coach-profile/faq/${id}`);
+  }
+
+  // ── Consentimentos do aluno (LGPD) ──────────────────────────────────────────
+
+  getConsents(): Observable<ConsentStatus> {
+    return this.http.get<ConsentStatus>(`${this.base}/consents/me`);
+  }
+
+  /** Aceita os termos atuais e responde sobre saúde; devolve uma sessão NOVA (o token antigo segue barrado). */
+  acceptConsents(healthConsent: boolean): Observable<{ access_token: string; user: User }> {
+    return this.http.put<{ access_token: string; user: User }>(`${this.base}/consents/me`, { acceptTerms: true, healthConsent });
+  }
+
+  setHealthConsent(healthConsent: boolean): Observable<{ healthConsent: boolean; healthConsentAt: string }> {
+    return this.http.patch<{ healthConsent: boolean; healthConsentAt: string }>(`${this.base}/consents/me/health`, { healthConsent });
   }
 
   /** Visitante (sem auth): landing page pública do coach */

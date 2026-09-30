@@ -12,7 +12,7 @@ export const LEGAL_COMPANY = {
   forum: 'Santa Cruz do Sul/RS',
 };
 
-export const LEGAL_LAST_UPDATED = '28/09/2026';
+export const LEGAL_LAST_UPDATED = '30/09/2026';
 
 export type LegalDocKey = 'termos' | 'privacidade' | 'cookies' | 'reembolso';
 
@@ -54,7 +54,8 @@ export const LEGAL_DOCS: Record<LegalDocKey, LegalDoc> = {
       {
         title: '3. Saúde e segurança',
         paragraphs: [
-          'Atividade física envolve riscos. Antes de iniciar qualquer programa de treino, consulte um médico. Respeite seus limites e interrompa o exercício em caso de dor ou mal-estar. Informe ao seu treinador qualquer lesão ou condição de saúde relevante.',
+          'Atividade física envolve riscos. Antes de iniciar qualquer programa de treino, consulte um médico. Respeite seus limites e interrompa o exercício em caso de dor ou mal-estar.',
+          'Se você autorizar o compartilhamento de dados de saúde (pode autorizar ou retirar a qualquer momento no Perfil), pode informar ao seu treinador pelo app lesões ou dores ao pular um treino. Sem essa autorização, o app não pede nem registra esse tipo de informação — trate o assunto com o seu treinador por outro meio.',
         ],
       },
       {
@@ -113,6 +114,7 @@ export const LEGAL_DOCS: Record<LegalDocKey, LegalDoc> = {
         items: [
           'Conta: nome, e-mail e senha (guardada de forma irreversível, com hash), além da data e da versão em que você aceitou estes termos.',
           'Treino e evolução: treinos concluídos, pulos de treino e o motivo informado, recordes pessoais (PRs), hidratação e calorias que você registrar, e as mensagens trocadas com o treinador.',
+          'Dados de saúde — somente se você autorizar: o motivo "Lesão / dor" e as observações que você escrever ao pular um treino (que também chegam ao seu treinador como mensagem e notificação). O que você escrever sobre saúde nas mensagens também é dado de saúde; sem a autorização, o app avisa para não enviar esse tipo de informação por ali.',
           'Assinatura e pagamento: plano, status, histórico de cobranças, CPF (exigido pelo meio de pagamento para emitir a cobrança) e o identificador do cliente no Asaas. Não guardamos dados de cartão.',
           'Contato pela página do treinador: nome, e-mail, telefone e mensagem que você enviar.',
           'Dados técnicos: endereço IP, usado em tempo real para limitar tentativas abusivas (não fica guardado em cadastro).',
@@ -125,6 +127,7 @@ export const LEGAL_DOCS: Record<LegalDocKey, LegalDoc> = {
           'Prestar o serviço contratado: criar a conta, liberar o conteúdo do plano, registrar treinos e permitir a comunicação com o treinador (execução de contrato, LGPD art. 7º, V).',
           'Cobrar a assinatura e emitir a cobrança, inclusive com o CPF (execução de contrato e cumprimento de obrigação legal, art. 7º, II e V).',
           'Segurança e prevenção de fraude e abuso (legítimo interesse, art. 7º, IX).',
+          'Dados de saúde: somente com o seu consentimento específico e destacado (art. 11, I), pedido separado dos Termos. É opcional — sem ele você usa o app normalmente. Você pode dar ou retirar o consentimento a qualquer momento no Perfil; ao retirar, o motivo "Lesão / dor" dos pulos já registrados é substituído por "removido a pedido do aluno" e as observações são apagadas (também nas mensagens e notificações automáticas que o pulo gerou) — o registro de que o treino foi pulado continua.',
           'Responder ao contato enviado pela página do treinador (procedimentos preliminares a pedido do titular, art. 7º, V).',
         ],
       },

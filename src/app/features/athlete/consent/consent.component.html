@@ -1,0 +1,61 @@
+<main class="min-h-screen bg-surface px-5 py-8 flex justify-center">
+  <div class="w-full max-w-lg flex flex-col gap-5 animate-fade-in">
+    <div>
+      <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-1">Antes de continuar</p>
+      <h1 class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none">Seus dados, suas escolhas</h1>
+    </div>
+
+    @if (loading()) {
+      <div class="h-64 bg-surface-container-low rounded-md animate-pulse" aria-busy="true" aria-label="Carregando"></div>
+    } @else {
+      <section class="bg-surface-container-low rounded-md p-5 flex flex-col gap-3" aria-labelledby="titulo-termos">
+        <h2 id="titulo-termos" class="font-headline font-black text-lg text-on-surface">Termos de Uso e Privacidade</h2>
+        <p class="text-on-surface-variant text-sm">
+          @if (status()?.termsAccepted) {
+            Você já aceitou a versão atual.
+          } @else {
+            Atualizamos os nossos textos (ou você ainda não tinha aceitado). Leia e confirme para seguir usando o app.
+          }
+        </p>
+        <label class="flex items-start gap-3 text-sm text-on-surface cursor-pointer min-h-[44px]">
+          <input type="checkbox" [checked]="acceptTerms()" (change)="acceptTerms.set($any($event.target).checked)"
+            class="mt-1 w-5 h-5 accent-[var(--color-primary-fixed)] flex-shrink-0" />
+          <span>
+            Li e aceito os <a routerLink="/termos" target="_blank" class="text-primary-fixed underline">Termos de Uso</a>
+            e a <a routerLink="/privacidade" target="_blank" class="text-primary-fixed underline">Política de Privacidade</a>.
+          </span>
+        </label>
+      </section>
+
+      <section class="bg-surface-container-low rounded-md p-5 flex flex-col gap-3" aria-labelledby="titulo-saude">
+        <h2 id="titulo-saude" class="font-headline font-black text-lg text-on-surface">Dados de saúde (opcional)</h2>
+        <p class="text-on-surface-variant text-sm">
+          Ao pular um treino, você pode contar ao seu treinador que foi por <strong>lesão ou dor</strong> e escrever uma
+          observação. Pela LGPD, isso é dado de saúde e só é registrado com a sua autorização. Sem ela, você usa o app
+          normalmente — só essas opções não aparecem. Você pode mudar a qualquer momento no Perfil.
+        </p>
+        <fieldset class="flex flex-col gap-2">
+          <legend class="sr-only">Autoriza o compartilhamento de dados de saúde?</legend>
+          <label class="flex items-center gap-3 text-sm text-on-surface cursor-pointer min-h-[44px]">
+            <input type="radio" name="saude" [checked]="health() === true" (change)="health.set(true)" class="w-5 h-5" />
+            Sim, autorizo registrar e compartilhar com meu treinador
+          </label>
+          <label class="flex items-center gap-3 text-sm text-on-surface cursor-pointer min-h-[44px]">
+            <input type="radio" name="saude" [checked]="health() === false" (change)="health.set(false)" class="w-5 h-5" />
+            Não autorizo
+          </label>
+        </fieldset>
+      </section>
+
+      @if (errorMsg()) {
+        <div role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-3 text-error text-sm">{{ errorMsg() }}</div>
+      }
+
+      <button type="button" (click)="submit()" [disabled]="!canSubmit"
+        class="w-full min-h-[52px] rounded-lg bg-primary-fixed disabled:opacity-40 text-on-primary-fixed font-headline font-black text-sm uppercase tracking-wider">
+        {{ busy() ? 'Salvando...' : 'Continuar' }}
+      </button>
+      <button type="button" (click)="auth.logout()" class="text-on-surface-variant text-sm underline min-h-[44px]">Sair</button>
+    }
+  </div>
+</main>

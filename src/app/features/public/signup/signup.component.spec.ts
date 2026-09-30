@@ -24,8 +24,8 @@ function build(planId = 'p-core', over: { api?: Record<string, unknown>; user?: 
   return { component, api, auth, router, redirect };
 }
 
-const fillAccount = (c: PublicSignupComponent) =>
-  c.accountForm.setValue({ name: 'Ana Souza', email: 'ana@example.com', password: 'senha-forte', acceptTerms: true });
+const fillAccount = (c: PublicSignupComponent, healthConsent = false) =>
+  c.accountForm.setValue({ name: 'Ana Souza', email: 'ana@example.com', password: 'senha-forte', acceptTerms: true, healthConsent });
 
 describe('PublicSignupComponent — carga', () => {
   it('carrega a página do coach e acha o plano escolhido', () => {
@@ -68,10 +68,19 @@ describe('PublicSignupComponent — conta nova', () => {
     fillAccount(component);
     component.createAccount();
     expect(api.publicSignup).toHaveBeenCalledWith('luan', {
-      name: 'Ana Souza', email: 'ana@example.com', password: 'senha-forte', planId: 'p-core', acceptTerms: true,
+      name: 'Ana Souza', email: 'ana@example.com', password: 'senha-forte', planId: 'p-core', acceptTerms: true, healthConsent: false,
     });
     expect(auth.startSession).toHaveBeenCalledWith('tok', expect.objectContaining({ role: 'athlete' }));
     expect(component.step()).toBe('payment');
+  });
+
+  it('marcou o compartilhamento de dados de saúde: manda healthConsent true (opcional, desmarcado por padrão)', () => {
+    const { component, api } = build();
+    component.ngOnInit();
+    expect(component.accountForm.value.healthConsent).toBe(false);
+    fillAccount(component, true);
+    component.createAccount();
+    expect(api.publicSignup).toHaveBeenCalledWith('luan', expect.objectContaining({ healthConsent: true }));
   });
 
   it('plano Free: cria a conta, assina direto e entra no app', () => {

@@ -153,3 +153,74 @@ describe('AthleteSubscriptionComponent.cancel', () => {
     expect(component.canceling()).toBe(false);
   });
 });
+
+describe('AthleteSubscriptionComponent — dados de saúde (LGPD)', () => {
+  function buildSaude(healthConsent: boolean | null, apiOver: Record<string, unknown> = {}) {
+    const api = {
+      getMySubscription: vi.fn().mockReturnValue(of(mySub())),
+      getMyPayments: vi.fn().mockReturnValue(of([])),
+      setHealthConsent: vi.fn((v: boolean) => of({ healthConsent: v, healthConsentAt: '2026-09-30T12:00:00.000Z' })),
+      ...apiOver,
+    };
+    const auth = { currentUser: vi.fn().mockReturnValue({ id: 'u1', role: 'athlete', healthConsent }), updateUser: vi.fn() };
+    const component = new AthleteSubscriptionComponent(api as any, auth as any);
+    return { component, api, auth };
+  }
+
+  it('mostra se o aluno autorizou (só true conta como autorizado)', () => {
+    expect(buildSaude(true).component.saudeAutorizada).toBe(true);
+    expect(buildSaude(false).component.saudeAutorizada).toBe(false);
+    expect(buildSaude(null).component.saudeAutorizada).toBe(false);
+    const semSessao = new AthleteSubscriptionComponent({} as any, { currentUser: () => null } as any);
+    expect(semSessao.saudeAutorizada).toBe(false);
+  });
+
+  it('autorizar: grava direto, atualiza a sessão e confirma', () => {
+    const { component, api, auth } = buildSaude(false);
+    component.alterarSaude(true);
+    expect(api.setHealthConsent).toHaveBeenCalledWith(true);
+    expect(auth.updateUser).toHaveBeenCalledWith({ healthConsent: true });
+    expect(component.salvandoSaude()).toBe(false);
+    expect(component.saudeMsg()).toBe('Compartilhamento de dados de saúde ativado.');
+  });
+
+  it('retirar: primeiro pede confirmação, sem chamar a API', () => {
+    const { component, api } = buildSaude(true);
+    component.alterarSaude(false);
+    expect(component.confirmandoRetirar()).toBe(true);
+    expect(api.setHealthConsent).not.toHaveBeenCalled();
+  });
+
+  it('retirar confirmado: grava, fecha a confirmação e avisa que apagou os registros', () => {
+    const { component, api, auth } = buildSaude(true);
+    component.alterarSaude(false);
+    component.alterarSaude(false);
+    expect(api.setHealthConsent).toHaveBeenCalledWith(false);
+    expect(auth.updateUser).toHaveBeenCalledWith({ healthConsent: false });
+    expect(component.confirmandoRetirar()).toBe(false);
+    expect(component.saudeMsg()).toBe('Autorização retirada. Motivos de lesão e observações já registrados foram apagados.');
+  });
+
+  it('desistir de retirar fecha a confirmação sem gravar', () => {
+    const { component, api } = buildSaude(true);
+    component.alterarSaude(false);
+    component.cancelarRetirar();
+    expect(component.confirmandoRetirar()).toBe(false);
+    expect(api.setHealthConsent).not.toHaveBeenCalled();
+  });
+
+  it('erro ao gravar: mostra a mensagem, libera o botão e não mexe na sessão', () => {
+    const { component, auth } = buildSaude(false, {
+      setHealthConsent: vi.fn().mockReturnValue(throwError(() => ({ error: { message: 'Tente mais tarde' } }))),
+    });
+    component.alterarSaude(true);
+    expect(component.salvandoSaude()).toBe(false);
+    expect(component.saudeErro()).toBe('Tente mais tarde');
+    expect(component.saudeMsg()).toBe('');
+    expect(auth.updateUser).not.toHaveBeenCalled();
+
+    const semMsg = buildSaude(false, { setHealthConsent: vi.fn().mockReturnValue(throwError(() => new Error('rede'))) });
+    semMsg.component.alterarSaude(true);
+    expect(semMsg.component.saudeErro()).toBe('Não foi possível salvar. Tente de novo.');
+  });
+});

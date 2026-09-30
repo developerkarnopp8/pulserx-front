@@ -14,6 +14,13 @@
     </div>
   </div>
 
+  @if (auth.currentUser()?.healthConsent !== true) {
+    <p role="note" class="mx-4 mt-3 px-3 py-2 rounded-sm bg-surface-container text-on-surface-variant text-xs">
+      Você optou por não compartilhar dados de saúde. Evite enviar informações sobre lesões ou condições de saúde por
+      aqui (dá para mudar no Perfil).
+    </p>
+  }
+
   <!-- Messages -->
   <div class="flex-1 overflow-y-auto px-4 py-3 space-y-1">
 

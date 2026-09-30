@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, coachGuard, athleteGuard, adminGuard } from './core/guards/auth.guard';
+import { authGuard, coachGuard, athleteGuard, adminGuard, consentGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -79,11 +79,17 @@ export const routes: Routes = [
     ]
   },
 
+  // Aceite dos termos atuais + resposta sobre dados de saúde (LGPD), antes da área do aluno.
+  {
+    path: 'consentimento',
+    loadComponent: () => import('./features/athlete/consent/consent.component').then(m => m.ConsentComponent),
+    canActivate: [authGuard, athleteGuard],
+  },
   {
     path: 'athlete',
     loadComponent: () =>
       import('./layout/athlete-shell/athlete-shell.component').then(m => m.AthleteShellComponent),
-    canActivate: [authGuard, athleteGuard],
+    canActivate: [authGuard, athleteGuard, consentGuard],
     children: [
       { path: '', redirectTo: 'home', pathMatch: 'full' },
       {
