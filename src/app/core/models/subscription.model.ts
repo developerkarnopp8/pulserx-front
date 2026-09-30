@@ -44,6 +44,8 @@ export interface MySubscription {
   subscription: Subscription | null;
   /** Categorias que a assinatura libera agora (todas, enquanto o bloqueio estiver desligado). */
   categories: TrainingCategory[];
+  /** Cartão do débito automático (o Asaas guarda quando o aluno paga com cartão): só bandeira e final. */
+  autoDebitCard?: { brand: string; last4: string } | null;
 }
 
 /** Status de uma cobrança do gateway (Asaas). */
