@@ -53,6 +53,11 @@
 > item "Financeiro" no menu do admin): abas dos 6 meses, cartões do mês (bruto, taxa Asaas, AEVON, coaches), tabela por coach (quem mais
 > movimentou primeiro) e histórico da plataforma; aviso quando há cobrança sem líquido do Asaas. Na tela de coaches, botão "Contrato · X%"
 > (vermelho com "(definir)" em 0%) e aviso de que o % só vale para assinaturas novas.
+>
+> **Admin — Coaches reorganizado (PR 2, dono achou o layout quebrado):** linha em grade de colunas fixas (Coach+alertas | Alunos | % AEVON |
+> Repasse | Contrato | detalhes), cabeçalho das colunas no computador, empilha no celular. Botão de contrato "Contrato X%"/"Definir %".
+> "Detalhes" abre Assinaturas (MRR), Uso e Conta (interruptor de importação por IA e Resetar senha, que saíram da linha). **Admin shell**
+> agora tem altura fixa (`h-screen`) e a rolagem fica no `<main>` — antes só Coaches rolava.
 
 ## Visão Geral
 

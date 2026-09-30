@@ -9,7 +9,7 @@ import {
   SubscriptionPlan, Subscription, MySubscription, MyGatewayPayment, CheckoutResult, CoachGatewayPayment, MonthlyBreakdown, CoachContract, PlatformSettings, FreeConfig, FinancialSummary,
   CoachProfile, UpdateCoachProfileInput, PublicCoachProfile, CreateLeadInput, PublicSignupInput, PublicSignupResult,
   Testimonial, UpsertTestimonialInput, FaqItem, UpsertFaqItemInput,
-  ConsentStatus, User, AthleteLookup, AdminFinancialOverview,
+  ConsentStatus, User, AthleteLookup, AdminFinancialOverview, CoachAlert, CoachSubscriptionSummary, CoachUsage,
 } from '../models';
 import { environment } from '../../../environments/environment';
 
@@ -591,12 +591,12 @@ export class ApiService {
   getCoaches(): Observable<{
     id: string; name: string; email: string; aiImportEnabled: boolean; createdAt: string;
     platformFeePercent: number; studentCount: number; totalPaid: number; gatewayFee: number; platformCut: number; coachCut: number;
-    pendingBreakdown: number;
+    pendingBreakdown: number; subscriptions: CoachSubscriptionSummary; alerts: CoachAlert[]; usage: CoachUsage;
   }[]> {
     return this.http.get<{
       id: string; name: string; email: string; aiImportEnabled: boolean; createdAt: string;
       platformFeePercent: number; studentCount: number; totalPaid: number; gatewayFee: number; platformCut: number; coachCut: number;
-      pendingBreakdown: number;
+      pendingBreakdown: number; subscriptions: CoachSubscriptionSummary; alerts: CoachAlert[]; usage: CoachUsage;
     }[]>(`${this.base}/admin/coaches`);
   }
 
