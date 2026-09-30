@@ -88,6 +88,20 @@ describe('AthleteSubscriptionComponent — faturas', () => {
     expect(component.nextCharge()?.id).toBe('b');
   });
 
+  it('estornada ou contestada não é "próxima cobrança" (não é valor a pagar)', async () => {
+    const { component } = build({
+      getMyPayments: vi.fn().mockReturnValue(of([
+        pay({ id: 'estorno', status: 'refunded', dueDate: '2026-09-01T00:00:00.000Z' }),
+        pay({ id: 'contestada', status: 'chargeback', dueDate: '2026-09-05T00:00:00.000Z' }),
+        pay({ id: 'aberta', status: 'pending', dueDate: '2026-11-10T00:00:00.000Z' }),
+      ])),
+    });
+    component.ngOnInit();
+    expect(component.nextCharge()?.id).toBe('aberta');
+    expect(component.paymentStatusLabel.refunded).toBe('Estornada');
+    expect(component.paymentStatusIcon.chargeback).toBe('gavel');
+  });
+
   it('sem fatura em aberto: próxima cobrança é null (não inventa data)', async () => {
     const { component } = build({ getMyPayments: vi.fn().mockReturnValue(of([pay()])) });
     component.ngOnInit();

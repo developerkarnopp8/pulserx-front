@@ -79,6 +79,10 @@
 > `/confirmar-email` virou "Confirmar e-mail e criar senha" (senha + repetir, validador `senhasIguais` exportado do reset) e envia
 > `{token, password}`.
 
+> **Estorno/contestação (2026-09-30, branch `feat-estorno-contestacao`):** `GatewayPaymentStatus` ganhou `refunded` ("Estornada") e
+> `chargeback` ("Contestada"); `GATEWAY_PAYMENT_STATUS_ICON`, `isOpenGatewayPayment` (só pending/overdue entram em "próxima cobrança") e
+> `isReversedGatewayPayment` (Financeiro do coach risca o líquido) em `core/models/subscription.model.ts`.
+
 ## Visão Geral
 
 **PulseRx** é uma plataforma SaaS para gestão de academias. O frontend é construído em Angular 21 e consome dados mock (json-server) — o backend real NestJS será integrado posteriormente.

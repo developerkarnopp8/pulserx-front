@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Payment, PaymentSummary, Student, FinancialSummary, MonthlyBreakdown, CoachGatewayPayment, GATEWAY_PAYMENT_STATUS_LABEL } from '../../../core/models';
+import { Payment, PaymentSummary, Student, FinancialSummary, MonthlyBreakdown, CoachGatewayPayment, GATEWAY_PAYMENT_STATUS_LABEL,
+  GATEWAY_PAYMENT_STATUS_ICON, isReversedGatewayPayment } from '../../../core/models';
 import { formatCents } from '../../../shared/utils/currency';
 import { SplitSegment, shareOfMax, splitSegments } from '../../../shared/utils/split-bar';
 import { confirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
@@ -29,6 +30,8 @@ export class FinancialComponent implements OnInit {
   loadingSummary   = signal(true);
   readonly fmtCents = formatCents;
   readonly gatewayStatusLabel = GATEWAY_PAYMENT_STATUS_LABEL;
+  readonly gatewayStatusIcon = GATEWAY_PAYMENT_STATUS_ICON;
+  readonly isReversed = isReversedGatewayPayment;
   /** Paleta validada (dataviz) no fundo escuro — mesma dos pontos de legenda nos cards. */
   readonly segmentColor: Record<SplitSegment['key'], string> = { gateway: '#199e70', platform: '#3987e5', coach: '#d95926' };
 

@@ -195,8 +195,9 @@
               <span class="material-symbols-outlined text-[20px] flex-shrink-0" aria-hidden="true"
                 [class.text-primary-fixed]="p.status === 'paid'"
                 [class.text-on-surface-variant]="p.status === 'pending'"
-                [class.text-error]="p.status === 'overdue'">
-                {{ p.status === 'paid' ? 'task_alt' : p.status === 'overdue' ? 'error' : 'schedule' }}
+                [class.text-error]="p.status === 'overdue' || p.status === 'chargeback'"
+                [class.text-outline]="p.status === 'refunded'">
+                {{ paymentStatusIcon[p.status] }}
               </span>
               <div class="flex-1 min-w-0">
                 <p class="text-on-surface text-sm font-semibold">{{ fmtAmount(p.amount) }}</p>
