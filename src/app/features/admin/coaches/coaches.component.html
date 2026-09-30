@@ -137,9 +137,12 @@
             </button>
           </div>
 
-          <button type="button" (click)="openContract(coach)"
-            class="text-[11px] font-headline font-bold uppercase tracking-wider text-outline hover:text-on-surface transition-colors px-3 py-1.5 flex-shrink-0">
-            Contrato
+          <button type="button" (click)="openContract(coach)" [attr.aria-expanded]="contractTargetId() === coach.id"
+            title="% da AEVON sobre as cobranças deste coach"
+            class="min-h-[36px] text-[11px] font-headline font-bold uppercase tracking-wider px-3 py-1.5 rounded-sm border transition-colors flex-shrink-0"
+            [class.border-error]="coach.platformFeePercent === 0" [class.text-error]="coach.platformFeePercent === 0"
+            [class.border-primary-fixed]="coach.platformFeePercent > 0" [class.text-primary-fixed]="coach.platformFeePercent > 0">
+            Contrato · {{ coach.platformFeePercent }}%{{ coach.platformFeePercent === 0 ? ' (definir)' : '' }}
           </button>
 
           <button type="button"
@@ -164,6 +167,10 @@
                 {{ savingContractId() === coach.id ? 'Salvando...' : 'Salvar' }}
               </button>
             </div>
+            <p class="text-on-surface-variant text-xs mt-2">
+              O % vale para as assinaturas NOVAS deste coach. As que já existem continuam com o % de quando o aluno
+              assinou (o Asaas fixa a divisão na criação da assinatura).
+            </p>
             @if (contractError()) {
               <p role="alert" class="text-error text-xs mt-2">{{ contractError() }}</p>
             }

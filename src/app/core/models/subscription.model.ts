@@ -149,3 +149,21 @@ export interface CheckoutResult {
   checkoutUrl: string | null;
 }
 
+
+/** Soma das cobranças pagas num mês: bruto → taxa do Asaas → AEVON → coach (mesma conta do Financeiro do coach). */
+export interface MonthTotals {
+  count: number;
+  gross: number;
+  gatewayFee: number;
+  platformFee: number;
+  coachNet: number;
+  /** Cobranças pagas sem o líquido do Asaas ainda — entram no bruto, fora das taxas/repasses. */
+  pendingBreakdown: number;
+}
+
+/** Admin: financeiro por coach no mês atual e nos 5 anteriores (`months` = AAAA-MM, do mais antigo ao atual). */
+export interface AdminFinancialOverview {
+  months: string[];
+  coaches: { id: string; name: string; email: string; months: MonthTotals[] }[];
+  totals: MonthTotals[];
+}

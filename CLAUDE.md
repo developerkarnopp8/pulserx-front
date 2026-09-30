@@ -49,6 +49,11 @@
 > → `/coach/dashboard`). `coachTermsGuard` no shell do coach (`AuthService.needsCoachTerms()`: coach com `termsPending !== false`) e o
 > `jwtInterceptor` leva para lá ao receber 403 `COACH_TERMS_PENDING`.
 
+> **Admin — Financeiro (2026-09-30, branch `feat-admin-financeiro-coach`):** página `/admin/financeiro` (`features/admin/financial`,
+> item "Financeiro" no menu do admin): abas dos 6 meses, cartões do mês (bruto, taxa Asaas, AEVON, coaches), tabela por coach (quem mais
+> movimentou primeiro) e histórico da plataforma; aviso quando há cobrança sem líquido do Asaas. Na tela de coaches, botão "Contrato · X%"
+> (vermelho com "(definir)" em 0%) e aviso de que o % só vale para assinaturas novas.
+
 ## Visão Geral
 
 **PulseRx** é uma plataforma SaaS para gestão de academias. O frontend é construído em Angular 21 e consome dados mock (json-server) — o backend real NestJS será integrado posteriormente.

@@ -18,8 +18,11 @@ interface Coach {
   platformFeePercent: number;
   studentCount: number;
   totalPaid: number;
+  gatewayFee: number;
   platformCut: number;
   coachCut: number;
+  /** Cobranças pagas ainda sem o líquido do Asaas (fora do repasse até ele informar). */
+  pendingBreakdown: number;
 }
 
 @Component({

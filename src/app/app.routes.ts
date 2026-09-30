@@ -164,6 +164,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/admin/coaches/coaches.component').then(m => m.CoachesComponent)
       },
+      {
+        path: 'financeiro',
+        loadComponent: () =>
+          import('./features/admin/financial/financial.component').then(m => m.AdminFinancialComponent)
+      },
     ]
   },
 
