@@ -64,6 +64,21 @@ export class AuthService {
     this.socket.connect(accessToken);
   }
 
+  /** Atualiza o usuário da sessão (ex.: consentimento de saúde mudado no Perfil), sem trocar o token. */
+  updateUser(changes: Partial<User>): void {
+    const atual = this.currentUser();
+    if (!atual) return;
+    const user = { ...atual, ...changes };
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    this.currentUser.set(user);
+  }
+
+  /** Aluno com termos pendentes ou sem responder sobre saúde vai para a tela de consentimento. */
+  needsConsent(): boolean {
+    const u = this.currentUser();
+    return u?.role === 'athlete' && (u.termsPending !== false || u.healthConsent === undefined || u.healthConsent === null);
+  }
+
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);

@@ -120,11 +120,13 @@ export interface PublicSignupInput {
   password: string;
   planId: string;
   acceptTerms: true;
+  /** Caixa própria e desmarcada (LGPD Art. 11). */
+  healthConsent: boolean;
 }
 
 export interface PublicSignupResult {
   access_token: string;
-  user: { id: string; name: string; email: string; role: 'athlete' };
+  user: { id: string; name: string; email: string; role: 'athlete'; termsPending?: boolean; healthConsent?: boolean | null };
   planId: string;
 }
 

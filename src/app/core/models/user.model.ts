@@ -6,4 +6,16 @@ export interface User {
   email: string;
   role: UserRole;
   avatarUrl?: string;
+  /** Só aluno: termos na versão atual ainda não aceitos (abre a tela de consentimento). */
+  termsPending?: boolean;
+  /** Só aluno: consentimento para dados de saúde (LGPD Art. 11); null = ainda não respondeu. */
+  healthConsent?: boolean | null;
+}
+
+/** GET /consents/me */
+export interface ConsentStatus {
+  termsVersion: string;
+  termsAccepted: boolean;
+  healthConsent: boolean | null;
+  healthConsentAt: string | null;
 }

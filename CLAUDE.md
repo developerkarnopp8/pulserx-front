@@ -18,6 +18,15 @@
 
 > **Fix: botões da landing pública mandavam pro login (2026-09-28):** achado pelo dono testando `/c/:slug` — clicar em QUALQUER âncora da página (`#planos`, `#contato`, `#sobre`, `#faq`) redirecionava pra `/login`. Causa raiz: com `<base href="/">` (obrigatório pro roteamento do Angular), um `<a href="#id">` **sem caminho explícito** resolve pra `/#id` (raiz do site), não pra `/c/slug#id` — porque `<base>` sobrescreve a resolução de QUALQUER link relativo da página, inclusive só-fragmento. `/#id` cai na rota `{ path: '', redirectTo: 'login' }` (primeira do `app.routes.ts`), que preserva o fragmento no redirect — por isso o padrão exato era `/login#id`. **Corrigido em `coach-landing.component.ts`/`.html`**: todo `href="#id"` ganhou `(click)="scrollToSection('id', $event)"` (`preventDefault` + `scrollIntoView` nativo), sem tocar na URL/no Router. Verificado que não existe o mesmo padrão em nenhum outro `.html` do projeto (`grep href="#"` só retornava esses). **Se algum componente novo tiver navegação por âncora same-page, usar esse mesmo padrão — nunca `href="#id"` puro.**
 
+> **LGPD — consentimento de saúde + aceite dos termos (2026-09-30, branch `feat-consentimento-saude`):** consome `/consents` do backend.
+> Tela `/consentimento` (`features/athlete/consent`): aceite dos termos + Sim/Não sobre dados de saúde; aceitar abre a **sessão nova** que a API
+> devolve. `consentGuard` nas rotas do aluno (`AuthService.needsConsent()`: termos pendentes ou saúde sem resposta) e o `jwtInterceptor` leva
+> para lá ao receber 403 `TERMS_PENDING` (agora usa `inject()` — o spec roda em `TestBed.runInInjectionContext`). Modal de pulo esconde "Lesão /
+> dor" e a observação sem consentimento e **só envia a observação visível**; Perfil (`/athlete/subscription`) tem "Dados de saúde" (retirar pede
+> confirmação); chat do aluno mostra aviso a quem não consentiu; inscrição pública ganhou a caixa opcional (desmarcada). `AuthService.updateUser`
+> atualiza o usuário salvo sem trocar o token. Textos legais atualizados (`LEGAL_LAST_UPDATED = 30/09/2026`). Atenção: o lcov do builder novo
+> **omite** código que nenhum teste importa (em vez de mostrar 0%) — conferir cobertura por arquivo novo, não só pelo total.
+
 ## Visão Geral
 
 **PulseRx** é uma plataforma SaaS para gestão de academias. O frontend é construído em Angular 21 e consome dados mock (json-server) — o backend real NestJS será integrado posteriormente.

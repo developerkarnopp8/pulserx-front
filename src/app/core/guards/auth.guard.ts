@@ -39,3 +39,10 @@ export const adminGuard: CanActivateFn = () => {
   if (auth.isAdmin()) return true;
   return router.createUrlTree([homeFor(auth)]);
 };
+
+/** Área do aluno só depois de aceitar os termos atuais e responder sobre dados de saúde (LGPD). */
+export const consentGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  return auth.needsConsent() ? router.createUrlTree(['/consentimento']) : true;
+};

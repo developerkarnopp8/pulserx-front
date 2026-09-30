@@ -52,6 +52,8 @@ export class PublicSignupComponent implements OnInit {
       email:       ['', [Validators.required, Validators.email]],
       password:    ['', [Validators.required, Validators.minLength(8), Validators.maxLength(100)]],
       acceptTerms: [false, Validators.requiredTrue],
+      // LGPD Art. 11: caixa própria, desmarcada e opcional.
+      healthConsent: [false],
     });
     this.loginForm = fb.group({
       email:    ['', [Validators.required, Validators.email]],
@@ -79,7 +81,7 @@ export class PublicSignupComponent implements OnInit {
     const v = this.accountForm.value;
     this.busy.set(true);
     this.errorMsg.set('');
-    this.api.publicSignup(this.slug, { name: v.name, email: v.email, password: v.password, planId: this.planId, acceptTerms: true }).subscribe({
+    this.api.publicSignup(this.slug, { name: v.name, email: v.email, password: v.password, planId: this.planId, acceptTerms: true, healthConsent: v.healthConsent === true }).subscribe({
       next: res => {
         this.auth.startSession(res.access_token, res.user);
         this.busy.set(false);

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { authGuard, coachGuard, athleteGuard, adminGuard } from './auth.guard';
+import { authGuard, coachGuard, athleteGuard, adminGuard, consentGuard } from './auth.guard';
 import { AuthService } from '../services/auth.service';
 
 function build(authOver: Record<string, unknown> = {}) {
@@ -9,6 +9,7 @@ function build(authOver: Record<string, unknown> = {}) {
     isCoach: vi.fn().mockReturnValue(false),
     isAthlete: vi.fn().mockReturnValue(false),
     isAdmin: vi.fn().mockReturnValue(false),
+    needsConsent: vi.fn().mockReturnValue(false),
     ...authOver,
   };
   const tree = { treeMarker: true };
@@ -90,5 +91,19 @@ describe('adminGuard', () => {
     const { router } = build({ isCoach: vi.fn().mockReturnValue(true) });
     run(() => adminGuard({} as never, {} as never));
     expect(router.createUrlTree).toHaveBeenCalledWith(['/coach/dashboard']);
+  });
+});
+
+describe('consentGuard', () => {
+  it('aluno com termos/saúde respondidos: permite', () => {
+    const { router } = build();
+    expect(run(() => consentGuard({} as never, {} as never))).toBe(true);
+    expect(router.createUrlTree).not.toHaveBeenCalled();
+  });
+
+  it('aluno que ainda precisa consentir: vai pra tela de consentimento', () => {
+    const { router, tree } = build({ needsConsent: vi.fn().mockReturnValue(true) });
+    expect(run(() => consentGuard({} as never, {} as never))).toBe(tree);
+    expect(router.createUrlTree).toHaveBeenCalledWith(['/consentimento']);
   });
 });

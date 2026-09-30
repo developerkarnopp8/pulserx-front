@@ -35,6 +35,39 @@
       </div>
     </div>
 
+    <!-- Privacidade: dados de saúde (LGPD) -->
+    <section class="bg-surface-container-low rounded-md p-4 mb-5 flex flex-col gap-2" aria-labelledby="privacidade-saude">
+      <h3 id="privacidade-saude" class="font-headline font-bold text-sm text-on-surface uppercase tracking-wider">Dados de saúde</h3>
+      <p class="text-on-surface-variant text-sm">
+        @if (saudeAutorizada) {
+          Você autorizou registrar lesão/dor e observações ao pular um treino, compartilhados com seu treinador.
+        } @else {
+          Você não autorizou: ao pular um treino, as opções de lesão/dor e observação não aparecem.
+        }
+      </p>
+      @if (confirmandoRetirar()) {
+        <p class="text-on-surface text-sm">
+          Retirar apaga o motivo "Lesão / dor" e as observações que você já registrou (o treino continua marcado como
+          pulado). Confirmar?
+        </p>
+        <div class="flex gap-2">
+          <button type="button" (click)="alterarSaude(false)" [disabled]="salvandoSaude()"
+            class="flex-1 min-h-[44px] rounded-sm bg-error text-on-error font-headline text-xs uppercase tracking-wider">Retirar</button>
+          <button type="button" (click)="cancelarRetirar()"
+            class="flex-1 min-h-[44px] rounded-sm border border-outline-variant/30 text-on-surface-variant font-headline text-xs uppercase tracking-wider">Voltar</button>
+        </div>
+      } @else {
+        <button type="button" (click)="alterarSaude(!saudeAutorizada)" [disabled]="salvandoSaude()"
+          class="self-start min-h-[44px] px-4 rounded-sm border border-outline-variant/30 text-on-surface font-headline text-xs uppercase tracking-wider">
+          {{ saudeAutorizada ? 'Retirar autorização' : 'Autorizar' }}
+        </button>
+      }
+      <div aria-live="polite">
+        @if (saudeMsg()) { <p class="text-on-surface-variant text-xs">{{ saudeMsg() }}</p> }
+        @if (saudeErro()) { <p role="alert" class="text-error text-xs">{{ saudeErro() }}</p> }
+      </div>
+    </section>
+
     @if (d.subscription; as sub) {
       <!-- Plano atual -->
       <section class="bg-surface-container-low rounded-md p-5 mb-5" aria-labelledby="plano-atual">

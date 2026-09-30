@@ -634,3 +634,15 @@ describe('ApiService — landing page do coach', () => {
     expect(http.delete).toHaveBeenCalledWith(`${BASE}/subscriptions/me`);
   });
 });
+
+describe('ApiService — consentimentos do aluno (LGPD)', () => {
+  it('getConsents/acceptConsents/setHealthConsent chamam os endpoints certos', () => {
+    const { service, http } = build();
+    service.getConsents();
+    expect(http.get).toHaveBeenCalledWith(`${BASE}/consents/me`);
+    service.acceptConsents(false);
+    expect(http.put).toHaveBeenCalledWith(`${BASE}/consents/me`, { acceptTerms: true, healthConsent: false });
+    service.setHealthConsent(true);
+    expect(http.patch).toHaveBeenCalledWith(`${BASE}/consents/me/health`, { healthConsent: true });
+  });
+});

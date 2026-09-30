@@ -19,6 +19,12 @@
         }
       </div>
 
+      @if (!healthConsent) {
+        <p class="text-on-surface-variant text-xs mb-4">
+          Para informar lesão/dor ou escrever o motivo, ative o compartilhamento de dados de saúde no Perfil.
+        </p>
+      }
+
       @if (noteRequired) {
         <textarea [(ngModel)]="note" rows="2" placeholder="Descreva o motivo..."
           class="w-full bg-surface-container text-on-surface placeholder:text-outline rounded-sm px-3 py-2.5 text-sm resize-none mb-4"></textarea>
