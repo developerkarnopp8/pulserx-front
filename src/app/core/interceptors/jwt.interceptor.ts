@@ -20,6 +20,11 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
         auth.updateUser({ termsPending: true });
         void router.navigate(['/consentimento']);
       }
+      // Termo do Coach mudou (ou nunca foi aceito): a API barra o painel até o coach aceitar.
+      if (err instanceof HttpErrorResponse && err.status === 403 && err.error?.code === 'COACH_TERMS_PENDING') {
+        auth.updateUser({ termsPending: true });
+        void router.navigate(['/aceite-coach']);
+      }
       // O coach desvinculou o aluno: só resta sair ou excluir a conta.
       if (err instanceof HttpErrorResponse && err.status === 403 && err.error?.code === 'UNLINKED') {
         void router.navigate(['/conta-encerrada']);

@@ -28,8 +28,15 @@ describe('LegalPageComponent', () => {
     spy.mockRestore();
   });
 
-  it('lista os 4 documentos pra navegação', () => {
-    expect(page('termos').links.map(l => l.key)).toEqual(['termos', 'privacidade', 'cookies', 'reembolso']);
+  it('lista os 5 documentos pra navegação (o Termo do Coach por último)', () => {
+    expect(page('termos').links.map(l => l.key)).toEqual(['termos', 'privacidade', 'cookies', 'reembolso', 'termo-coach']);
+  });
+
+  it('Termo do Coach: cobre sigilo, finalidade, saúde, incidente e fim do vínculo, com o e-mail de contato', () => {
+    const texto = JSON.stringify(LEGAL_DOCS['termo-coach']);
+    for (const trecho of ['Sigilo', 'Para que você pode usar', 'Dados de saúde', 'Incidentes', 'Fim do vínculo', LEGAL_COMPANY.email]) {
+      expect(texto).toContain(trecho);
+    }
   });
 });
 

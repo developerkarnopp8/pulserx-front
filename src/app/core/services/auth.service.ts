@@ -73,6 +73,12 @@ export class AuthService {
     this.currentUser.set(user);
   }
 
+  /** Coach sem o Termo do Coach na versão atual vai para a tela de aceite (sessão antiga sem o campo = pendente). */
+  needsCoachTerms(): boolean {
+    const u = this.currentUser();
+    return u?.role === 'coach' && u.termsPending !== false;
+  }
+
   /** Aluno com termos pendentes ou sem responder sobre saúde vai para a tela de consentimento. */
   needsConsent(): boolean {
     const u = this.currentUser();

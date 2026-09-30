@@ -781,6 +781,11 @@ export class ApiService {
     return this.http.put<{ access_token: string; user: User }>(`${this.base}/consents/me`, { acceptTerms: true, healthConsent });
   }
 
+  /** Coach: aceita o Termo do Coach; devolve uma sessão NOVA (o token antigo segue barrado). */
+  acceptCoachTerms(): Observable<{ access_token: string; user: User }> {
+    return this.http.put<{ access_token: string; user: User }>(`${this.base}/coach-terms/me`, { acceptTerms: true });
+  }
+
   /** Aluno: exclui (anonimiza) a própria conta, confirmando a senha. */
   deleteMyAccount(password: string): Observable<{ deleted: boolean }> {
     return this.http.post<{ deleted: boolean }>(`${this.base}/account/delete`, { password });

@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, coachGuard, athleteGuard, adminGuard, consentGuard } from './core/guards/auth.guard';
+import { authGuard, coachGuard, athleteGuard, adminGuard, consentGuard, coachTermsGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -22,7 +22,7 @@ export const routes: Routes = [
     path: 'coach',
     loadComponent: () =>
       import('./layout/coach-shell/coach-shell.component').then(m => m.CoachShellComponent),
-    canActivate: [authGuard, coachGuard],
+    canActivate: [authGuard, coachGuard, coachTermsGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       {
@@ -80,6 +80,12 @@ export const routes: Routes = [
   },
 
   // Aceite dos termos atuais + resposta sobre dados de saúde (LGPD), antes da área do aluno.
+  // Termo do Coach (LGPD): aceite antes do painel.
+  {
+    path: 'aceite-coach',
+    loadComponent: () => import('./features/coach/coach-terms/coach-terms.component').then(m => m.CoachTermsComponent),
+    canActivate: [authGuard, coachGuard],
+  },
   // O coach desvinculou o aluno: só sair ou excluir a conta (LGPD).
   {
     path: 'conta-encerrada',
@@ -168,7 +174,7 @@ export const routes: Routes = [
       import('./features/public/coach-landing/coach-landing.component').then(m => m.CoachLandingComponent)
   },
   // Documentos legais públicos (conteúdo em features/public/legal/legal-content.ts).
-  ...(['termos', 'privacidade', 'cookies', 'reembolso'] as const).map(doc => ({
+  ...(['termos', 'privacidade', 'cookies', 'reembolso', 'termo-coach'] as const).map(doc => ({
     path: doc,
     data: { doc },
     loadComponent: () =>

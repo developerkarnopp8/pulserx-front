@@ -46,3 +46,10 @@ export const consentGuard: CanActivateFn = () => {
   const router = inject(Router);
   return auth.needsConsent() ? router.createUrlTree(['/consentimento']) : true;
 };
+
+/** Painel do coach só depois de aceitar o Termo do Coach na versão atual (LGPD). */
+export const coachTermsGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  return auth.needsCoachTerms() ? router.createUrlTree(['/aceite-coach']) : true;
+};

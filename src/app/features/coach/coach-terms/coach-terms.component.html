@@ -1,0 +1,42 @@
+<main class="min-h-screen bg-surface px-5 py-8 flex justify-center">
+  <div class="w-full max-w-2xl flex flex-col gap-5 animate-fade-in">
+    <div>
+      <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-1">Antes de continuar</p>
+      <h1 class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none">{{ doc.title }}</h1>
+    </div>
+    <p class="text-on-surface-variant text-sm">{{ doc.intro }}</p>
+
+    <section class="bg-surface-container-low rounded-md p-5 flex flex-col gap-4 max-h-[55vh] overflow-y-auto"
+      aria-label="Texto do Termo do Coach" tabindex="0">
+      @for (s of doc.sections; track s.title) {
+        <div class="flex flex-col gap-2">
+          <h2 class="font-headline font-bold text-sm text-on-surface">{{ s.title }}</h2>
+          @for (p of s.paragraphs; track $index) {
+            <p class="text-on-surface-variant text-sm leading-relaxed">{{ p }}</p>
+          }
+          @if (s.items?.length) {
+            <ul class="list-disc pl-5 text-on-surface-variant text-sm flex flex-col gap-1">
+              @for (i of s.items; track $index) { <li>{{ i }}</li> }
+            </ul>
+          }
+        </div>
+      }
+    </section>
+
+    <label class="flex items-start gap-3 text-sm text-on-surface cursor-pointer min-h-[44px]">
+      <input type="checkbox" [checked]="accepted()" (change)="accepted.set($any($event.target).checked)"
+        class="mt-1 w-5 h-5 accent-[var(--color-primary-fixed)] flex-shrink-0" />
+      <span>Li e aceito o Termo do Coach e me comprometo a usar os dados dos meus alunos só como descrito nele.</span>
+    </label>
+
+    @if (errorMsg()) {
+      <p role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-3 text-error text-sm">{{ errorMsg() }}</p>
+    }
+
+    <button type="button" (click)="submit()" [disabled]="!canSubmit"
+      class="w-full min-h-[52px] rounded-lg bg-primary-fixed disabled:opacity-40 text-on-primary-fixed font-headline font-black text-sm uppercase tracking-wider">
+      {{ busy() ? 'Salvando...' : 'Aceitar e continuar' }}
+    </button>
+    <button type="button" (click)="auth.logout()" class="text-on-surface-variant text-sm underline min-h-[44px]">Sair</button>
+  </div>
+</main>
