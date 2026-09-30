@@ -135,7 +135,7 @@ export class ApiService {
   // ── Students ──────────────────────────────────────────────────────────────
 
   /** Coach: cria conta de atleta + perfil de aluno em uma única chamada */
-  createStudent(dto: { name: string; email: string; password: string; goal: string }): Observable<Student> {
+  createStudent(dto: { name: string; email: string; goal: string }): Observable<Student> {
     return this.http
       .post<{ id: string; user: { name: string; email: string }; goal: string; currentWeek: number; currentMonth: number; completionPercent?: number }>(
         `${this.base}/students`, dto,
@@ -605,14 +605,14 @@ export class ApiService {
     return this.http.get<AdminFinancialOverview>(`${this.base}/admin/financial`);
   }
 
-  createCoach(name: string, email: string): Observable<{ id: string; name: string; email: string; password: string }> {
-    return this.http.post<{ id: string; name: string; email: string; password: string }>(
+  createCoach(name: string, email: string): Observable<{ id: string; name: string; email: string; welcomeSent: true }> {
+    return this.http.post<{ id: string; name: string; email: string; welcomeSent: true }>(
       `${this.base}/admin/coaches`, { name, email },
     );
   }
 
-  resetCoachPassword(id: string): Observable<{ password: string }> {
-    return this.http.post<{ password: string }>(`${this.base}/admin/coaches/${id}/reset-password`, {});
+  resetCoachPassword(id: string): Observable<{ sent: true }> {
+    return this.http.post<{ sent: true }>(`${this.base}/admin/coaches/${id}/reset-password`, {});
   }
 
   toggleCoachAi(id: string, aiImportEnabled: boolean): Observable<{ id: string; aiImportEnabled: boolean }> {
@@ -803,6 +803,16 @@ export class ApiService {
     return this.http.post<{ reset: true }>(`${this.base}/auth/reset-password`, { token, password });
   }
 
+  /** Confirma o e-mail pelo link (uso único) e devolve a sessão. */
+  verifyEmail(token: string): Observable<{ access_token: string; user: User }> {
+    return this.http.post<{ access_token: string; user: User }>(`${this.base}/auth/verify-email`, { token });
+  }
+
+  /** Reenvia a confirmação: a resposta é sempre a mesma (não revela quem tem conta). */
+  resendVerification(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.base}/auth/resend-verification`, { email });
+  }
+
   /** Coach: manda ao aluno o link por e-mail para criar uma senha nova. */
   sendStudentPasswordReset(studentId: string): Observable<{ sent: true }> {
     return this.http.post<{ sent: true }>(`${this.base}/students/${studentId}/password-reset`, {});
@@ -828,7 +838,7 @@ export class ApiService {
   }
 
   /** Visitante (sem auth): landing page pública do coach */
-  /** Público: visitante vira aluno deste coach e sai logado (segue pro pagamento). */
+  /** Público: visitante vira aluno deste coach; entra depois de confirmar o e-mail (o link volta ao pagamento). */
   publicSignup(slug: string, dto: PublicSignupInput): Observable<PublicSignupResult> {
     return this.http.post<PublicSignupResult>(`${this.base}/public/coaches/${slug}/signup`, dto);
   }

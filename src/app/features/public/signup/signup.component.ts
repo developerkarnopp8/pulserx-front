@@ -6,15 +6,17 @@ import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { PublicCoachProfile } from '../../../core/models';
 import { formatCents } from '../../../shared/utils/currency';
-import { apiMessage, checkoutErrorMessage, isEmailExists, isSafeCheckoutUrl, maskCpf } from '../../../shared/utils/signup-flow';
+import {
+  apiMessage, checkoutErrorMessage, isEmailExists, isEmailNotVerified, isSafeCheckoutUrl, maskCpf,
+} from '../../../shared/utils/signup-flow';
 
-type Step = 'account' | 'login' | 'payment';
+type Step = 'account' | 'login' | 'verify' | 'payment';
 type PublicPlan = PublicCoachProfile['plans'][number];
 
 /**
  * Inscrição + pagamento a partir da landing do coach (`/c/:slug/assinar/:planId`).
- * Conta nova (ou login se o e-mail já existir) → plano Free entra direto; plano pago pede o CPF
- * e manda pra fatura PIX do Asaas. Toda regra (coach da página, plano ativo, dono) é do backend.
+ * Conta nova → confirmar o e-mail (o link abre a sessão e volta aqui); login se o e-mail já existir → plano Free
+ * entra direto; plano pago pede o CPF e manda pra fatura do Asaas. Toda regra (coach da página, plano ativo, dono) é do backend.
  */
 @Component({
   selector: 'app-public-signup',
@@ -32,6 +34,9 @@ export class PublicSignupComponent implements OnInit {
   step     = signal<Step>('account');
   busy     = signal(false);
   errorMsg = signal('');
+  infoMsg  = signal('');
+  /** E-mail que precisa ser confirmado (passo "verify"). */
+  pendingEmail = signal('');
 
   plan = computed<PublicPlan | null>(() => this.profile()?.plans.find(p => p.id === this.planId) ?? null);
   readonly fmtCents = formatCents;
@@ -83,9 +88,9 @@ export class PublicSignupComponent implements OnInit {
     this.errorMsg.set('');
     this.api.publicSignup(this.slug, { name: v.name, email: v.email, password: v.password, planId: this.planId, acceptTerms: true, healthConsent: v.healthConsent === true }).subscribe({
       next: res => {
-        this.auth.startSession(res.access_token, res.user);
         this.busy.set(false);
-        this.afterAuthenticated();
+        this.pendingEmail.set(res.email);
+        this.step.set('verify');
       },
       error: err => {
         this.busy.set(false);
@@ -110,9 +115,26 @@ export class PublicSignupComponent implements OnInit {
       next: () => { this.busy.set(false); this.afterAuthenticated(); },
       error: err => {
         this.busy.set(false);
+        if (isEmailNotVerified(err)) {
+          this.pendingEmail.set(v.email);
+          this.step.set('verify');
+          return;
+        }
         // Erro de perfil (e-mail de coach/admin) vem do próprio AuthService, já em português.
         this.errorMsg.set(err instanceof Error && !('status' in err) ? err.message : 'E-mail ou senha incorretos.');
       },
+    });
+  }
+
+  /** Reenvia o link de confirmação (a resposta é sempre a mesma). */
+  resendVerification(): void {
+    if (this.busy()) return;
+    this.busy.set(true);
+    this.errorMsg.set('');
+    this.infoMsg.set('');
+    this.api.resendVerification(this.pendingEmail()).subscribe({
+      next: res => { this.busy.set(false); this.infoMsg.set(res.message); },
+      error: err => { this.busy.set(false); this.errorMsg.set(apiMessage(err, 'Não foi possível reenviar agora. Tente de novo em instantes.')); },
     });
   }
 

@@ -188,52 +188,50 @@ describe('CoachesComponent.platformTotals — governança/repasses', () => {
   });
 });
 
-describe('CoachesComponent — resetar senha e copiar', () => {
+describe('CoachesComponent — link de nova senha e coach novo por e-mail (sem senha na tela)', () => {
   const coachAlvo = { id: 'coach-1', name: 'Luan', email: 'luan@example.com' } as any;
 
-  it('pede confirmação na caixa do app; sem confirmar, não reseta', async () => {
+  it('pede confirmação na caixa do app; sem confirmar, não envia', async () => {
     const { component, api } = build({ resetCoachPassword: vi.fn() });
     const ask = vi.spyOn(confirmDialog, 'ask').mockResolvedValue(false);
     await component.resetPassword(coachAlvo);
-    expect(ask.mock.calls[0][0]).toMatchObject({ title: 'Resetar a senha de Luan?', danger: true });
+    expect(ask.mock.calls[0][0]).toMatchObject({ title: 'Enviar link de nova senha para Luan?', confirmLabel: 'Enviar link' });
+    expect(ask.mock.calls[0][0].message).toContain('luan@example.com');
     expect((api as any).resetCoachPassword).not.toHaveBeenCalled();
   });
 
-  it('confirmado: mostra a senha nova; copiar leva e-mail + senha prontos para enviar', async () => {
-    const { component } = build({ resetCoachPassword: vi.fn().mockReturnValue(of({ password: 'Nova-Senha-123' })) });
+  it('confirmado: envia o link e avisa para qual e-mail; fechar o aviso limpa', async () => {
+    const { component, api } = build({ resetCoachPassword: vi.fn().mockReturnValue(of({ sent: true })) });
     vi.spyOn(confirmDialog, 'ask').mockResolvedValue(true);
-    const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
     await component.resetPassword(coachAlvo);
-    expect(component.revealedPassword()).toEqual({ email: 'luan@example.com', password: 'Nova-Senha-123' });
-    expect(scroll).toHaveBeenCalled();
-
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
-    await component.copyRevealedPassword();
-    expect(writeText).toHaveBeenCalledWith('Acesso ao PulseRx\nE-mail: luan@example.com\nSenha: Nova-Senha-123');
-    expect(component.copyMsg()).toBe('Copiado! Cole na conversa com o coach.');
-
-    component.dismissRevealedPassword();
-    expect(component.revealedPassword()).toBeNull();
-    expect(component.copyMsg()).toBe('');
+    expect((api as any).resetCoachPassword).toHaveBeenCalledWith('coach-1');
+    expect(component.sentNotice()).toBe('Link de nova senha enviado para luan@example.com.');
+    expect(component.resettingId()).toBeNull();
+    component.dismissSentNotice();
+    expect(component.sentNotice()).toBe('');
   });
 
-  it('copiar falhou (navegador bloqueou): orienta a copiar à mão; sem senha na tela, não faz nada', async () => {
-    const { component } = build();
-    const writeText = vi.fn().mockRejectedValue(new Error('negado'));
-    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
-    await component.copyRevealedPassword();
-    expect(writeText).not.toHaveBeenCalled();
-    component.revealedPassword.set({ email: 'a@example.com', password: 'x' });
-    await component.copyRevealedPassword();
-    expect(component.copyMsg()).toBe('Não deu para copiar automaticamente: selecione a senha e copie.');
+  it('coach novo: fecha o modal, avisa que o link de criar senha foi enviado e recarrega a lista', () => {
+    const { component, api } = build({
+      createCoach: vi.fn().mockReturnValue(of({ id: 'c9', name: 'Nova', email: 'nova@example.com', welcomeSent: true })),
+    });
+    const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+    component.openModal();
+    component.form.setValue({ name: 'Nova', email: 'nova@example.com' });
+    (api as any).getCoaches.mockClear();
+    component.createCoach();
+    expect((api as any).createCoach).toHaveBeenCalledWith('Nova', 'nova@example.com');
+    expect(component.showModal()).toBe(false);
+    expect(component.sentNotice()).toBe('Coach criado. Enviamos para nova@example.com o link para ele criar a própria senha (vale 7 dias).');
+    expect(scroll).toHaveBeenCalled();
+    expect((api as any).getCoaches).toHaveBeenCalled();
   });
 
   it('erro ao resetar: mensagem traduzida, sem texto técnico', async () => {
     const { component } = build({ resetCoachPassword: vi.fn().mockReturnValue(throwError(() => ({ status: 500, error: { message: 'Internal server error' } }))) });
     vi.spyOn(confirmDialog, 'ask').mockResolvedValue(true);
     await component.resetPassword(coachAlvo);
-    expect(component.listErrorMsg()).toBe('Erro ao resetar a senha. Tente novamente.');
+    expect(component.listErrorMsg()).toBe('Não foi possível enviar o link. Tente novamente.');
     expect(component.resettingId()).toBeNull();
   });
 });

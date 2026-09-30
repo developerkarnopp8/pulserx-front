@@ -20,6 +20,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent)
   },
+  {
+    path: 'confirmar-email',
+    loadComponent: () =>
+      import('./features/auth/confirm-email/confirm-email.component').then(m => m.ConfirmEmailComponent)
+  },
   // Acesso do admin (dono): nunca linkado na UI pública — não aparece como opção na tela de
   // login normal, só quem sabe esta URL entra.
   {

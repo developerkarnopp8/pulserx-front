@@ -8,7 +8,8 @@ const free = { id: 'p-free', name: 'Free', description: null, priceCents: 0, cat
 function build(planId = 'p-core', over: { api?: Record<string, unknown>; user?: unknown } = {}) {
   const api = {
     getPublicCoachProfile: vi.fn().mockReturnValue(of({ coachName: 'Luan', plans: [paid, free] })),
-    publicSignup: vi.fn().mockReturnValue(of({ access_token: 'tok', user: { id: 'u1', name: 'Ana', email: 'ana@example.com', role: 'athlete' }, planId })),
+    publicSignup: vi.fn().mockReturnValue(of({ pendingVerification: true, email: 'ana@example.com' })),
+    resendVerification: vi.fn().mockReturnValue(of({ message: 'Se houver uma conta esperando confirmação com esse e-mail, enviamos um novo link.' })),
     checkoutSubscription: vi.fn().mockReturnValue(of({ subscription: {}, checkoutUrl: 'https://www.asaas.com/i/abc' })),
     ...over.api,
   };
@@ -62,7 +63,7 @@ describe('PublicSignupComponent — conta nova', () => {
     expect(api.publicSignup).not.toHaveBeenCalled();
   });
 
-  it('plano pago: cria a conta, inicia a sessão e vai pro pagamento', () => {
+  it('cria a conta SEM sessão e pede para confirmar o e-mail (o link volta ao pagamento)', () => {
     const { component, api, auth } = build();
     component.ngOnInit();
     fillAccount(component);
@@ -70,8 +71,10 @@ describe('PublicSignupComponent — conta nova', () => {
     expect(api.publicSignup).toHaveBeenCalledWith('luan', {
       name: 'Ana Souza', email: 'ana@example.com', password: 'senha-forte', planId: 'p-core', acceptTerms: true, healthConsent: false,
     });
-    expect(auth.startSession).toHaveBeenCalledWith('tok', expect.objectContaining({ role: 'athlete' }));
-    expect(component.step()).toBe('payment');
+    expect(auth.startSession).not.toHaveBeenCalled();
+    expect(component.step()).toBe('verify');
+    expect(component.pendingEmail()).toBe('ana@example.com');
+    expect(component.busy()).toBe(false);
   });
 
   it('marcou o compartilhamento de dados de saúde: manda healthConsent true (opcional, desmarcado por padrão)', () => {
@@ -83,15 +86,34 @@ describe('PublicSignupComponent — conta nova', () => {
     expect(api.publicSignup).toHaveBeenCalledWith('luan', expect.objectContaining({ healthConsent: true }));
   });
 
-  it('plano Free: cria a conta, assina direto e entra no app', () => {
-    const { component, api, router } = build('p-free', {
-      api: { checkoutSubscription: vi.fn().mockReturnValue(of({ subscription: {}, checkoutUrl: null })) },
-    });
+  it('plano Free: também só assina depois de confirmar o e-mail', () => {
+    const { component, api } = build('p-free');
     component.ngOnInit();
     fillAccount(component);
     component.createAccount();
-    expect(api.checkoutSubscription).toHaveBeenCalledWith('p-free', undefined);
-    expect(router.navigate).toHaveBeenCalledWith(['/athlete/home']);
+    expect(api.checkoutSubscription).not.toHaveBeenCalled();
+    expect(component.step()).toBe('verify');
+  });
+
+  it('reenviar a confirmação: usa o e-mail da inscrição e mostra a resposta; erro vira mensagem; clique ocupado é ignorado', () => {
+    const { component, api } = build();
+    component.ngOnInit();
+    fillAccount(component);
+    component.createAccount();
+    component.resendVerification();
+    expect(api.resendVerification).toHaveBeenCalledWith('ana@example.com');
+    expect(component.infoMsg()).toBe('Se houver uma conta esperando confirmação com esse e-mail, enviamos um novo link.');
+    expect(component.busy()).toBe(false);
+
+    api.resendVerification.mockReturnValue(throwError(() => ({ status: 429 })));
+    component.resendVerification();
+    expect(component.infoMsg()).toBe('');
+    expect(component.errorMsg()).toBe('Muitas tentativas seguidas. Aguarde alguns minutos e tente de novo.');
+
+    api.resendVerification.mockClear();
+    component.busy.set(true);
+    component.resendVerification();
+    expect(api.resendVerification).not.toHaveBeenCalled();
   });
 
   it('e-mail já tem conta: troca pro login com o e-mail preenchido', () => {
@@ -149,6 +171,16 @@ describe('PublicSignupComponent — login de quem já tem conta', () => {
     role.component.loginForm.setValue({ email: 'luan@example.com', password: 'x' });
     role.component.login();
     expect(role.component.errorMsg()).toContain('perfil diferente');
+  });
+
+  it('senha certa mas e-mail não confirmado: vai para o passo de confirmar, com o e-mail digitado', () => {
+    const { component, auth } = build();
+    auth.login.mockReturnValue(throwError(() => ({ status: 403, error: { code: 'EMAIL_NOT_VERIFIED', message: 'Confirme seu e-mail.' } })));
+    component.loginForm.setValue({ email: 'ana@example.com', password: 'x' });
+    component.login();
+    expect(component.step()).toBe('verify');
+    expect(component.pendingEmail()).toBe('ana@example.com');
+    expect(component.errorMsg()).toBe('');
   });
 });
 

@@ -4,7 +4,8 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserRole } from '../../../core/models';
-import { loginErrorMessage } from '../../../shared/utils/signup-flow';
+import { ApiService } from '../../../core/services/api.service';
+import { apiMessage, isEmailNotVerified, loginErrorMessage } from '../../../shared/utils/signup-flow';
 
 @Component({
   selector: 'app-login',
@@ -18,6 +19,9 @@ export class LoginComponent {
   showPassword = signal(false);
   error = signal('');
   loading = signal(false);
+  /** Senha certa, e-mail ainda não confirmado: mostra "reenviar a confirmação". */
+  notVerified = signal(false);
+  info = signal('');
 
   readonly highlights = [
     { icon: 'calendar_month', label: 'Planos por categoria — Core, LPO e Performance' },
@@ -34,6 +38,7 @@ export class LoginComponent {
     private fb: FormBuilder,
     private auth: AuthService,
     private router: Router,
+    private api: ApiService,
     route: ActivatedRoute,
   ) {
     this.form = this.fb.group({
@@ -56,6 +61,8 @@ export class LoginComponent {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.loading.set(true);
     this.error.set('');
+    this.notVerified.set(false);
+    this.info.set('');
 
     const { email, password } = this.form.value as { email: string; password: string };
 
@@ -68,8 +75,19 @@ export class LoginComponent {
       },
       error: (err: unknown) => {
         this.loading.set(false);
+        this.notVerified.set(isEmailNotVerified(err));
         this.error.set(loginErrorMessage(err));
       },
+    });
+  }
+
+  /** Reenvia o link de confirmação para o e-mail digitado (a resposta é sempre a mesma). */
+  resendVerification(): void {
+    if (this.loading()) return;
+    this.loading.set(true);
+    this.api.resendVerification(this.form.value.email as string).subscribe({
+      next: res => { this.loading.set(false); this.notVerified.set(false); this.error.set(''); this.info.set(res.message); },
+      error: err => { this.loading.set(false); this.error.set(apiMessage(err, 'Não foi possível reenviar agora. Tente de novo em instantes.')); },
     });
   }
 

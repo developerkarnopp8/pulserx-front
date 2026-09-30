@@ -124,9 +124,9 @@ export interface PublicSignupInput {
   healthConsent: boolean;
 }
 
+/** Conta criada SEM sessão: a pessoa confirma o e-mail pelo link, que abre a sessão e volta ao pagamento. */
 export interface PublicSignupResult {
-  access_token: string;
-  user: { id: string; name: string; email: string; role: 'athlete'; termsPending?: boolean; healthConsent?: boolean | null };
-  planId: string;
+  pendingVerification: true;
+  email: string;
 }
 
