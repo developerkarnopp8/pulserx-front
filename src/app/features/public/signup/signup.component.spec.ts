@@ -26,7 +26,7 @@ function build(planId = 'p-core', over: { api?: Record<string, unknown>; user?: 
 }
 
 const fillAccount = (c: PublicSignupComponent, healthConsent = false) =>
-  c.accountForm.setValue({ name: 'Ana Souza', email: 'ana@example.com', password: 'senha-forte', acceptTerms: true, healthConsent });
+  c.accountForm.setValue({ name: 'Ana Souza', email: 'ana@example.com', acceptTerms: true, healthConsent });
 
 describe('PublicSignupComponent — carga', () => {
   it('carrega a página do coach e acha o plano escolhido', () => {
@@ -63,13 +63,18 @@ describe('PublicSignupComponent — conta nova', () => {
     expect(api.publicSignup).not.toHaveBeenCalled();
   });
 
+  it('formulário de inscrição não tem senha (ela é criada no link do e-mail)', () => {
+    const { component } = build();
+    expect(component.accountForm.get('password')).toBeNull();
+  });
+
   it('cria a conta SEM sessão e pede para confirmar o e-mail (o link volta ao pagamento)', () => {
     const { component, api, auth } = build();
     component.ngOnInit();
     fillAccount(component);
     component.createAccount();
     expect(api.publicSignup).toHaveBeenCalledWith('luan', {
-      name: 'Ana Souza', email: 'ana@example.com', password: 'senha-forte', planId: 'p-core', acceptTerms: true, healthConsent: false,
+      name: 'Ana Souza', email: 'ana@example.com', planId: 'p-core', acceptTerms: true, healthConsent: false,
     });
     expect(auth.startSession).not.toHaveBeenCalled();
     expect(component.step()).toBe('verify');

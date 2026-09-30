@@ -1,3 +1,4 @@
+import { FormBuilder } from '@angular/forms';
 import { of, throwError } from 'rxjs';
 import { ConfirmEmailComponent, continuePathFromHash } from './confirm-email.component';
 
@@ -32,15 +33,16 @@ function build(hash: string, api: Record<string, unknown> = {}) {
   };
   const auth = { startSession: vi.fn() };
   const router = { navigateByUrl: vi.fn() };
-  const component = new ConfirmEmailComponent(apiMock as any, auth as any, router as any);
+  const component = new ConfirmEmailComponent(apiMock as any, auth as any, router as any, new FormBuilder());
   component.ngOnInit();
+  component.form.setValue({ password: 'senha-forte-1', confirm: 'senha-forte-1' });
   return { component, api: apiMock, auth, router, replace };
 }
 
 describe('ConfirmEmailComponent', () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it('lê o token, tira o link da barra de endereço e NÃO confirma sozinho (só no clique)', () => {
+  it('lê o token, tira o link da barra de endereço e NÃO confirma sozinho (só ao enviar o formulário)', () => {
     const { component, api, replace } = build(`#token=${TOKEN}`);
     expect(component.token()).toBe(TOKEN);
     expect(replace).toHaveBeenCalledWith(null, '', window.location.pathname);
@@ -50,7 +52,7 @@ describe('ConfirmEmailComponent', () => {
   it('confirmar: abre a sessão e volta ao pagamento do plano escolhido', () => {
     const { component, api, auth, router } = build(`#token=${TOKEN}&c=luan&plano=${PLANO}`);
     component.confirm();
-    expect(api.verifyEmail).toHaveBeenCalledWith(TOKEN);
+    expect(api.verifyEmail).toHaveBeenCalledWith(TOKEN, 'senha-forte-1');
     expect(auth.startSession).toHaveBeenCalledWith('sessao', { id: 'u1', role: 'athlete' });
     expect(router.navigateByUrl).toHaveBeenCalledWith(`/c/luan/assinar/${PLANO}`);
     expect(component.busy()).toBe(false);
@@ -88,5 +90,18 @@ describe('ConfirmEmailComponent', () => {
     ocupado.component.busy.set(true);
     ocupado.component.confirm();
     expect(ocupado.api.verifyEmail).not.toHaveBeenCalled();
+  });
+
+  it('senha curta ou as duas diferentes: não envia e mostra os erros do formulário', () => {
+    const { component, api } = build(`#token=${TOKEN}`);
+    component.form.setValue({ password: 'curta', confirm: 'curta' });
+    component.confirm();
+    expect(api.verifyEmail).not.toHaveBeenCalled();
+    expect(component.form.get('password')?.touched).toBe(true);
+
+    component.form.setValue({ password: 'senha-forte-1', confirm: 'outra-senha-2' });
+    component.confirm();
+    expect(component.form.hasError('diferentes')).toBe(true);
+    expect(api.verifyEmail).not.toHaveBeenCalled();
   });
 });

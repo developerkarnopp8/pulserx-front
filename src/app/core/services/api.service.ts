@@ -803,9 +803,9 @@ export class ApiService {
     return this.http.post<{ reset: true }>(`${this.base}/auth/reset-password`, { token, password });
   }
 
-  /** Confirma o e-mail pelo link (uso único) e devolve a sessão. */
-  verifyEmail(token: string): Observable<{ access_token: string; user: User }> {
-    return this.http.post<{ access_token: string; user: User }>(`${this.base}/auth/verify-email`, { token });
+  /** Confirma o e-mail pelo link (uso único), cria a senha e devolve a sessão. */
+  verifyEmail(token: string, password: string): Observable<{ access_token: string; user: User }> {
+    return this.http.post<{ access_token: string; user: User }>(`${this.base}/auth/verify-email`, { token, password });
   }
 
   /** Reenvia a confirmação: a resposta é sempre a mesma (não revela quem tem conta). */

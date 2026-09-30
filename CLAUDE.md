@@ -75,6 +75,10 @@
 > <Bandeira> final 1234" (`autoDebitCard` do `/subscriptions/me`, bandeira por `shared/utils/card-brand.ts`) ou avisa que pagar com cartão
 > ativa o débito automático; mesmo aviso no passo de pagamento da inscrição e nos Termos (item 4).
 
+> **Inscrição sem senha (2026-09-30, branch `fix-senha-no-link-de-confirmacao`):** o formulário da landing só pede nome, e-mail e aceites;
+> `/confirmar-email` virou "Confirmar e-mail e criar senha" (senha + repetir, validador `senhasIguais` exportado do reset) e envia
+> `{token, password}`.
+
 ## Visão Geral
 
 **PulseRx** é uma plataforma SaaS para gestão de academias. O frontend é construído em Angular 21 e consome dados mock (json-server) — o backend real NestJS será integrado posteriormente.

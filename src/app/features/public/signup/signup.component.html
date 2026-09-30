@@ -36,7 +36,7 @@
           @switch (step()) {
             @case ('account') {
               <h1 class="font-condensed font-extrabold text-3xl uppercase leading-tight">Crie sua conta</h1>
-              <p class="text-on-surface-variant text-sm mt-1 mb-6">Leva um minuto. Você usa o mesmo e-mail e senha para entrar no app.</p>
+              <p class="text-on-surface-variant text-sm mt-1 mb-6">Leva um minuto. Você cria a sua senha no link que enviamos para o seu e-mail.</p>
               <form [formGroup]="accountForm" (ngSubmit)="createAccount()" novalidate class="space-y-4">
                 <div>
                   <label for="su-name" class="block text-on-surface-variant text-xs font-semibold mb-1.5">Nome completo</label>
@@ -53,13 +53,6 @@
                   @if (accountForm.get('email')?.invalid && accountForm.get('email')?.touched) {
                     <p class="text-error text-xs mt-1">Informe um e-mail válido.</p>
                   }
-                </div>
-                <div>
-                  <label for="su-pass" class="block text-on-surface-variant text-xs font-semibold mb-1.5">Senha</label>
-                  <input id="su-pass" type="password" formControlName="password" autocomplete="new-password"
-                    class="w-full min-h-[48px] bg-surface-container text-on-surface rounded-lg px-4 text-sm" />
-                  <p class="text-xs mt-1" [class.text-error]="accountForm.get('password')?.invalid && accountForm.get('password')?.touched"
-                    [class.text-outline]="!(accountForm.get('password')?.invalid && accountForm.get('password')?.touched)">Mínimo de 8 caracteres.</p>
                 </div>
                 <label class="flex items-start gap-3 text-sm text-on-surface-variant cursor-pointer">
                   <input type="checkbox" formControlName="acceptTerms" class="mt-1 w-5 h-5 accent-[var(--color-primary-fixed)] flex-shrink-0" />
@@ -116,8 +109,8 @@
             @case ('verify') {
               <h1 class="font-condensed font-extrabold text-3xl uppercase leading-tight">Confirme seu e-mail</h1>
               <p class="text-on-surface-variant text-sm mt-1 mb-6">
-                Enviamos um link para <strong class="text-on-surface break-all">{{ pendingEmail() }}</strong>. Abra o e-mail e toque em
-                <strong class="text-on-surface">Confirmar meu e-mail</strong> — você volta direto para {{ p.isFree ? 'o acesso' : 'o pagamento' }}.
+                Enviamos um link para <strong class="text-on-surface break-all">{{ pendingEmail() }}</strong>. Abra o e-mail, toque em
+                <strong class="text-on-surface">Confirmar e criar minha senha</strong> e crie a sua senha — você volta direto para {{ p.isFree ? 'o acesso' : 'o pagamento' }}.
                 O link vale 48 horas. Não achou? Olhe também no spam.
               </p>
               @if (infoMsg()) {

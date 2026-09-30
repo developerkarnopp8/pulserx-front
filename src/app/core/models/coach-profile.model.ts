@@ -114,10 +114,10 @@ export interface CreateLeadInput {
 }
 
 /** Inscrição do visitante na landing do coach (POST /public/coaches/:slug/signup). */
+/** Sem senha: ela é criada no link de confirmação enviado por e-mail. */
 export interface PublicSignupInput {
   name: string;
   email: string;
-  password: string;
   planId: string;
   acceptTerms: true;
   /** Caixa própria e desmarcada (LGPD Art. 11). */

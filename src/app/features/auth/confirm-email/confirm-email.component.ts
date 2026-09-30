@@ -1,9 +1,10 @@
 import { Component, OnInit, signal } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { apiMessage } from '../../../shared/utils/signup-flow';
-import { tokenFromHash } from '../reset-password/reset-password.component';
+import { senhasIguais, tokenFromHash } from '../reset-password/reset-password.component';
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -21,26 +22,37 @@ export function continuePathFromHash(hash: string): string | null {
 }
 
 /**
- * Confirmação do e-mail pelo link. A confirmação só acontece no clique do botão (não ao abrir a página): antivírus de
- * e-mail que abrem links sozinhos não gastam o link de uso único nem ficam com a sessão.
+ * Confirmação do e-mail pelo link + criação da senha (a inscrição não tem senha — decisão do dono, 2026-09-30: quem se
+ * inscreve com o e-mail de outra pessoa nunca chega a ter senha). Só acontece ao enviar o formulário, nunca ao abrir a
+ * página: antivírus de e-mail que abrem links sozinhos não gastam o link de uso único.
  */
 @Component({
   selector: 'app-confirm-email',
   standalone: true,
-  imports: [RouterLink],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './confirm-email.component.html',
 })
 export class ConfirmEmailComponent implements OnInit {
   token = signal<string | null>(null);
   busy = signal(false);
   errorMsg = signal('');
+  form: FormGroup;
   private continuePath: string | null = null;
 
   constructor(
     private api: ApiService,
     private auth: AuthService,
     private router: Router,
-  ) {}
+    fb: FormBuilder,
+  ) {
+    this.form = fb.group(
+      {
+        password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(100)]],
+        confirm: ['', Validators.required],
+      },
+      { validators: senhasIguais },
+    );
+  }
 
   ngOnInit(): void {
     this.token.set(tokenFromHash(window.location.hash));
@@ -52,9 +64,13 @@ export class ConfirmEmailComponent implements OnInit {
   confirm(): void {
     const token = this.token();
     if (!token || this.busy()) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
     this.busy.set(true);
     this.errorMsg.set('');
-    this.api.verifyEmail(token).subscribe({
+    this.api.verifyEmail(token, this.form.value.password as string).subscribe({
       next: res => {
         this.auth.startSession(res.access_token, res.user);
         this.busy.set(false);
