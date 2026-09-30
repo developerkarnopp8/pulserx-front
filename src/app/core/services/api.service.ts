@@ -793,6 +793,21 @@ export class ApiService {
     return this.http.put<{ access_token: string; user: User }>(`${this.base}/coach-terms/me`, { acceptTerms: true });
   }
 
+  /** Esqueci minha senha: a resposta é sempre a mesma (não revela quem tem conta). */
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.base}/auth/forgot-password`, { email });
+  }
+
+  /** Cria a senha nova pelo link recebido por e-mail. */
+  resetPassword(token: string, password: string): Observable<{ reset: true }> {
+    return this.http.post<{ reset: true }>(`${this.base}/auth/reset-password`, { token, password });
+  }
+
+  /** Coach: manda ao aluno o link por e-mail para criar uma senha nova. */
+  sendStudentPasswordReset(studentId: string): Observable<{ sent: true }> {
+    return this.http.post<{ sent: true }>(`${this.base}/students/${studentId}/password-reset`, {});
+  }
+
   /** Aluno: exclui (anonimiza) a própria conta, confirmando a senha. */
   deleteMyAccount(password: string): Observable<{ deleted: boolean }> {
     return this.http.post<{ deleted: boolean }>(`${this.base}/account/delete`, { password });

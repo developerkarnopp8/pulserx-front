@@ -59,6 +59,10 @@
 > "Detalhes" abre Assinaturas (MRR), Uso e Conta (interruptor de importação por IA e Resetar senha, que saíram da linha). **Admin shell**
 > agora tem altura fixa (`h-screen`) e a rolagem fica no `<main>` — antes só Coaches rolava.
 
+> **Senha por e-mail (2026-09-30, branch `feat-senha-por-email`):** telas públicas `/esqueci-senha` (resposta genérica) e `/redefinir-senha`
+> (token lido do fragmento `#token=` por `tokenFromHash` e APAGADO da barra de endereço com `history.replaceState`; senha ≥ 8 + confirmação).
+> Link "Esqueci minha senha" no login. Coach: botão "Enviar link de nova senha" (ícone `lock_reset`) na lista de alunos, com `confirmDialog`.
+
 ## Visão Geral
 
 **PulseRx** é uma plataforma SaaS para gestão de academias. O frontend é construído em Angular 21 e consome dados mock (json-server) — o backend real NestJS será integrado posteriormente.

@@ -9,6 +9,17 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/auth/login/login.component').then(m => m.LoginComponent)
   },
+  // Senha por link no e-mail (públicas, sem guard).
+  {
+    path: 'esqueci-senha',
+    loadComponent: () =>
+      import('./features/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent)
+  },
+  {
+    path: 'redefinir-senha',
+    loadComponent: () =>
+      import('./features/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent)
+  },
   // Acesso do admin (dono): nunca linkado na UI pública — não aparece como opção na tela de
   // login normal, só quem sabe esta URL entra.
   {

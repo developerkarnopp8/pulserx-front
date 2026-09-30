@@ -674,3 +674,15 @@ describe('ApiService — admin financeiro', () => {
     expect(http.get).toHaveBeenCalledWith(`${BASE}/admin/financial`);
   });
 });
+
+describe('ApiService — senha por e-mail', () => {
+  it('esqueci, redefinir e o coach mandando o link', () => {
+    const { service, http } = build();
+    service.forgotPassword('ana@example.com');
+    expect(http.post).toHaveBeenCalledWith(`${BASE}/auth/forgot-password`, { email: 'ana@example.com' });
+    service.resetPassword('tok', 'senha-forte');
+    expect(http.post).toHaveBeenCalledWith(`${BASE}/auth/reset-password`, { token: 'tok', password: 'senha-forte' });
+    service.sendStudentPasswordReset('s1');
+    expect(http.post).toHaveBeenCalledWith(`${BASE}/students/s1/password-reset`, {});
+  });
+});
