@@ -71,6 +71,10 @@
 > senha** (aviso de que o link foi enviado). Admin: criar coach e "Enviar link de nova senha" só mostram aviso de e-mail enviado — **acabou a
 > senha revelada/copiar**. Layout mobile do admin (lista de coaches e Financeiro) com margem menor, alertas compactos e números em 3 colunas.
 
+> **Cartão com débito automático (2026-09-30, branch `feat-cartao-debito-automatico`):** tela Assinatura mostra "Débito automático no cartão
+> <Bandeira> final 1234" (`autoDebitCard` do `/subscriptions/me`, bandeira por `shared/utils/card-brand.ts`) ou avisa que pagar com cartão
+> ativa o débito automático; mesmo aviso no passo de pagamento da inscrição e nos Termos (item 4).
+
 ## Visão Geral
 
 **PulseRx** é uma plataforma SaaS para gestão de academias. O frontend é construído em Angular 21 e consome dados mock (json-server) — o backend real NestJS será integrado posteriormente.

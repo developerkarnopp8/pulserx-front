@@ -9,6 +9,7 @@ import { formatCents } from '../../../shared/utils/currency';
 import { apiMessage } from '../../../shared/utils/signup-flow';
 import { DeleteAccountComponent } from '../../../shared/components/delete-account/delete-account.component';
 import { confirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { cardBrandLabel } from '../../../shared/utils/card-brand';
 
 @Component({
   selector: 'app-athlete-subscription',
@@ -30,6 +31,7 @@ export class AthleteSubscriptionComponent implements OnInit {
   showAllPayments = signal(false);
 
   readonly fmtPrice = formatCents;
+  readonly brandLabel = cardBrandLabel;
   readonly categoryLabel = TRAINING_CATEGORY_LABEL;
   readonly statusLabel = SUBSCRIPTION_STATUS_LABEL;
   readonly paymentStatusLabel = GATEWAY_PAYMENT_STATUS_LABEL;
