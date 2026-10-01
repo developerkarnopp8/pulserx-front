@@ -203,6 +203,9 @@
                       <span class="material-symbols-outlined !text-[14px] leading-none" aria-hidden="true">{{ gatewayStatusIcon[p.status] }}</span>
                       {{ gatewayStatusLabel[p.status] }}
                     </span>
+                    @if (p.cardRefusedAt && p.status !== 'paid') {
+                      <span class="block text-error text-[10px] mt-1">Cartão recusado</span>
+                    }
                   </td>
                 </tr>
               }
@@ -210,6 +213,7 @@
           </table>
         </div>
         <p class="text-outline text-[11px] mt-3">"—" = o Asaas ainda não informou o valor líquido dessa cobrança. O % da AEVON é o do contrato no momento em que o aluno assinou.</p>
+        <p class="text-outline text-[11px] mt-1">Cartão: a cobrança aparece como paga quando o cartão é aprovado; o dinheiro cai na conta no prazo do Asaas para cartão (não no mesmo dia).</p>
       </div>
     </section>
   }

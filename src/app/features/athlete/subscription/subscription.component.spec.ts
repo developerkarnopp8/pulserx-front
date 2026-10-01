@@ -102,6 +102,26 @@ describe('AthleteSubscriptionComponent — faturas', () => {
     expect(component.paymentStatusIcon.chargeback).toBe('gavel');
   });
 
+  it('cartão recusado na próxima cobrança: mostra o aviso (com a cobrança); sem recusa, nada', async () => {
+    const recusada = build({
+      getMyPayments: vi.fn().mockReturnValue(of([
+        pay({ id: 'r', status: 'pending', dueDate: '2026-10-10T00:00:00.000Z', cardRefusedAt: '2026-10-10T06:00:00.000Z' }),
+      ])),
+    });
+    recusada.component.ngOnInit();
+    expect(recusada.component.refusedCharge()?.id).toBe('r');
+
+    const normal = build({
+      getMyPayments: vi.fn().mockReturnValue(of([pay({ id: 'n', status: 'pending', dueDate: '2026-10-10T00:00:00.000Z' })])),
+    });
+    normal.component.ngOnInit();
+    expect(normal.component.refusedCharge()).toBeNull();
+
+    const semAberta = build({ getMyPayments: vi.fn().mockReturnValue(of([pay()])) });
+    semAberta.component.ngOnInit();
+    expect(semAberta.component.refusedCharge()).toBeNull();
+  });
+
   it('sem fatura em aberto: próxima cobrança é null (não inventa data)', async () => {
     const { component } = build({ getMyPayments: vi.fn().mockReturnValue(of([pay()])) });
     component.ngOnInit();
