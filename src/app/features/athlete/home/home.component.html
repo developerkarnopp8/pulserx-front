@@ -141,7 +141,15 @@
     }
 
     @if (todaySessions().length === 0) {
-      <p class="text-outline text-sm text-center py-6">Nenhuma sessão para hoje.</p>
+      @if (weekLocked()) {
+        <div class="text-center py-6 flex flex-col items-center gap-2">
+          <span class="material-symbols-outlined text-outline text-[28px]" aria-hidden="true">lock</span>
+          <p class="text-on-surface-variant text-sm">O treino desta semana é para assinantes.</p>
+          <a routerLink="/athlete/subscription" class="min-h-[44px] inline-flex items-center px-4 rounded-sm bg-primary-fixed text-on-primary-fixed text-xs font-headline uppercase tracking-widest">Assinar um plano</a>
+        </div>
+      } @else {
+        <p class="text-outline text-sm text-center py-6">Nenhuma sessão para hoje.</p>
+      }
     }
   </div>
 

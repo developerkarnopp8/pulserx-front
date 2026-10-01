@@ -97,6 +97,30 @@
           }
         </div>
 
+        @if (d.accessNotice; as aviso) {
+          @if (aviso.chargeback) {
+            <div role="alert" class="mt-4 bg-error/10 border border-error/30 rounded-md px-4 py-3">
+              <p class="text-error text-sm font-semibold flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">gavel</span>
+                Acesso pausado: um pagamento foi contestado no cartão
+              </p>
+              <p class="text-on-surface-variant text-xs mt-1">
+                Enquanto a contestação estiver aberta no seu banco, os treinos ficam indisponíveis. Se foi engano, fale com o seu treinador.
+              </p>
+            </div>
+          } @else if (aviso.graceUntil) {
+            <div role="alert" class="mt-4 bg-amber-500/10 border border-amber-500/30 rounded-md px-4 py-3">
+              <p class="text-amber-300 text-sm font-semibold flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">schedule</span>
+                Mensalidade vencida
+              </p>
+              <p class="text-on-surface-variant text-xs mt-1">
+                Você continua vendo os treinos até {{ aviso.graceUntil | date:'dd/MM/yyyy' }}. Pague a fatura para não perder o acesso.
+              </p>
+            </div>
+          }
+        }
+
         <ul class="mt-3 space-y-2">
           @if (sub.status === 'TRIALING' && sub.trialEndsAt) {
             <li class="flex items-center gap-3 bg-surface-container rounded-md px-4 py-3">

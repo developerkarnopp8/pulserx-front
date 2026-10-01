@@ -36,6 +36,20 @@ export function currentWeekNumber(plan: TrainingPlan, studentCurrentWeek: number
 }
 
 /** Sessões de hoje somando um plano por categoria (o aluno pode ter Performance + Core + LPO no mesmo dia). */
+/** Semana de hoje (em alguma categoria) bloqueada pela amostra do Free — o início mostra "Assine para ver" em vez de "sem sessão". */
+export function todayWeekLocked(
+  plans: TrainingPlan[],
+  student: { currentMonth: number; currentWeek: number },
+  today: Date = new Date(),
+): boolean {
+  return categoriesOf(plans).some(category => {
+    // A categoria vem dos próprios planos: sempre existe um plano para ela.
+    const plan = pickPlan(plans, category, student.currentMonth)!;
+    const weekNumber = currentWeekNumber(plan, student.currentWeek, today);
+    return plan.weeks.find(w => w.weekNumber === weekNumber)?.locked === true;
+  });
+}
+
 export function todaySessions(
   plans: TrainingPlan[],
   student: { currentMonth: number; currentWeek: number },

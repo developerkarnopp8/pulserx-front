@@ -1,5 +1,5 @@
 import { TrainingPlan } from '../../core/models';
-import { categoriesOf, currentWeekNumber, defaultCategory, pickPlan, todaySessions } from './plan-selection';
+import { categoriesOf, currentWeekNumber, defaultCategory, pickPlan, todaySessions, todayWeekLocked } from './plan-selection';
 
 const plan = (over: Partial<TrainingPlan>): TrainingPlan => ({
   id: 'p', studentId: 's1', coachId: 'c1', category: 'PERFORMANCE', scope: 'INDIVIDUAL',
@@ -91,5 +91,22 @@ describe('todaySessions', () => {
   it('dia sem sessão cai no primeiro dia da semana (comportamento anterior)', () => {
     const plans = [plan({ weeks: [week(2, 5, ['Sexta'])] })];
     expect(todaySessions(plans, student, today).map(s => s.name)).toEqual(['Sexta']);
+  });
+});
+
+describe('todayWeekLocked — Free (amostra)', () => {
+  const today = new Date(2026, 9, 6);
+  const student = { currentMonth: 1, currentWeek: 2 };
+
+  it('semana de hoje bloqueada em alguma categoria → true; liberada ou sem plano → false', () => {
+    const bloqueada = [plan({ category: 'CORE', weeks: [week(1, 2, ['a']), { ...week(2, 2, []), days: [], locked: true }] })];
+    expect(todayWeekLocked(bloqueada, student, today)).toBe(true);
+    const liberada = [plan({ category: 'CORE', weeks: [week(1, 2, ['a']), week(2, 2, ['b'])] })];
+    expect(todayWeekLocked(liberada, student, today)).toBe(false);
+    expect(todayWeekLocked([], student, today)).toBe(false);
+  });
+
+  it('sem informar "hoje": usa a data atual', () => {
+    expect(todayWeekLocked([], student)).toBe(false);
   });
 });

@@ -67,6 +67,7 @@ interface RawWeek {
   planId: string;
   weekNumber: number;
   days: RawDay[];
+  locked?: boolean;
 }
 
 interface RawPlan {
@@ -534,6 +535,7 @@ export class ApiService {
       weeks:     (p.weeks ?? []).map(w => ({
         id:         w.id,
         weekNumber: w.weekNumber,
+        ...(w.locked ? { locked: true } : {}),
         days:       (w.days ?? []).map(d => ({
           id:         d.id,
           dayOfWeek:  d.dayOfWeek,

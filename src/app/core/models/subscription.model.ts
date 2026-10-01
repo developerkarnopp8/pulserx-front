@@ -46,6 +46,11 @@ export interface MySubscription {
   categories: TrainingCategory[];
   /** Cartão do débito automático (o Asaas guarda quando o aluno paga com cartão): só bandeira e final. */
   autoDebitCard?: { brand: string; last4: string } | null;
+  /**
+   * Aviso de acesso (só com o bloqueio por assinatura ligado): inadimplente dentro dos 5 dias de tolerância (`graceUntil`)
+   * ou cobrança contestada no cartão (`chargeback`, acesso pausado até resolver).
+   */
+  accessNotice?: { graceUntil: string | null; chargeback: boolean } | null;
 }
 
 /** Status de uma cobrança do gateway (Asaas). Estornada e contestada não contam como recebido. */

@@ -83,6 +83,10 @@
 > `chargeback` ("Contestada"); `GATEWAY_PAYMENT_STATUS_ICON`, `isOpenGatewayPayment` (só pending/overdue entram em "próxima cobrança") e
 > `isReversedGatewayPayment` (Financeiro do coach risca o líquido) em `core/models/subscription.model.ts`.
 
+> **Free e acesso (2026-10-01, branch `feat-regras-acesso-free-carencia`):** `Week.locked` (semana fora da amostra do Free) — cadeado na pílula
+> da semana e cartão "Esta semana é para assinantes" na tela da semana; início mostra "O treino desta semana é para assinantes"
+> (`todayWeekLocked`). Tela Assinatura mostra o prazo da tolerância do inadimplente e o acesso pausado por contestação (`accessNotice`).
+
 ## Visão Geral
 
 **PulseRx** é uma plataforma SaaS para gestão de academias. O frontend é construído em Angular 21 e consome dados mock (json-server) — o backend real NestJS será integrado posteriormente.
