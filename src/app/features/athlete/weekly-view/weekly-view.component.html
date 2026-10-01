@@ -58,9 +58,21 @@
         [class.bg-surface-container-low]="selectedWeek() !== i"
         [class.text-outline]="selectedWeek() !== i">
         S{{ week.weekNumber }}
+        @if (week.locked) {
+          <span class="material-symbols-outlined text-[12px] align-middle" aria-label="bloqueada">lock</span>
+        }
       </button>
     }
   </div>
+
+  @if (plan()?.weeks?.at(selectedWeek())?.locked) {
+    <div class="bg-surface-container-low rounded-md p-5 mb-5 flex flex-col items-center text-center gap-2">
+      <span class="material-symbols-outlined text-outline text-[28px]" aria-hidden="true">lock</span>
+      <p class="text-on-surface text-sm font-semibold">Esta semana é para assinantes</p>
+      <p class="text-on-surface-variant text-xs">No plano gratuito você vê a 1ª semana. Assine para liberar o mês inteiro.</p>
+      <a routerLink="/athlete/subscription" class="min-h-[44px] inline-flex items-center px-4 rounded-sm bg-primary-fixed text-on-primary-fixed text-xs font-headline uppercase tracking-widest">Assinar um plano</a>
+    </div>
+  }
 
   <!-- Day Cards — horizontal scroll -->
   <div #dayScroller class="flex gap-3 overflow-x-auto pb-3 mb-5 no-scrollbar">

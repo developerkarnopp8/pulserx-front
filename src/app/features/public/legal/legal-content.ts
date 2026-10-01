@@ -63,7 +63,7 @@ export const LEGAL_DOCS: Record<LegalDocKey, LegalDoc> = {
         paragraphs: [
           'Os planos pagos são assinaturas mensais com renovação automática. A cobrança é feita pelo Asaas (instituição de pagamento), e você escolhe na página de pagamento como pagar: PIX, boleto ou cartão de crédito. Os dados do cartão são informados diretamente ao Asaas e não passam pela nossa plataforma. Se você pagar com cartão de crédito, o Asaas guarda o cartão e as mensalidades seguintes são cobradas nele automaticamente, até você cancelar a assinatura; no app aparecem só a bandeira e o final do cartão.',
           'O valor pago é dividido automaticamente entre o treinador e a plataforma. O preço de cada plano é definido pelo treinador e aparece antes da contratação.',
-          'Com pagamento em atraso ou assinatura cancelada, o acesso ao conteúdo pago pode ser suspenso.',
+          'Com a mensalidade vencida, você continua com acesso por 5 dias depois do vencimento; depois disso o conteúdo pago fica suspenso até o pagamento. Se você contestar um pagamento no banco do cartão, o acesso fica suspenso até a contestação ser resolvida. Com a assinatura cancelada, o acesso ao conteúdo pago termina.',
         ],
       },
       {

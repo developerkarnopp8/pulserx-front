@@ -44,6 +44,8 @@ export interface Week {
   id: string;
   weekNumber: number;
   days: TrainingDay[];
+  /** Plano Free (amostra): semana além da amostra — vem sem conteúdo da API e a tela mostra "Assine para ver". */
+  locked?: boolean;
 }
 
 export type TrainingCategory = 'CORE' | 'LPO' | 'PERFORMANCE';

@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Session } from '../../../core/models';
-import { todaySessions } from '../../../shared/utils/plan-selection';
+import { todaySessions, todayWeekLocked } from '../../../shared/utils/plan-selection';
 import { LatestPr, StreakResult, WeekDay, currentWeek, latestLoadPr, trainingStreak } from '../../../shared/utils/training-streak';
 
 const WATER_TAP_ML = 250;
@@ -21,6 +21,8 @@ const STREAK_HISTORY_LIMIT = 200;
 })
 export class HomeComponent implements OnInit {
   todaySessions = signal<Session[]>([]);
+  /** Free: a semana de hoje está fora da amostra. */
+  weekLocked = signal(false);
   greeting = signal('Boa tarde');
 
   /** % real de sessões de hoje já concluídas — mesmo critério (session.status) usado no Cronograma abaixo */
@@ -60,6 +62,7 @@ export class HomeComponent implements OnInit {
           next: plans => {
             if (!plans.length) return;
             this.todaySessions.set(todaySessions(plans, student));
+            this.weekLocked.set(todayWeekLocked(plans, student));
           },
         });
       },

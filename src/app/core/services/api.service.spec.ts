@@ -238,6 +238,17 @@ describe('ApiService — training plans', () => {
     expect(result).toHaveLength(1);
   });
 
+  it('semana bloqueada (Free) chega marcada; as outras não ganham o campo', () => {
+    const { service, http } = build();
+    http.get.mockReturnValue(of([{ ...rawPlanMinimal, weeks: [
+      { id: 'w1', planId: 'p', weekNumber: 1, days: [] },
+      { id: 'w2', planId: 'p', weekNumber: 2, days: [], locked: true },
+    ] }]));
+    const [p] = firstValue(service.getPlansByStudent('s1'));
+    expect(p.weeks[0]).not.toHaveProperty('locked');
+    expect(p.weeks[1].locked).toBe(true);
+  });
+
   it('createPlan posta studentId/title/month/startDate', () => {
     const { service, http } = build();
     http.post.mockReturnValue(of(rawPlanMinimal));
