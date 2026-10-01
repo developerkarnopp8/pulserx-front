@@ -86,6 +86,9 @@
 > **Free e acesso (2026-10-01, branch `feat-regras-acesso-free-carencia`):** `Week.locked` (semana fora da amostra do Free) — cadeado na pílula
 > da semana e cartão "Esta semana é para assinantes" na tela da semana; início mostra "O treino desta semana é para assinantes"
 > (`todayWeekLocked`). Tela Assinatura mostra o prazo da tolerância do inadimplente e o acesso pausado por contestação (`accessNotice`).
+> **Cartão recusado (2026-10-01, branch `feat-cartao-recusado`):** tela Assinatura mostra o aviso "Não conseguimos cobrar no seu cartão" com
+> "Pagar fatura" (`refusedCharge`, só link https); Financeiro do coach marca "Cartão recusado"; notificação `card_refused` com ícone; legendas
+> no Financeiro do coach e do admin: cartão conta como pago quando aprovado, o dinheiro cai no prazo do Asaas.
 
 ## Visão Geral
 

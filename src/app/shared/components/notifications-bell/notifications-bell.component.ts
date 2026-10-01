@@ -16,6 +16,7 @@ const TYPE_ICON: Record<NotificationType, string> = {
   new_lead: 'contact_mail',
   subscription_canceled: 'cancel',
   new_student: 'person_add',
+  card_refused: 'credit_card_off',
 };
 
 @Component({

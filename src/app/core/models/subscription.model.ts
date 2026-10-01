@@ -91,6 +91,8 @@ export interface MyGatewayPayment {
   dueDate: string;
   paidAt: string | null;
   invoiceUrl: string | null;
+  /** Última recusa do cartão no débito automático; null quando não houve ou depois de paga. */
+  cardRefusedAt?: string | null;
   createdAt: string;
 }
 
@@ -151,6 +153,8 @@ export interface CoachGatewayPayment {
   dueDate: string;
   paidAt: string | null;
   invoiceUrl: string | null;
+  /** Última recusa do cartão no débito automático; null quando não houve ou depois de paga. */
+  cardRefusedAt?: string | null;
   createdAt: string;
   subscription: { student: { id: string; user: { name: string } }; plan: { name: string } };
   breakdown: PaymentBreakdown;
