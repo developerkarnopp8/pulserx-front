@@ -49,6 +49,12 @@ export class AthleteSubscriptionComponent implements OnInit {
     return [...open].sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
   });
 
+  /** Cobrança em aberto em que o cartão do débito automático foi recusado — mostra o aviso para pagar pela fatura. */
+  readonly refusedCharge = computed<MyGatewayPayment | null>(() => {
+    const next = this.nextCharge();
+    return next?.cardRefusedAt ? next : null;
+  });
+
   readonly visiblePayments = computed(() =>
     this.showAllPayments() ? this.payments() : this.payments().slice(0, 3),
   );

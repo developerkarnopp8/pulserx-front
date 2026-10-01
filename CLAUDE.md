@@ -83,6 +83,10 @@
 > `chargeback` ("Contestada"); `GATEWAY_PAYMENT_STATUS_ICON`, `isOpenGatewayPayment` (só pending/overdue entram em "próxima cobrança") e
 > `isReversedGatewayPayment` (Financeiro do coach risca o líquido) em `core/models/subscription.model.ts`.
 
+> **Cartão recusado (2026-10-01, branch `feat-cartao-recusado`):** tela Assinatura mostra o aviso "Não conseguimos cobrar no seu cartão" com
+> "Pagar fatura" (`refusedCharge`, só link https); Financeiro do coach marca "Cartão recusado"; notificação `card_refused` com ícone; legendas
+> no Financeiro do coach e do admin: cartão conta como pago quando aprovado, o dinheiro cai no prazo do Asaas.
+
 ## Visão Geral
 
 **PulseRx** é uma plataforma SaaS para gestão de academias. O frontend é construído em Angular 21 e consome dados mock (json-server) — o backend real NestJS será integrado posteriormente.
