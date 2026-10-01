@@ -1,0 +1,43 @@
+<div class="min-h-screen bg-surface-container-lowest text-on-surface flex flex-col">
+  <header class="sticky top-0 z-40 bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/20">
+    <div class="h-16 px-4 md:px-8 max-w-5xl mx-auto flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        @if (backLink) {
+          <a [routerLink]="backLink" aria-label="Voltar"
+            class="min-w-[44px] min-h-[44px] -ml-2 flex items-center justify-center text-on-surface hover:text-primary transition-colors">
+            <span class="material-symbols-outlined text-[20px]" aria-hidden="true">arrow_back</span>
+          </a>
+        }
+        <a routerLink="/login" class="flex items-baseline gap-1 font-headline font-bold text-lg uppercase tracking-tight" aria-label="PulseRx — entrar">
+          <span class="text-on-surface">Pulse</span><span class="text-primary-fixed">Rx</span>
+        </a>
+      </div>
+      <div class="flex items-center gap-1.5 px-2 py-1 bg-surface-container-low rounded-sm">
+        <span class="material-symbols-outlined text-[14px] text-primary-fixed" aria-hidden="true">lock</span>
+        <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Conexão segura</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 w-full px-4 py-8 md:py-12">
+    <div class="relative w-full max-w-md mx-auto">
+      @if (watermark) {
+        <div class="absolute inset-x-0 top-0 h-40 pointer-events-none select-none overflow-hidden opacity-[0.04] flex items-center justify-center" aria-hidden="true">
+          <span class="font-headline font-black text-7xl tracking-tighter whitespace-nowrap">PULSERX</span>
+        </div>
+      }
+      <div class="relative">
+        <ng-content />
+      </div>
+    </div>
+  </main>
+
+  <footer class="py-6 px-4 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-outline text-xs">
+    <a routerLink="/termos" class="hover:text-on-surface min-h-[44px] inline-flex items-center">Termos</a>
+    <span aria-hidden="true">•</span>
+    <a routerLink="/privacidade" class="hover:text-on-surface min-h-[44px] inline-flex items-center">Privacidade</a>
+    <span aria-hidden="true">•</span>
+    <a routerLink="/cookies" class="hover:text-on-surface min-h-[44px] inline-flex items-center">Cookies</a>
+    <span class="w-full text-center text-[11px]">PulseRx · AEVON SOFTWARE</span>
+  </footer>
+</div>

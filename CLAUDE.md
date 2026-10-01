@@ -90,6 +90,14 @@
 > "Pagar fatura" (`refusedCharge`, só link https); Financeiro do coach marca "Cartão recusado"; notificação `card_refused` com ícone; legendas
 > no Financeiro do coach e do admin: cartão conta como pago quando aprovado, o dinheiro cai no prazo do Asaas.
 
+> **Redesign — telas de acesso no modelo Stitch mo01 (2026-10-01, branch `feat-redesign-telas-acesso`; modelos em `PulseRx/layout/mo01`):**
+> molde comum `shared/components/auth-shell` (cabeçalho PULSE RX + "Conexão segura", cartão central, rodapé Termos/Privacidade/Cookies) e
+> bloco comum `shared/components/new-password-fields` (senha + repetir, critério real de 8 caracteres marcado ao vivo). Decisões do dono: só
+> texto verdadeiro (os textos técnicos inventados pelo Stitch — "256-BIT SSL", versão, latência, suporte 24/7, e-mail inexistente, app de loja —
+> ficaram de fora); **login sem escolher Coach/Atleta** (`AuthService.login` aceita lista de perfis: `['coach','athlete']` no comum,
+> `['admin']` em /login/root; devolve o usuário e a tela navega pelo perfil); senha continua mínimo 8; confirmação continua por link e mostra o
+> plano e o coach reais (`signupTargetFromHash` + `GET /public/coaches/:slug`; falhou = sem o cartão).
+
 ## Visão Geral
 
 **PulseRx** é uma plataforma SaaS para gestão de academias. O frontend é construído em Angular 21 e consome dados mock (json-server) — o backend real NestJS será integrado posteriormente.

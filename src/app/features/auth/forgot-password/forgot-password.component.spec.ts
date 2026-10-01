@@ -39,4 +39,15 @@ describe('ForgotPasswordComponent', () => {
     expect(component.errorMsg()).toBe('Muitas tentativas seguidas. Aguarde alguns minutos e tente de novo.');
     expect(component.busy()).toBe(false);
   });
+
+  it('"tentar outro e-mail": volta ao formulário limpo', () => {
+    const { component } = build();
+    component.form.setValue({ email: 'ana@example.com' });
+    component.submit();
+    expect(component.sentMsg()).not.toBe('');
+    component.tryAnotherEmail();
+    expect(component.sentMsg()).toBe('');
+    expect(component.errorMsg()).toBe('');
+    expect(component.form.value.email).toBeNull();
+  });
 });

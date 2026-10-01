@@ -3,6 +3,8 @@ import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validatio
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { apiMessage } from '../../../shared/utils/signup-flow';
+import { AuthShellComponent } from '../../../shared/components/auth-shell/auth-shell.component';
+import { NewPasswordFieldsComponent } from '../../../shared/components/new-password-fields/new-password-fields.component';
 
 /** Lê o token do fragmento (#token=…) — o fragmento não vai ao servidor nem no cabeçalho Referer. */
 export function tokenFromHash(hash: string): string | null {
@@ -17,7 +19,7 @@ export const senhasIguais = (g: AbstractControl): ValidationErrors | null =>
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AuthShellComponent, NewPasswordFieldsComponent],
   templateUrl: './reset-password.component.html',
 })
 export class ResetPasswordComponent implements OnInit {

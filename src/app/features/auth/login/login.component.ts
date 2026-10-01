@@ -3,19 +3,19 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
-import { UserRole } from '../../../core/models';
+import { User, UserRole } from '../../../core/models';
 import { ApiService } from '../../../core/services/api.service';
 import { apiMessage, isEmailNotVerified, loginErrorMessage } from '../../../shared/utils/signup-flow';
+import { AuthShellComponent } from '../../../shared/components/auth-shell/auth-shell.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, AuthShellComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
 export class LoginComponent {
-  selectedRole = signal<UserRole>('coach');
   showPassword = signal(false);
   error = signal('');
   loading = signal(false);
@@ -23,11 +23,6 @@ export class LoginComponent {
   notVerified = signal(false);
   info = signal('');
 
-  readonly highlights = [
-    { icon: 'calendar_month', label: 'Planos por categoria — Core, LPO e Performance' },
-    { icon: 'forum', label: 'Chat em tempo real com o aluno' },
-    { icon: 'monitoring', label: 'Métricas reais de execução e progresso' },
-  ];
 
   /** /login/root — acesso do admin, nunca linkado na UI pública (ver app.routes.ts). */
   rootOnly = signal(false);
@@ -46,15 +41,15 @@ export class LoginComponent {
       password: ['', [Validators.required, Validators.minLength(4)]],
     });
 
-    if (route.snapshot.data['rootOnly']) {
-      this.rootOnly.set(true);
-      this.selectedRole.set('admin');
-    }
+    if (route.snapshot.data['rootOnly']) this.rootOnly.set(true);
   }
 
-  setRole(role: UserRole): void {
-    this.selectedRole.set(role);
-    this.error.set('');
+  /**
+   * Perfis aceitos nesta tela (decisão do dono, 2026-10-01: sem escolher "Coach/Atleta" — o sistema detecta). O admin só entra
+   * pelo /login/root, que não aceita coach nem atleta.
+   */
+  private allowedRoles(): UserRole[] {
+    return this.rootOnly() ? ['admin'] : ['coach', 'athlete'];
   }
 
   submit(): void {
@@ -66,11 +61,10 @@ export class LoginComponent {
 
     const { email, password } = this.form.value as { email: string; password: string };
 
-    this.auth.login(email, password, this.selectedRole()).subscribe({
-      next: () => {
+    this.auth.login(email, password, this.allowedRoles()).subscribe({
+      next: (user: User) => {
         this.loading.set(false);
-        const role = this.selectedRole();
-        const destination = role === 'coach' ? '/coach/dashboard' : role === 'admin' ? '/admin/coaches' : '/athlete/home';
+        const destination = user.role === 'coach' ? '/coach/dashboard' : user.role === 'admin' ? '/admin/coaches' : '/athlete/home';
         this.router.navigate([destination]);
       },
       error: (err: unknown) => {

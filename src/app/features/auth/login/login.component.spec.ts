@@ -3,14 +3,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
 import { LoginComponent } from './login.component';
 
-function build(loginError: unknown) {
+function build(loginError: unknown, data: Record<string, unknown> = {}) {
   const auth = { login: vi.fn().mockReturnValue(throwError(() => loginError)) };
   const router = { navigate: vi.fn() };
-  const route = { snapshot: { data: {} } };
+  const route = { snapshot: { data } };
   const api = { resendVerification: vi.fn().mockReturnValue(of({ message: 'Se houver uma conta esperando confirmação com esse e-mail, enviamos um novo link.' })) };
   const component = new LoginComponent(new FormBuilder(), auth as any, router as any, api as any, route as any);
   component.form.setValue({ email: 'ana@example.com', password: 'senha-errada' });
-  return { component, router, api };
+  return { component, router, api, auth };
 }
 
 describe('LoginComponent — mensagens de erro', () => {
@@ -70,5 +70,28 @@ describe('LoginComponent — e-mail ainda não confirmado', () => {
     component.loading.set(true);
     component.resendVerification();
     expect(api.resendVerification).not.toHaveBeenCalled();
+  });
+});
+
+describe('LoginComponent — sem escolher perfil (decisão do dono, 2026-10-01)', () => {
+  it.each([
+    ['coach', '/coach/dashboard'],
+    ['athlete', '/athlete/home'],
+  ])('login comum aceita coach e atleta; %s vai para a tela dele', (role, destino) => {
+    const { component, router, auth } = build(null);
+    auth.login.mockReturnValue(of({ id: 'u1', role }));
+    component.submit();
+    expect(auth.login).toHaveBeenCalledWith('ana@example.com', 'senha-errada', ['coach', 'athlete']);
+    expect(router.navigate).toHaveBeenCalledWith([destino]);
+    expect(component.loading()).toBe(false);
+  });
+
+  it('/login/root só aceita admin e vai para o painel do admin', () => {
+    const { component, router, auth } = build(null, { rootOnly: true });
+    auth.login.mockReturnValue(of({ id: 'u1', role: 'admin' }));
+    expect(component.rootOnly()).toBe(true);
+    component.submit();
+    expect(auth.login).toHaveBeenCalledWith('ana@example.com', 'senha-errada', ['admin']);
+    expect(router.navigate).toHaveBeenCalledWith(['/admin/coaches']);
   });
 });

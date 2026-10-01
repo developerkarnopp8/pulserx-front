@@ -35,7 +35,11 @@ export class AuthService {
     window.location.reload();
   }
 
-  login(email: string, password: string, expectedRole: UserRole): Observable<void> {
+  /**
+   * Entra e devolve o usuário. `expectedRole` = perfil(is) aceito(s) nesta tela: o login comum aceita coach e atleta (o sistema
+   * detecta qual é); o admin só entra por /login/root.
+   */
+  login(email: string, password: string, expectedRole: UserRole | UserRole[]): Observable<User> {
     return this.http
       .post<{ access_token: string; user: User }>(
         `${environment.apiUrl}/auth/login`,
@@ -45,13 +49,15 @@ export class AuthService {
         // Perfil errado é recusado ANTES de gravar a sessão: senão o token/socket do outro perfil
         // ficava ativo na aba mesmo com a tela de erro (e vazava tempo real pro próximo login).
         map(res => {
-          if (res.user.role !== expectedRole) {
+          const aceitos = Array.isArray(expectedRole) ? expectedRole : [expectedRole];
+          if (!aceitos.includes(res.user.role)) {
             const labels: Record<string, string> = { coach: 'Coach', athlete: 'Atleta', admin: 'Admin' };
             throw new Error(
               `Este e-mail pertence a um perfil diferente. Use o acesso ${labels[res.user.role] ?? res.user.role}.`,
             );
           }
           this.startSession(res.access_token, res.user);
+          return res.user;
         }),
       );
   }

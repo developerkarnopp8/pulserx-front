@@ -3,12 +3,13 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { apiMessage } from '../../../shared/utils/signup-flow';
+import { AuthShellComponent } from '../../../shared/components/auth-shell/auth-shell.component';
 
 /** "Esqueci minha senha": pede o link por e-mail. A resposta é sempre a mesma (não revela quem tem conta). */
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AuthShellComponent],
   templateUrl: './forgot-password.component.html',
 })
 export class ForgotPasswordComponent {
@@ -41,5 +42,12 @@ export class ForgotPasswordComponent {
         this.errorMsg.set(apiMessage(err, 'Não foi possível enviar agora. Tente de novo em instantes.'));
       },
     });
+  }
+
+  /** "Tentar outro e-mail": volta ao formulário, limpo. */
+  tryAnotherEmail(): void {
+    this.sentMsg.set('');
+    this.errorMsg.set('');
+    this.form.reset();
   }
 }
