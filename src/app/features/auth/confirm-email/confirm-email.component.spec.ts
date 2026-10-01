@@ -1,6 +1,6 @@
 import { FormBuilder } from '@angular/forms';
 import { of, throwError } from 'rxjs';
-import { ConfirmEmailComponent, continuePathFromHash } from './confirm-email.component';
+import { ConfirmEmailComponent, continuePathFromHash, signupTargetFromHash } from './confirm-email.component';
 
 const TOKEN = 'a'.repeat(43);
 const PLANO = '3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d';
@@ -29,6 +29,13 @@ function build(hash: string, api: Record<string, unknown> = {}) {
   const replace = vi.spyOn(history, 'replaceState');
   const apiMock = {
     verifyEmail: vi.fn().mockReturnValue(of({ access_token: 'sessao', user: { id: 'u1', role: 'athlete' } })),
+    getPublicCoachProfile: vi.fn().mockReturnValue(of({
+      coachName: 'Luan',
+      plans: [
+        { id: PLANO, name: 'Core', priceCents: 9900, isFree: false },
+        { id: 'outro', name: 'LPO', priceCents: 7900, isFree: false },
+      ],
+    })),
     ...api,
   };
   const auth = { startSession: vi.fn() };
@@ -103,5 +110,37 @@ describe('ConfirmEmailComponent', () => {
     component.confirm();
     expect(component.form.hasError('diferentes')).toBe(true);
     expect(api.verifyEmail).not.toHaveBeenCalled();
+  });
+
+  it('mostra o plano e o coach da inscrição (da página pública do coach)', () => {
+    const { component, api } = build(`#token=${TOKEN}&c=luan&plano=${PLANO}`);
+    expect(api.getPublicCoachProfile).toHaveBeenCalledWith('luan');
+    expect(component.plan()).toEqual({ id: PLANO, name: 'Core', priceCents: 9900, isFree: false });
+    expect(component.coachName()).toBe('Luan');
+  });
+
+  it('sem plano no link, plano que não existe mais ou página fora do ar: sem o cartão, a confirmação segue', () => {
+    const semPlano = build(`#token=${TOKEN}`);
+    expect(semPlano.api.getPublicCoachProfile).not.toHaveBeenCalled();
+    expect(semPlano.component.plan()).toBeNull();
+
+    const sumiu = build(`#token=${TOKEN}&c=luan&plano=${PLANO}`, {
+      getPublicCoachProfile: vi.fn().mockReturnValue(of({ coachName: 'Luan', plans: [] })),
+    });
+    expect(sumiu.component.plan()).toBeNull();
+
+    const fora = build(`#token=${TOKEN}&c=luan&plano=${PLANO}`, {
+      getPublicCoachProfile: vi.fn().mockReturnValue(throwError(() => ({ status: 404 }))),
+    });
+    expect(fora.component.plan()).toBeNull();
+    fora.component.confirm();
+    expect(fora.api.verifyEmail).toHaveBeenCalled();
+  });
+});
+
+describe('signupTargetFromHash', () => {
+  it('slug e plano válidos → os dois; inválidos → null', () => {
+    expect(signupTargetFromHash(`#token=x&c=luan-teste&plano=${PLANO}`)).toEqual({ slug: 'luan-teste', planId: PLANO });
+    expect(signupTargetFromHash(`#token=x&c=%2F%2Fevil.com&plano=${PLANO}`)).toBeNull();
   });
 });

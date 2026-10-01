@@ -1,167 +1,118 @@
-<div class="min-h-screen lg:h-screen bg-background flex flex-col lg:flex-row lg:overflow-hidden animate-fade-in">
-
-  <!-- Banner (esquerda no desktop, topo no mobile) -->
-  <div class="relative overflow-hidden bg-surface-container-lowest px-8 py-10 lg:py-16 lg:w-[46%] lg:h-full lg:flex lg:flex-col lg:justify-center">
-    <!-- Glow -->
-    <div class="absolute inset-0 pointer-events-none">
-      <div class="absolute -top-32 -left-24 w-[420px] h-[420px] rounded-full bg-primary-fixed/25 blur-[100px]"></div>
-      <div class="absolute bottom-0 right-0 w-[320px] h-[320px] rounded-full bg-tertiary/10 blur-[100px]"></div>
-    </div>
-    <!-- Grid pattern -->
-    <div class="banner-grid absolute inset-0 pointer-events-none opacity-[0.07]"></div>
-
-    <div class="relative z-10 max-w-md mx-auto lg:mx-0">
-      <div class="flex items-center gap-2 mb-8 lg:mb-14">
-        <span class="w-2 h-2 rounded-full bg-primary-fixed animate-pulse"></span>
-        <p class="text-on-surface-variant text-[10px] tracking-[0.3em] uppercase font-headline">by Aevon</p>
-      </div>
-
-      <h1 class="font-headline font-black text-5xl lg:text-6xl text-on-surface italic uppercase tracking-tighter leading-[0.9]">
-        Pulse<span class="text-primary-fixed">Rx</span>
-      </h1>
-      <p class="text-on-surface-variant text-base lg:text-lg mt-4 max-w-sm hidden lg:block">
-        A plataforma de performance para coaches que treinam com ciência.
-      </p>
-
-      <div class="hidden lg:flex flex-col gap-4 mt-12">
-        @for (item of highlights; track item.label) {
-          <div class="flex items-center gap-3">
-            <span class="w-9 h-9 rounded-sm bg-primary-fixed/10 flex items-center justify-center flex-shrink-0">
-              <span class="material-symbols-outlined text-primary-fixed text-[18px]">{{ item.icon }}</span>
-            </span>
-            <span class="text-on-surface-variant text-sm font-headline">{{ item.label }}</span>
-          </div>
-        }
-      </div>
-    </div>
+<app-auth-shell [watermark]="true">
+  <!-- Marca -->
+  <div class="flex flex-col items-center text-center mb-6">
+    <h1 class="flex items-baseline justify-center gap-1 font-headline font-black text-4xl uppercase tracking-tight">
+      <span class="text-on-surface">Pulse</span><span class="text-primary-fixed">Rx</span>
+    </h1>
+    <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mt-1 max-w-[280px]">
+      Prescrição e acompanhamento de treino
+    </p>
   </div>
 
-  <!-- Form -->
-  <div class="flex-1 flex items-center justify-center px-5 py-10 lg:py-16 lg:h-full lg:overflow-y-auto">
-    <div class="w-full max-w-sm">
-
-      <!-- Card -->
-      <div class="bg-surface-container-low rounded-md p-8">
-
-        <h2 class="font-headline font-black text-xl text-on-surface mb-1">
-          {{ rootOnly() ? 'Acesso Root' : selectedRole() === 'coach' ? 'Acesso do Treinador' : 'Acesso do Atleta' }}
+  <!-- Módulo de acesso -->
+  <section class="bg-surface-container-low p-4 md:p-6 rounded-md shadow-xl flex flex-col gap-4" aria-labelledby="titulo-acesso">
+    <div class="flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span class="w-1 h-4 bg-primary-fixed" aria-hidden="true"></span>
+        <h2 id="titulo-acesso" class="font-headline font-bold text-lg uppercase text-on-surface">
+          {{ rootOnly() ? 'Acesso administrativo' : 'Acesso à plataforma' }}
         </h2>
-        <p class="text-on-surface-variant text-xs mb-6">Insira suas credenciais para continuar.</p>
-
-        <!-- Role Toggle — Admin não aparece aqui de propósito (só via /login/root, não linkado) -->
-        @if (!rootOnly()) {
-          <div class="flex bg-surface-container rounded-sm p-1 mb-6">
-            <button type="button"
-              (click)="setRole('coach')"
-              class="flex-1 py-2 rounded-sm text-[11px] font-headline font-bold uppercase tracking-wider transition-all duration-200"
-              [class.bg-primary-fixed]="selectedRole() === 'coach'"
-              [class.text-on-primary-fixed]="selectedRole() === 'coach'"
-              [class.text-outline]="selectedRole() !== 'coach'">
-              Coach
-            </button>
-            <button type="button"
-              (click)="setRole('athlete')"
-              class="flex-1 py-2 rounded-sm text-[11px] font-headline font-bold uppercase tracking-wider transition-all duration-200"
-              [class.bg-primary-fixed]="selectedRole() === 'athlete'"
-              [class.text-on-primary-fixed]="selectedRole() === 'athlete'"
-              [class.text-outline]="selectedRole() !== 'athlete'">
-              Atleta
-            </button>
-          </div>
-        }
-
-        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-
-          <!-- Email -->
-          <div class="mb-4">
-            <label class="block text-on-surface-variant text-[10px] mb-1.5 tracking-widest uppercase font-headline">E-mail</label>
-            <div class="w-full flex items-center gap-3 bg-surface-container rounded-sm px-4 py-3">
-              <span class="material-symbols-outlined text-outline text-[18px] flex-shrink-0">alternate_email</span>
-              <input
-                formControlName="email"
-                type="email"
-                placeholder="coach@aevonfit.com"
-                class="min-w-0 flex-1 bg-transparent text-on-surface placeholder:text-outline text-sm"
-              />
-            </div>
-            @if (hasError('email')) {
-              <p class="text-error text-xs mt-1">E-mail inválido.</p>
-            }
-          </div>
-
-          <!-- Password -->
-          <div class="mb-6">
-            <label class="block text-on-surface-variant text-[10px] mb-1.5 tracking-widest uppercase font-headline">Senha</label>
-            <div class="w-full flex items-center gap-3 bg-surface-container rounded-sm px-4 py-3">
-              <span class="material-symbols-outlined text-outline text-[18px] flex-shrink-0">lock</span>
-              <input
-                formControlName="password"
-                [type]="showPassword() ? 'text' : 'password'"
-                placeholder="••••••••"
-                class="min-w-0 flex-1 bg-transparent text-on-surface placeholder:text-outline text-sm"
-              />
-              <button type="button"
-                (click)="showPassword.set(!showPassword())"
-                class="flex-shrink-0 text-outline hover:text-on-surface-variant transition-colors">
-                <span class="material-symbols-outlined text-[18px]">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
-              </button>
-            </div>
-            @if (hasError('password')) {
-              <p class="text-error text-xs mt-1">Senha obrigatória.</p>
-            }
-          </div>
-
-          <!-- Error -->
-          @if (error()) {
-            <div role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-2 text-error text-xs mb-4 animate-fade-in">
-              {{ error() }}
-              @if (notVerified()) {
-                <button type="button" (click)="resendVerification()" [disabled]="loading()"
-                  class="block underline font-semibold mt-1 min-h-[44px]">Reenviar o e-mail de confirmação</button>
-              }
-            </div>
-          }
-          @if (info()) {
-            <p role="status" class="bg-surface-container-low rounded-sm px-4 py-2 text-on-surface text-xs mb-4">{{ info() }}</p>
-          }
-
-          <!-- Submit -->
-          <button
-            type="submit"
-            [disabled]="loading()"
-            class="w-full bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black py-4 rounded-sm uppercase tracking-tighter transition-all flex items-center justify-center gap-2 text-sm">
-            @if (loading()) {
-              <span class="material-symbols-outlined text-[18px]">progress_activity</span>
-            }
-            ENTRAR →
-          </button>
-          <a routerLink="/esqueci-senha" class="block text-center text-on-surface-variant hover:text-on-surface text-xs underline mt-4 min-h-[44px] leading-[44px]">Esqueci minha senha</a>
-
-        </form>
-
-        <!-- Não existe cadastro aberto: coach é criado pelo admin; aluno se inscreve pela página do treinador. -->
-        @if (!rootOnly()) {
-          <p class="text-center text-outline text-xs mt-6">
-            @if (selectedRole() === 'coach') {
-              Quer usar o PulseRx como treinador?
-              <a href="mailto:aevonaevon52@gmail.com?subject=Quero%20usar%20o%20PulseRx%20como%20treinador"
-                class="text-primary-fixed hover:underline ml-1 font-headline">Fale com a gente</a>
-            } @else {
-              Ainda não tem conta? Peça ao seu treinador o link da página dele — a inscrição é feita por lá.
-            }
-          </p>
-        }
-
       </div>
-
-      <!-- Footer -->
-      <div class="mt-8 flex justify-center gap-6 text-outline text-[10px] font-headline tracking-widest uppercase">
-        <span>● Online</span>
-        <span>SSL</span>
-        <span>V2.0</span>
-      </div>
-
+      @if (!rootOnly()) {
+        <span class="font-headline text-[11px] font-bold uppercase tracking-widest px-2 py-0.5 bg-surface-container-highest text-primary-fixed rounded-sm">Coach · Atleta</span>
+      }
     </div>
-  </div>
 
-</div>
+    <!-- E-mail ainda não confirmado -->
+    @if (notVerified()) {
+      <div class="bg-surface-container p-4 rounded-sm flex flex-col gap-2">
+        <div class="flex items-start gap-2">
+          <span class="material-symbols-outlined text-primary-fixed text-[20px] shrink-0 mt-0.5" aria-hidden="true">mark_email_unread</span>
+          <div>
+            <p class="font-headline font-bold text-sm uppercase text-on-surface leading-tight">Confirme seu e-mail para entrar</p>
+            <p class="text-on-surface-variant text-xs mt-0.5">Enviamos um link de confirmação para a sua caixa de entrada.</p>
+          </div>
+        </div>
+        <button type="button" (click)="resendVerification()" [disabled]="loading()"
+          class="w-full min-h-[44px] px-4 bg-surface-container-high hover:bg-surface-bright text-on-surface font-headline text-[11px] font-bold uppercase tracking-widest rounded-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-60">
+          <span class="material-symbols-outlined text-[16px] text-primary-fixed" aria-hidden="true">send</span>
+          Reenviar o e-mail de confirmação
+        </button>
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="flex flex-col gap-4">
+      <!-- E-mail -->
+      <div class="flex flex-col gap-1">
+        <label for="login-email" class="text-on-surface-variant text-xs font-medium uppercase tracking-wide">E-mail</label>
+        <div class="flex items-center gap-3 bg-surface-container rounded-sm px-4 min-h-[48px] focus-within:ring-1 focus-within:ring-primary-fixed">
+          <span class="material-symbols-outlined text-outline text-[18px] shrink-0" aria-hidden="true">alternate_email</span>
+          <input id="login-email" formControlName="email" type="email" autocomplete="email" placeholder="seu@email.com"
+            class="min-w-0 flex-1 bg-transparent text-on-surface placeholder:text-outline text-sm"
+            [attr.aria-invalid]="hasError('email')" />
+        </div>
+        @if (hasError('email')) {
+          <p class="text-error text-xs">Informe um e-mail válido.</p>
+        }
+      </div>
+
+      <!-- Senha -->
+      <div class="flex flex-col gap-1">
+        <div class="flex items-center justify-between">
+          <label for="login-senha" class="text-on-surface-variant text-xs font-medium uppercase tracking-wide">Senha</label>
+          <a routerLink="/esqueci-senha" class="text-primary-fixed text-xs font-medium hover:underline min-h-[44px] inline-flex items-center">Esqueci minha senha</a>
+        </div>
+        <div class="flex items-center gap-3 bg-surface-container rounded-sm px-4 min-h-[48px] focus-within:ring-1 focus-within:ring-primary-fixed">
+          <span class="material-symbols-outlined text-outline text-[18px] shrink-0" aria-hidden="true">lock</span>
+          <input id="login-senha" formControlName="password" [type]="showPassword() ? 'text' : 'password'" autocomplete="current-password"
+            placeholder="••••••••" class="min-w-0 flex-1 bg-transparent text-on-surface placeholder:text-outline text-sm"
+            [attr.aria-invalid]="hasError('password')" />
+          <button type="button" (click)="showPassword.set(!showPassword())"
+            [attr.aria-label]="showPassword() ? 'Esconder a senha' : 'Mostrar a senha'"
+            class="shrink-0 min-w-[44px] min-h-[44px] -mr-3 flex items-center justify-center text-outline hover:text-on-surface-variant">
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
+        @if (hasError('password')) {
+          <p class="text-error text-xs">Informe a sua senha.</p>
+        }
+      </div>
+
+      <!-- Erro -->
+      @if (error() && !notVerified()) {
+        <div role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-3 flex items-start gap-2">
+          <span class="material-symbols-outlined text-error text-[18px] shrink-0" aria-hidden="true">error</span>
+          <div>
+            <p class="font-headline font-bold text-xs uppercase text-error">Não foi possível entrar</p>
+            <p class="text-error text-xs mt-0.5">{{ error() }}</p>
+          </div>
+        </div>
+      }
+      @if (info()) {
+        <p role="status" class="bg-surface-container rounded-sm px-4 py-3 text-on-surface text-xs">{{ info() }}</p>
+      }
+
+      <button type="submit" [disabled]="loading()"
+        class="w-full min-h-[52px] bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black uppercase tracking-wider rounded-sm transition-colors flex items-center justify-center gap-2 text-sm">
+        @if (loading()) {
+          <span class="material-symbols-outlined text-[18px] animate-spin" aria-hidden="true">progress_activity</span>
+        }
+        Entrar
+        <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span>
+      </button>
+    </form>
+
+    <!-- Não existe cadastro aberto: coach é criado pelo admin; aluno se inscreve pela página do treinador. -->
+    @if (!rootOnly()) {
+      <div class="border-t border-outline-variant/30 pt-4 flex flex-col gap-2 text-xs text-on-surface-variant">
+        <p class="font-headline font-bold uppercase tracking-widest text-[11px] text-outline">Ainda não tem conta?</p>
+        <p><strong class="text-on-surface">Atleta:</strong> peça ao seu treinador o link da página dele — a inscrição é feita por lá.</p>
+        <p>
+          <strong class="text-on-surface">Treinador:</strong> quer usar o PulseRx?
+          <a href="mailto:aevonaevon52@gmail.com?subject=Quero%20usar%20o%20PulseRx%20como%20treinador"
+            class="text-primary-fixed hover:underline font-medium">Fale com a gente</a>
+        </p>
+      </div>
+    }
+  </section>
+</app-auth-shell>

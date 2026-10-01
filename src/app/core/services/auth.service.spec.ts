@@ -104,6 +104,25 @@ describe('AuthService.login', () => {
     expect(socket.connect).not.toHaveBeenCalled();
   });
 
+  it('lista de perfis aceitos (login sem escolher perfil): entra com qualquer um da lista e devolve o usuário; fora da lista, erro', () => {
+    localStorage.clear();
+    const { http, router, socket } = build();
+    const service = new AuthService(http as any, router as any, socket as any);
+
+    http.post.mockReturnValue(of({ access_token: 'tok-a', user: user({ role: 'athlete' }) }));
+    let entrou: any;
+    service.login('a@x.com', 'x', ['coach', 'athlete']).subscribe(u => { entrou = u; });
+    expect(entrou.role).toBe('athlete');
+    expect(service.currentUser()?.role).toBe('athlete');
+
+    localStorage.clear();
+    http.post.mockReturnValue(of({ access_token: 'tok-adm', user: user({ role: 'admin' }) }));
+    let err: Error | undefined;
+    service.login('adm@x.com', 'x', ['coach', 'athlete']).subscribe({ error: e => { err = e; } });
+    expect(err?.message).toContain('Admin');
+    expect(localStorage.getItem('pulserx_token')).toBeNull();
+  });
+
   it('role diferente e desconhecida (fora do mapa de rótulos): usa o valor bruto (?? res.user.role)', () => {
     const { http, router, socket } = build();
     const service = new AuthService(http as any, router as any, socket as any);

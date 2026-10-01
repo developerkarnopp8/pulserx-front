@@ -5,21 +5,33 @@ import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { apiMessage } from '../../../shared/utils/signup-flow';
 import { senhasIguais, tokenFromHash } from '../reset-password/reset-password.component';
+import { AuthShellComponent } from '../../../shared/components/auth-shell/auth-shell.component';
+import { NewPasswordFieldsComponent } from '../../../shared/components/new-password-fields/new-password-fields.component';
+import { formatCents } from '../../../shared/utils/currency';
+import { PublicCoachProfile } from '../../../core/models';
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
- * Para onde seguir depois de confirmar: o pagamento do plano escolhido na página do coach (`&c=slug&plano=id` no link).
- * Só aceita slug e id no formato esperado — nada do fragmento vira URL livre (nem para fora do site).
+ * Coach e plano escolhidos na inscrição (`&c=slug&plano=id` no link). Só aceita slug e id no formato esperado — nada do
+ * fragmento vira URL livre (nem para fora do site).
  */
-export function continuePathFromHash(hash: string): string | null {
+export function signupTargetFromHash(hash: string): { slug: string; planId: string } | null {
   const params = new URLSearchParams(hash.replace(/^#/, ''));
   const slug = params.get('c');
   const plano = params.get('plano');
   if (!slug || !plano || !SLUG.test(slug) || slug.length > 60 || !UUID.test(plano)) return null;
-  return `/c/${slug}/assinar/${plano}`;
+  return { slug, planId: plano };
 }
+
+/** Para onde seguir depois de confirmar: o pagamento do plano escolhido na página do coach. */
+export function continuePathFromHash(hash: string): string | null {
+  const alvo = signupTargetFromHash(hash);
+  return alvo ? `/c/${alvo.slug}/assinar/${alvo.planId}` : null;
+}
+
+type PublicPlan = PublicCoachProfile['plans'][number];
 
 /**
  * Confirmação do e-mail pelo link + criação da senha (a inscrição não tem senha — decisão do dono, 2026-09-30: quem se
@@ -29,7 +41,7 @@ export function continuePathFromHash(hash: string): string | null {
 @Component({
   selector: 'app-confirm-email',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AuthShellComponent, NewPasswordFieldsComponent],
   templateUrl: './confirm-email.component.html',
 })
 export class ConfirmEmailComponent implements OnInit {
@@ -37,6 +49,10 @@ export class ConfirmEmailComponent implements OnInit {
   busy = signal(false);
   errorMsg = signal('');
   form: FormGroup;
+  /** Plano e coach da inscrição (da página pública do coach). null = link sem plano ou não deu para buscar. */
+  plan = signal<PublicPlan | null>(null);
+  coachName = signal('');
+  readonly fmtCents = formatCents;
   private continuePath: string | null = null;
 
   constructor(
@@ -57,8 +73,23 @@ export class ConfirmEmailComponent implements OnInit {
   ngOnInit(): void {
     this.token.set(tokenFromHash(window.location.hash));
     this.continuePath = continuePathFromHash(window.location.hash);
+    const alvo = signupTargetFromHash(window.location.hash);
     // Tira o token da barra de endereço (histórico, prints, compartilhamento).
     if (window.location.hash) history.replaceState(null, '', window.location.pathname);
+    if (alvo) this.loadSignupTarget(alvo.slug, alvo.planId);
+  }
+
+  /** Mostra o plano e o coach de verdade. Falhou: a tela segue sem o cartão (não impede confirmar). */
+  private loadSignupTarget(slug: string, planId: string): void {
+    this.api.getPublicCoachProfile(slug).subscribe({
+      next: profile => {
+        const plan = profile.plans.find(p => p.id === planId);
+        if (!plan) return;
+        this.plan.set(plan);
+        this.coachName.set(profile.coachName);
+      },
+      error: () => undefined,
+    });
   }
 
   confirm(): void {
