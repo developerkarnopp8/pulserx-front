@@ -1,161 +1,178 @@
-<div class="px-5 py-4 animate-fade-in">
+<div class="px-5 py-4 flex flex-col gap-5 animate-fade-in">
 
-  <!-- Greeting -->
-  <div class="mb-6">
-    <p class="text-on-surface-variant text-xs font-headline uppercase tracking-widest mb-1">{{ greeting() }}</p>
-    <h2 class="font-headline font-black text-3xl text-on-surface leading-tight tracking-tighter">
-      {{ (auth.currentUser()?.name?.split(' ') || ['Atleta'])[0] }}
-    </h2>
-    <p class="text-on-surface-variant text-sm mt-1">
-      {{ todaySessions().length }} atividade{{ todaySessions().length !== 1 ? 's' : '' }} programada{{ todaySessions().length !== 1 ? 's' : '' }} para hoje
-    </p>
-  </div>
-
-  <!-- Hero: Daily Goal -->
-  <div class="bg-surface-container-low rounded-md p-5 mb-4">
-    <p class="text-on-surface-variant text-[10px] uppercase tracking-widest font-headline mb-3">Meta Diária</p>
-    <div class="flex items-center justify-between gap-4">
-      <div class="flex-1">
-        <p class="font-headline font-black text-5xl text-on-surface leading-none tracking-tighter">{{ dailyGoalPercent() }}%</p>
-        <p class="text-on-surface-variant text-xs mt-1">Completo</p>
-        <p class="text-outline text-xs mt-3 font-headline">{{ getWeekDay() | titlecase }}</p>
-        <a routerLink="/athlete/weekly"
-          class="mt-4 inline-flex items-center gap-2 bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-5 py-2.5 rounded-sm uppercase tracking-tighter text-xs transition-all">
-          <span class="material-symbols-outlined text-[16px]">play_arrow</span>
-          Continuar Treino
-        </a>
-      </div>
-      <!-- Circular progress -->
-      <div class="relative w-24 h-24 flex-shrink-0">
-        <svg class="w-24 h-24 -rotate-90" viewBox="0 0 36 36">
-          <circle cx="18" cy="18" r="15" fill="none" stroke="#20201f" stroke-width="3"/>
-          <circle cx="18" cy="18" r="15" fill="none" stroke="#ff7948" stroke-width="3"
-            [attr.stroke-dasharray]="dailyGoalPercent() * 0.94 + ', 94'"
-            stroke-linecap="round"/>
-        </svg>
-        <span class="absolute inset-0 flex items-center justify-center">
-          <span class="material-symbols-outlined text-primary-fixed text-[22px]">bolt</span>
+  <!-- Saudação + onde o aluno está no plano -->
+  <section aria-labelledby="titulo-saudacao" class="flex flex-col gap-2">
+    @if (position(); as pos) {
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-sm bg-surface-container-low font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+          <span class="w-1.5 h-1.5 rounded-full bg-primary-fixed" aria-hidden="true"></span>
+          {{ categoryLabel[pos.category] }}
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-sm bg-surface-container-low font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">
+          <span class="material-symbols-outlined text-[14px]" aria-hidden="true">tune</span>
+          Mês {{ pos.month }} · Sem. {{ pos.week }}
         </span>
       </div>
-    </div>
-  </div>
+    }
+    <h2 id="titulo-saudacao" class="font-headline font-black text-3xl text-on-surface uppercase leading-none tracking-tight">
+      {{ greeting() }}, <span class="text-primary-fixed">{{ firstName() }}</span>
+    </h2>
+    <p class="text-on-surface-variant text-sm">{{ today() }}</p>
+    @if (goal()) {
+      <p class="text-on-surface-variant text-xs"><span class="font-headline font-bold uppercase tracking-widest text-[11px]">Objetivo:</span> {{ goal() }}</p>
+    }
+  </section>
 
-  <!-- Bento: Stats Row -->
-  <div class="grid grid-cols-2 gap-3 mb-5">
-    <button type="button" (click)="addWater()" [disabled]="loggingWater()"
-      class="bg-surface-container-low rounded-md p-4 text-left hover:bg-surface-container transition-colors disabled:opacity-60">
-      <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-[16px] text-on-surface-variant">water_drop</span>
-          <span class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest">Meta 3L</span>
-        </div>
-        <span class="material-symbols-outlined text-[16px] text-primary-fixed">add_circle</span>
+  <!-- Cronograma de hoje -->
+  <section aria-labelledby="titulo-cronograma" class="flex flex-col gap-2">
+    <div class="flex items-end justify-between gap-3">
+      <div>
+        <h3 id="titulo-cronograma" class="font-headline font-black text-sm text-on-surface uppercase tracking-widest">Cronograma de hoje</h3>
+        @if (todaySessions().length) {
+          <p class="text-on-surface-variant text-xs mt-0.5">
+            {{ doneCount() }} de {{ todaySessions().length }} {{ todaySessions().length === 1 ? 'sessão concluída' : 'sessões concluídas' }}
+          </p>
+        }
       </div>
-      <p class="font-headline font-black text-2xl text-on-surface">{{ hydration() }} <span class="text-sm font-normal text-on-surface-variant">L</span></p>
-      <p class="text-outline text-[10px] mt-0.5">Toque pra +250ml</p>
-    </button>
-
-    <div class="bg-surface-container-low rounded-md p-4">
-      @if (!addingCalories()) {
-        <button type="button" (click)="openCalorieInput()" class="w-full text-left">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-[16px] text-primary-fixed">local_fire_department</span>
-              <span class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest">Meta 2500</span>
-            </div>
-            <span class="material-symbols-outlined text-[16px] text-primary-fixed">add_circle</span>
-          </div>
-          <p class="font-headline font-black text-2xl text-on-surface">{{ calories() }} <span class="text-sm font-normal text-on-surface-variant">Kcal</span></p>
-          <p class="text-outline text-[10px] mt-0.5">Toque pra registrar</p>
-        </button>
-      } @else {
-        <div class="flex items-center gap-2 mb-2">
-          <span class="material-symbols-outlined text-[16px] text-primary-fixed">local_fire_department</span>
-          <span class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest">Kcal da refeição</span>
-        </div>
-        <input type="number" inputmode="numeric" placeholder="Ex: 450"
-          [ngModel]="calorieInput()" (ngModelChange)="calorieInput.set($event)" (keyup.enter)="confirmCalories()"
-          class="w-full bg-surface-container text-on-surface placeholder:text-outline rounded-sm px-2 py-1.5 text-sm mb-2" />
-        <div class="flex gap-2">
-          <button type="button" (click)="cancelCalorieInput()"
-            class="flex-1 py-1.5 rounded-sm border border-outline-variant/30 text-on-surface-variant text-[10px] font-headline uppercase">
-            Cancelar
-          </button>
-          <button type="button" (click)="confirmCalories()" [disabled]="loggingCalories()"
-            class="flex-1 py-1.5 rounded-sm bg-primary-fixed disabled:opacity-60 text-on-primary-fixed text-[10px] font-headline uppercase">
-            Add
-          </button>
-        </div>
-      }
-    </div>
-  </div>
-
-  <!-- Cronograma de Hoje -->
-  <div class="mb-5">
-    <div class="flex items-center justify-between mb-3">
-      <h3 class="text-on-surface font-headline font-black text-sm uppercase tracking-widest">Cronograma de Hoje</h3>
-      <a routerLink="/athlete/weekly" class="text-primary-fixed text-xs font-headline hover:underline">Ver Tudo</a>
+      <a routerLink="/athlete/weekly" class="min-h-[44px] inline-flex items-center gap-1 text-primary-fixed font-headline text-xs font-bold uppercase tracking-widest">
+        Ver tudo <span class="material-symbols-outlined text-[16px]" aria-hidden="true">chevron_right</span>
+      </a>
     </div>
 
     @for (session of todaySessions(); track session.id) {
-      <a [routerLink]="['/athlete/session', session.id]"
-        class="flex items-center gap-4 p-4 rounded-md mb-2 transition-all"
-        [class.bg-primary-fixed]="session.status === 'none' && isNextSession(session)"
-        [class.bg-surface-container-low]="!(session.status === 'none' && isNextSession(session))">
-        <!-- State indicator -->
-        <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-          [class.bg-white/20]="session.status === 'none' && isNextSession(session)"
-          [class.bg-surface-container]="!(session.status === 'none' && isNextSession(session))">
-          @if (session.status === 'done') {
-            <span class="material-symbols-outlined text-[18px] text-primary-fixed">check_circle</span>
-          } @else if (session.status === 'postponed') {
-            <span class="material-symbols-outlined text-[18px] text-outline">schedule</span>
-          } @else if (session.status === 'abandoned') {
-            <span class="material-symbols-outlined text-[18px] text-outline">block</span>
-          } @else if (isNextSession(session)) {
-            <span class="material-symbols-outlined text-[18px] text-on-primary-fixed">play_arrow</span>
-          } @else {
-            <span class="material-symbols-outlined text-[18px] text-outline">schedule</span>
+      @if (isNextSession(session)) {
+        <article class="relative bg-surface-container-low rounded-md p-4 flex flex-col gap-3 overflow-hidden border border-primary-fixed/40">
+          <span class="absolute left-0 inset-y-0 w-1 bg-primary-fixed" aria-hidden="true"></span>
+          <div class="flex items-center justify-between gap-2">
+            <span class="inline-flex items-center gap-1.5 font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">
+              <span class="material-symbols-outlined text-[16px]" aria-hidden="true">{{ typeIcon[session.type] }}</span>
+              {{ typeLabel[session.type] }} · Próxima
+            </span>
+            <span class="text-on-surface-variant text-xs">{{ session.exercises.length }} ex.</span>
+          </div>
+          <h4 class="font-headline font-black text-lg text-on-surface uppercase leading-tight">{{ session.name }}</h4>
+          @if (preview(session)) {
+            <p class="text-on-surface-variant text-sm">{{ preview(session) }}</p>
           }
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="font-headline font-bold text-sm truncate"
-            [class.text-on-primary-fixed]="session.status === 'none' && isNextSession(session)"
-            [class.text-on-surface]="!(session.status === 'none' && isNextSession(session))">{{ session.name }}</p>
-          <p class="text-xs mt-0.5"
-            [class.text-on-primary-fixed]="session.status === 'none' && isNextSession(session)"
-            [class.text-outline]="!(session.status === 'none' && isNextSession(session))">
-            @if (session.status === 'done') { <span>Concluído</span> }
-            @else if (session.status === 'postponed') { <span>Pulado — vai fazer depois</span> }
-            @else if (session.status === 'abandoned') { <span>Pulado</span> }
-            @else if (isNextSession(session)) { <span>Próximo</span> }
-            @else { <span>Agendado</span> }
-          </p>
-        </div>
-        @if (session.status !== 'done') {
-          <span class="material-symbols-outlined text-[18px]"
-            [class.text-on-primary-fixed]="session.status === 'none' && isNextSession(session)"
-            [class.text-outline]="!(session.status === 'none' && isNextSession(session))">chevron_right</span>
-        }
-      </a>
+          <a [routerLink]="['/athlete/session', session.id]"
+            class="min-h-[48px] rounded-sm bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-colors">
+            <span class="material-symbols-outlined text-[20px]" aria-hidden="true">play_arrow</span>
+            Iniciar
+          </a>
+        </article>
+      } @else {
+        <a [routerLink]="['/athlete/session', session.id]"
+          class="bg-surface-container-low hover:bg-surface-container rounded-md p-4 flex items-center gap-3 transition-colors">
+          <span class="w-10 h-10 rounded-sm bg-surface-container flex items-center justify-center shrink-0" aria-hidden="true">
+            <span class="material-symbols-outlined text-[20px]"
+              [class.text-primary-fixed]="session.status === 'done'" [class.text-outline]="session.status !== 'done'">{{ typeIcon[session.type] }}</span>
+          </span>
+          <span class="flex-1 min-w-0">
+            <span class="block font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+              {{ typeLabel[session.type] }} · {{ session.exercises.length }} ex.
+            </span>
+            <span class="block font-headline font-bold text-sm text-on-surface truncate">{{ session.name }}</span>
+          </span>
+          @if (session.status === 'done') {
+            <span class="inline-flex items-center gap-1 font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed shrink-0">
+              <span class="material-symbols-outlined text-[16px]" aria-hidden="true">done_all</span> Feito
+            </span>
+          } @else if (session.status === 'postponed') {
+            <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-outline shrink-0">Vai fazer depois</span>
+          } @else if (session.status === 'abandoned') {
+            <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-outline shrink-0">Pulado</span>
+          } @else {
+            <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-outline shrink-0">Agendado</span>
+          }
+        </a>
+      }
     }
 
     @if (todaySessions().length === 0) {
       @if (weekLocked()) {
-        <div class="text-center py-6 flex flex-col items-center gap-2">
+        <div class="bg-surface-container-low rounded-md text-center py-6 px-4 flex flex-col items-center gap-2">
           <span class="material-symbols-outlined text-outline text-[28px]" aria-hidden="true">lock</span>
           <p class="text-on-surface-variant text-sm">O treino desta semana é para assinantes.</p>
           <a routerLink="/athlete/subscription" class="min-h-[44px] inline-flex items-center px-4 rounded-sm bg-primary-fixed text-on-primary-fixed text-xs font-headline uppercase tracking-widest">Assinar um plano</a>
         </div>
       } @else {
-        <p class="text-outline text-sm text-center py-6">Nenhuma sessão para hoje.</p>
+        <p class="bg-surface-container-low rounded-md text-outline text-sm text-center py-6">Nenhuma sessão para hoje.</p>
       }
     }
+  </section>
+
+  <!-- Recado do coach (observação dele na próxima sessão) -->
+  @if (coachNote(); as note) {
+    <section class="bg-surface-container-low rounded-md p-4 flex gap-3" aria-labelledby="titulo-recado">
+      <span class="material-symbols-outlined text-primary-fixed text-[22px] shrink-0" aria-hidden="true">sports</span>
+      <div class="flex flex-col gap-1 min-w-0">
+        <h3 id="titulo-recado" class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Recado do coach · próxima sessão</h3>
+        <p class="text-on-surface text-sm italic">“{{ note }}”</p>
+      </div>
+    </section>
+  }
+
+  <!-- Água e calorias -->
+  <div class="grid grid-cols-2 gap-3">
+    <section class="bg-surface-container-low rounded-md p-4 flex flex-col gap-2" aria-labelledby="titulo-agua">
+      <div class="flex items-center justify-between">
+        <h3 id="titulo-agua" class="flex items-center gap-1.5 font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+          <span class="material-symbols-outlined text-[16px] text-primary-fixed" aria-hidden="true">water_drop</span> Água
+        </h3>
+        <span class="text-on-surface-variant text-[11px]">{{ waterPercent() }}%</span>
+      </div>
+      <p class="font-headline font-black text-2xl text-on-surface leading-none">{{ hydration() }} <span class="text-xs font-normal text-on-surface-variant">L</span></p>
+      <div class="h-1.5 rounded-full bg-surface-container-highest overflow-hidden" role="progressbar"
+        [attr.aria-valuenow]="waterPercent()" aria-valuemin="0" aria-valuemax="100" aria-label="Água em relação à meta">
+        <div class="h-full bg-primary-fixed transition-all" [style.width.%]="waterPercent()"></div>
+      </div>
+      <p class="text-outline text-[11px]">Meta: {{ waterGoalL }} L</p>
+      <button type="button" (click)="addWater()" [disabled]="loggingWater()"
+        class="min-h-[44px] rounded-sm bg-surface-container hover:bg-surface-container-high disabled:opacity-60 text-on-surface font-headline text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-1">
+        <span class="material-symbols-outlined text-[16px]" aria-hidden="true">add</span> 250 ml
+      </button>
+    </section>
+
+    <section class="bg-surface-container-low rounded-md p-4 flex flex-col gap-2" aria-labelledby="titulo-calorias">
+      <div class="flex items-center justify-between">
+        <h3 id="titulo-calorias" class="flex items-center gap-1.5 font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+          <span class="material-symbols-outlined text-[16px] text-primary-fixed" aria-hidden="true">local_fire_department</span> Calorias
+        </h3>
+        <span class="text-on-surface-variant text-[11px]">{{ caloriesPercent() }}%</span>
+      </div>
+      <p class="font-headline font-black text-2xl text-on-surface leading-none">{{ calories() }} <span class="text-xs font-normal text-on-surface-variant">/ {{ caloriesGoal }} kcal</span></p>
+      <div class="h-1.5 rounded-full bg-surface-container-highest overflow-hidden" role="progressbar"
+        [attr.aria-valuenow]="caloriesPercent()" aria-valuemin="0" aria-valuemax="100" aria-label="Calorias em relação à meta">
+        <div class="h-full bg-primary-fixed transition-all" [style.width.%]="caloriesPercent()"></div>
+      </div>
+      @if (!addingCalories()) {
+        <p class="text-outline text-[11px]">kcal registradas hoje</p>
+        <button type="button" (click)="openCalorieInput()"
+          class="min-h-[44px] rounded-sm bg-surface-container hover:bg-surface-container-high text-on-surface font-headline text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-1">
+          <span class="material-symbols-outlined text-[16px]" aria-hidden="true">edit_note</span> Registrar
+        </button>
+      } @else {
+        <label for="kcal-refeicao" class="sr-only">Kcal da refeição</label>
+        <input id="kcal-refeicao" type="number" inputmode="numeric" placeholder="Kcal da refeição"
+          [ngModel]="calorieInput()" (ngModelChange)="calorieInput.set($event)" (keyup.enter)="confirmCalories()"
+          class="w-full min-h-[40px] bg-surface-container text-on-surface placeholder:text-outline rounded-sm px-2 text-sm" />
+        <div class="flex gap-2">
+          <button type="button" (click)="cancelCalorieInput()" aria-label="Cancelar"
+            class="min-h-[44px] px-2 rounded-sm text-on-surface-variant flex items-center justify-center">
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">close</span>
+          </button>
+          <button type="button" (click)="confirmCalories()" [disabled]="loggingCalories()"
+            class="flex-1 min-h-[44px] rounded-sm bg-primary-fixed disabled:opacity-60 text-on-primary-fixed font-headline text-xs font-bold uppercase tracking-widest">
+            OK
+          </button>
+        </div>
+      }
+    </section>
   </div>
 
   <!-- Sequência de dias com treino (histórico real de treinos) -->
   @if (streak(); as s) {
-    <section class="bg-surface-container-low rounded-md p-4 mb-3" aria-labelledby="sequencia-treino">
+    <section class="bg-surface-container-low rounded-md p-4" aria-labelledby="sequencia-treino">
       <div class="flex items-center justify-between mb-3 gap-2">
         <h3 id="sequencia-treino" class="flex items-center gap-2 font-headline font-black text-lg text-on-surface uppercase tracking-tight">
           <span class="material-symbols-outlined text-primary-fixed text-[22px]" aria-hidden="true">local_fire_department</span>
@@ -193,29 +210,34 @@
 
   <!-- PR mais recente (último registro que superou a melhor carga do movimento) -->
   @if (prsLoaded()) {
-    <a routerLink="/athlete/records"
-      class="bg-surface-container-low hover:bg-surface-container rounded-md p-4 mb-5 flex items-center gap-4 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-fixed">
-      <span class="w-12 h-12 rounded-md bg-primary-fixed/15 flex items-center justify-center flex-shrink-0" aria-hidden="true">
-        <span class="material-symbols-outlined text-primary-fixed text-[24px]">emoji_events</span>
-      </span>
-      <div class="flex-1 min-w-0">
-        <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest">PR mais recente</p>
-        @if (latestPr(); as p) {
-          <p class="flex items-center gap-2 font-headline font-black text-lg text-on-surface uppercase tracking-tight truncate">
-            <span class="truncate">{{ p.record.movement.name }} {{ p.record.loadKg }}kg</span>
-            @if (p.deltaKg) {
-              <span class="text-[10px] font-headline bg-primary-fixed/15 text-primary-fixed px-1.5 py-0.5 rounded-sm flex-shrink-0">+{{ p.deltaKg }}kg</span>
-            }
-          </p>
-        } @else {
-          <p class="text-on-surface text-sm">Registre seu primeiro recorde</p>
-        }
+    <section class="relative bg-surface-container-low rounded-md p-4 flex flex-col gap-3 overflow-hidden" aria-labelledby="titulo-pr">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary-fixed text-[22px]" aria-hidden="true">emoji_events</span>
+        <h3 id="titulo-pr" class="font-headline font-black text-sm text-on-surface uppercase tracking-widest">PR mais recente</h3>
       </div>
-      <span class="text-primary-fixed text-xs font-headline uppercase tracking-widest flex items-center gap-1 flex-shrink-0">
-        Ver todos
-        <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span>
-      </span>
-    </a>
+      @if (latestPr(); as p) {
+        <div class="flex flex-col gap-1">
+          <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">{{ p.record.movement.name }}</p>
+          <p class="font-headline font-black text-4xl text-on-surface leading-none">{{ p.record.loadKg }} <span class="text-lg">kg</span></p>
+          @if (p.deltaKg) {
+            <p class="flex items-center gap-1 text-primary-fixed text-xs font-headline font-bold">
+              <span class="material-symbols-outlined text-[16px]" aria-hidden="true">trending_up</span>
+              +{{ p.deltaKg }} kg sobre o recorde anterior
+            </p>
+          }
+          <p class="flex items-center gap-1 text-on-surface-variant text-xs">
+            <span class="material-symbols-outlined text-[16px]" aria-hidden="true">event_available</span>
+            Registrado em {{ p.record.achievedAt | date: 'dd/MM/yyyy' }}
+          </p>
+        </div>
+      } @else {
+        <p class="text-on-surface text-sm">Registre seu primeiro recorde.</p>
+      }
+      <a routerLink="/athlete/records"
+        class="min-h-[44px] inline-flex items-center gap-1 self-start text-primary-fixed font-headline text-xs font-bold uppercase tracking-widest">
+        Ver todos os PRs <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span>
+      </a>
+    </section>
   }
 
 </div>
