@@ -1,0 +1,109 @@
+<div class="min-h-screen bg-background text-on-surface flex flex-col">
+
+  <header class="px-5 md:px-10 py-5 flex items-center justify-between border-b border-outline-variant/10">
+    <span class="font-condensed font-extrabold text-xl uppercase tracking-wide">Pulse<span class="text-primary-fixed">Rx</span></span>
+    <span class="inline-flex items-center gap-1 font-condensed font-bold text-[11px] uppercase tracking-widest text-on-surface-variant">
+      <span class="material-symbols-outlined text-[16px] text-primary-fixed" aria-hidden="true">lock</span> Assinatura segura
+    </span>
+  </header>
+
+  <main class="flex-1 w-full max-w-5xl mx-auto px-5 md:px-10 py-8 md:py-12">
+    @if (loading()) {
+      <div class="h-64 bg-surface-container-low rounded-xl animate-pulse" aria-busy="true" aria-label="Carregando"></div>
+    } @else if (status(); as st) {
+      <app-checkout-steps [steps]="steps()" />
+
+      @if (released()) {
+        <section class="bg-surface-container-low border border-outline-variant/10 rounded-xl p-6 md:p-10 text-center">
+          <span class="inline-flex w-16 h-16 rounded-full bg-primary-fixed/15 items-center justify-center">
+            <span class="material-symbols-outlined text-[40px] text-primary-fixed" aria-hidden="true">check_circle</span>
+          </span>
+          <p class="mt-4 text-primary-fixed font-condensed font-bold text-xs uppercase tracking-[0.2em]">
+            {{ isFree() ? 'Plano ativo' : 'Pagamento confirmado' }}
+          </p>
+          <h1 class="font-condensed font-extrabold text-3xl md:text-4xl uppercase leading-tight mt-1">
+            Assinatura ativa{{ firstName() ? ', ' + firstName() : '' }}!
+          </h1>
+          <p class="text-on-surface-variant text-sm mt-2 max-w-xl mx-auto">
+            Agora você treina com <strong class="text-on-surface">{{ st.coachName }}</strong>. Os treinos do seu plano já estão liberados no app.
+          </p>
+        </section>
+
+        <div class="grid md:grid-cols-2 gap-6 mt-6 items-start">
+          <section class="bg-surface-container-low border border-outline-variant/10 rounded-xl p-6" aria-labelledby="resumo-titulo">
+            <h2 id="resumo-titulo" class="font-condensed font-extrabold text-lg uppercase flex items-center gap-2">
+              <span class="material-symbols-outlined text-[20px] text-primary-fixed" aria-hidden="true">receipt_long</span> Resumo
+            </h2>
+            <dl class="mt-4 space-y-3 text-sm">
+              <div class="flex justify-between gap-3"><dt class="text-on-surface-variant">Plano</dt><dd class="font-semibold text-right">{{ st.plan?.name }}</dd></div>
+              <div class="flex justify-between gap-3"><dt class="text-on-surface-variant">Treinador</dt><dd class="font-semibold text-right">{{ st.coachName }}</dd></div>
+              <div class="flex justify-between gap-3">
+                <dt class="text-on-surface-variant">Valor</dt>
+                <dd class="font-semibold text-right">{{ isFree() ? 'Grátis' : fmtCents(st.plan?.priceCents ?? 0) + ' / mês' }}</dd>
+              </div>
+              @if (st.lastPaidAt) {
+                <div class="flex justify-between gap-3"><dt class="text-on-surface-variant">Pago em</dt><dd class="font-semibold text-right">{{ st.lastPaidAt | date:'dd/MM/yyyy' }}</dd></div>
+              }
+            </dl>
+            @if (!isFree()) {
+              <p class="text-on-surface-variant text-xs mt-4">Renova todo mês. Faturas, forma de pagamento e cancelamento ficam em <a routerLink="/athlete/subscription" class="underline underline-offset-2 text-on-surface">Minha assinatura</a>.</p>
+            }
+          </section>
+
+          <section class="bg-surface-container-low border border-outline-variant/10 rounded-xl p-6" aria-labelledby="comecar-titulo">
+            <h2 id="comecar-titulo" class="font-condensed font-extrabold text-lg uppercase flex items-center gap-2">
+              <span class="material-symbols-outlined text-[20px] text-primary-fixed" aria-hidden="true">directions_run</span> Como começar
+            </h2>
+            <ol class="mt-4 space-y-4">
+              <li class="flex gap-3">
+                <span class="font-condensed font-extrabold text-2xl text-primary-fixed leading-none" aria-hidden="true">01</span>
+                <p class="text-sm"><strong>Abra o PulseRx</strong> no celular ou no computador, pelo navegador.</p>
+              </li>
+              <li class="flex gap-3">
+                <span class="font-condensed font-extrabold text-2xl text-primary-fixed leading-none" aria-hidden="true">02</span>
+                <p class="text-sm"><strong>Entre com o seu e-mail</strong>@if (email()) { <span> ({{ email() }})</span> } e a senha que você criou.</p>
+              </li>
+              <li class="flex gap-3">
+                <span class="font-condensed font-extrabold text-2xl text-primary-fixed leading-none" aria-hidden="true">03</span>
+                <p class="text-sm"><strong>Veja o treino de hoje</strong> no Início e o da semana na aba Treino.</p>
+              </li>
+            </ol>
+          </section>
+        </div>
+
+        <div class="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+          <a routerLink="/athlete/bem-vindo"
+            class="min-h-[52px] inline-flex items-center justify-center gap-2 px-8 rounded-lg bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-condensed font-extrabold text-lg uppercase tracking-wider transition-colors">
+            Entrar no app <span class="material-symbols-outlined text-[20px]" aria-hidden="true">arrow_forward</span>
+          </a>
+        </div>
+        @if (!isFree()) {
+          <p class="text-outline text-xs mt-6 text-center">Direito de arrependimento em até 7 dias da contratação (Código de Defesa do Consumidor, art. 49).</p>
+        }
+      } @else {
+        <section class="max-w-md mx-auto text-center bg-surface-container-low rounded-xl p-8">
+          <span class="material-symbols-outlined text-[40px] text-primary-fixed" aria-hidden="true">hourglass_top</span>
+          <h1 class="font-condensed font-extrabold text-2xl uppercase mt-2">Aguardando o pagamento</h1>
+          <p class="text-on-surface-variant text-sm mt-2">
+            @if (st.hasOpenPayment) {
+              Ainda não recebemos a confirmação do pagamento. Se já pagou, pode levar alguns segundos.
+            } @else {
+              Você não tem uma assinatura ativa no momento.
+            }
+          </p>
+          <div class="mt-5 flex flex-col gap-2">
+            @if (st.hasOpenPayment) {
+              <a routerLink="/assinatura/pagar" class="min-h-[44px] inline-flex items-center justify-center px-5 rounded-lg bg-primary-fixed text-on-primary-fixed font-condensed font-extrabold uppercase tracking-wider">Pagar com PIX</a>
+            }
+            <a routerLink="/athlete/subscription" class="min-h-[44px] inline-flex items-center justify-center px-5 rounded-lg bg-surface-container-highest text-on-surface font-condensed font-bold uppercase tracking-wider">Minha assinatura</a>
+          </div>
+        </section>
+      }
+    } @else {
+      <div class="max-w-md mx-auto text-center bg-surface-container-low rounded-xl p-8">
+        <p role="alert" class="text-on-surface-variant text-sm">{{ errorMsg() }}</p>
+        <a routerLink="/athlete/home" class="mt-5 inline-flex min-h-[44px] items-center px-5 rounded-lg bg-primary-fixed text-on-primary-fixed font-condensed font-extrabold uppercase tracking-wider">Ir para o app</a>
+      </div>
+    }
+  </main>
+</div>

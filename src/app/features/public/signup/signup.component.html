@@ -28,23 +28,7 @@
 
         <!-- Formulário do passo atual -->
         <section class="bg-surface-container-low border border-outline-variant/10 rounded-xl p-6 md:p-8">
-          <ol class="grid grid-cols-3 gap-2 mb-6" aria-label="Etapas">
-            @for (st of steps(p.isFree); track st.n) {
-              <li class="flex flex-col gap-1.5" [attr.aria-current]="st.state === 'current' ? 'step' : null">
-                <span class="h-1 rounded-full" [class.bg-primary-fixed]="st.state !== 'todo'" [class.bg-surface-container-highest]="st.state === 'todo'" aria-hidden="true"></span>
-                <span class="flex items-center gap-1.5 font-condensed font-bold text-[11px] uppercase tracking-widest"
-                  [class.text-primary-fixed]="st.state === 'current'" [class.text-on-surface]="st.state === 'done'" [class.text-outline]="st.state === 'todo'">
-                  <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0"
-                    [class.bg-primary-fixed]="st.state !== 'todo'" [class.text-on-primary-fixed]="st.state !== 'todo'"
-                    [class.bg-surface-container-highest]="st.state === 'todo'" aria-hidden="true">
-                    @if (st.state === 'done') { <span class="material-symbols-outlined text-[14px]">check</span> } @else { {{ st.n }} }
-                  </span>
-                  {{ st.label }}
-                  <span class="sr-only">{{ st.state === 'done' ? '(concluída)' : st.state === 'current' ? '(etapa atual)' : '' }}</span>
-                </span>
-              </li>
-            }
-          </ol>
+          <app-checkout-steps [steps]="steps(p.isFree)" />
 
           @if (errorMsg()) {
             <p role="alert" class="bg-error/10 border border-error/30 rounded-lg px-4 py-3 text-error text-sm mb-5">{{ errorMsg() }}</p>
@@ -145,7 +129,7 @@
                 Olá{{ auth.currentUser()?.name ? ', ' + auth.currentUser()!.name.split(' ')[0] : '' }}! A cobrança é mensal e você escolhe como pagar:
                 <strong class="text-on-surface">PIX, boleto ou cartão de crédito</strong>. O CPF é exigido pelo meio de pagamento para emitir a cobrança.
               </p>
-              <ul class="grid grid-cols-3 gap-2 mb-5" aria-label="Formas de pagamento aceitas na página do Asaas">
+              <ul class="grid grid-cols-3 gap-2 mb-5" aria-label="Formas de pagamento aceitas">
                 <li class="bg-surface-container rounded-lg p-3 flex flex-col items-center gap-1 text-center">
                   <span class="material-symbols-outlined text-[24px] text-primary-fixed" aria-hidden="true">qr_code_2</span>
                   <span class="font-condensed font-bold text-xs uppercase tracking-wider">PIX</span>
@@ -165,12 +149,12 @@
                 class="w-full min-h-[48px] bg-surface-container text-on-surface rounded-lg px-4 text-sm mb-5" />
               <button type="button" (click)="pay()" [disabled]="busy()"
                 class="w-full min-h-[52px] rounded-lg bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-condensed font-extrabold text-lg uppercase tracking-wider transition-colors">
-                {{ busy() ? 'Gerando cobrança...' : 'Ir para o pagamento' }}
+                {{ busy() ? 'Gerando cobrança...' : 'Gerar cobrança' }}
               </button>
               <p class="text-outline text-xs mt-3 flex items-start gap-1.5">
                 <span class="material-symbols-outlined text-[16px]" aria-hidden="true">lock</span>
-                Você será levado à página segura de pagamento do Asaas, onde escolhe PIX, boleto ou cartão. Pagando com cartão, as próximas
-                mensalidades são cobradas nele automaticamente (você cancela quando quiser, no app). Depois de pagar, é só entrar no app.
+                Na próxima tela você paga com PIX aqui mesmo, com aprovação na hora, ou abre a fatura segura do Asaas para boleto ou cartão.
+                Pagando com cartão, as próximas mensalidades são cobradas nele automaticamente (você cancela quando quiser, no app).
               </p>
             }
           }

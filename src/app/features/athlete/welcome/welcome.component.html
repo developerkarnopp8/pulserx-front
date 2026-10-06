@@ -1,0 +1,84 @@
+<div class="px-4 py-6 flex flex-col gap-5">
+  <section>
+    <p class="text-primary-fixed font-condensed font-bold text-xs uppercase tracking-[0.2em]">Primeiro acesso</p>
+    <h1 class="font-condensed font-extrabold text-3xl uppercase leading-tight mt-1">
+      Bem-vindo ao Pulse<span class="text-primary-fixed">Rx</span>{{ firstName() ? ', ' + firstName() : '' }}!
+    </h1>
+    @if (status(); as st) {
+      <p class="text-on-surface-variant text-sm mt-2">
+        Você treina com <strong class="text-on-surface">{{ st.coachName }}</strong>@if (st.plan) { <span> no plano <strong class="text-on-surface">{{ st.plan.name }}</strong></span> }.
+        Os treinos publicados para você aparecem aqui no app.
+      </p>
+    }
+  </section>
+
+  <section class="bg-surface-container-low rounded-xl p-5" aria-labelledby="checklist-titulo">
+    <h2 id="checklist-titulo" class="font-condensed font-extrabold text-lg uppercase">Por onde começar</h2>
+    <ul class="mt-4 flex flex-col gap-3">
+      <li>
+        <a routerLink="/athlete/records" class="flex items-start gap-3 bg-surface-container rounded-lg p-4 min-h-[44px] hover:bg-surface-container-high transition-colors">
+          <span class="material-symbols-outlined text-[22px] text-primary-fixed" aria-hidden="true">military_tech</span>
+          <span class="flex-1">
+            <span class="flex items-center justify-between gap-2">
+              <span class="font-semibold text-sm">01. Cadastre seus recordes</span>
+              <span class="font-condensed font-bold text-[10px] uppercase tracking-widest px-2 py-0.5 rounded"
+                [class.bg-primary-fixed]="hasRecords()" [class.text-on-primary-fixed]="hasRecords()"
+                [class.bg-surface-container-highest]="!hasRecords()" [class.text-on-surface-variant]="!hasRecords()">
+                {{ hasRecords() ? 'Pronto' : 'Recomendado' }}
+              </span>
+            </span>
+            <span class="block text-on-surface-variant text-xs mt-1">Registre suas cargas máximas para acompanhar a sua evolução na aba PRs.</span>
+          </span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/athlete/weekly" class="flex items-start gap-3 bg-surface-container rounded-lg p-4 min-h-[44px] hover:bg-surface-container-high transition-colors">
+          <span class="material-symbols-outlined text-[22px] text-primary-fixed" aria-hidden="true">calendar_view_week</span>
+          <span class="flex-1">
+            <span class="font-semibold text-sm">02. Conheça o treino da semana</span>
+            <span class="block text-on-surface-variant text-xs mt-1">Na aba Treino ficam as sessões que o seu treinador montou para cada dia.</span>
+          </span>
+        </a>
+      </li>
+      @if (notif() !== 'unsupported') {
+        <li class="flex items-start gap-3 bg-surface-container rounded-lg p-4">
+          <span class="material-symbols-outlined text-[22px] text-primary-fixed" aria-hidden="true">notifications_active</span>
+          <span class="flex-1">
+            <span class="flex items-center justify-between gap-2">
+              <span class="font-semibold text-sm">03. Ative as notificações</span>
+              <span class="font-condensed font-bold text-[10px] uppercase tracking-widest px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant">Opcional</span>
+            </span>
+            <span class="block text-on-surface-variant text-xs mt-1">Receba um aviso no navegador quando o seu treinador mandar mensagem.</span>
+            <span class="block mt-2" aria-live="polite">
+              @switch (notif()) {
+                @case ('granted') { <span class="text-primary-fixed text-xs font-semibold">Notificações ativadas</span> }
+                @case ('denied') { <span class="text-on-surface-variant text-xs">Bloqueadas neste navegador. Para ativar, libere nas configurações do site.</span> }
+                @default {
+                  <button type="button" (click)="enableNotifications()"
+                    class="min-h-[44px] px-4 rounded-sm bg-surface-container-highest text-on-surface text-xs font-headline uppercase tracking-widest">
+                    Ativar notificações
+                  </button>
+                }
+              }
+            </span>
+          </span>
+        </li>
+      }
+    </ul>
+  </section>
+
+  <div class="flex flex-col gap-2">
+    <a routerLink="/athlete/home"
+      class="min-h-[52px] inline-flex items-center justify-center gap-2 rounded-lg bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-condensed font-extrabold text-lg uppercase tracking-wider transition-colors">
+      Ver o treino de hoje <span class="material-symbols-outlined text-[20px]" aria-hidden="true">arrow_forward</span>
+    </a>
+    <a routerLink="/athlete/records"
+      class="min-h-[44px] inline-flex items-center justify-center gap-2 rounded-lg bg-surface-container-highest text-on-surface font-condensed font-bold uppercase tracking-wider">
+      <span class="material-symbols-outlined text-[18px]" aria-hidden="true">speed</span> Cadastrar meus recordes primeiro
+    </a>
+  </div>
+  <p class="text-outline text-xs text-center flex items-center justify-center gap-1">
+    <span class="material-symbols-outlined text-[16px]" aria-hidden="true">info</span>
+    Esta tela aparece só no primeiro acesso.
+  </p>
+</div>

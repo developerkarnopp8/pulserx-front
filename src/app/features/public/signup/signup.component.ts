@@ -6,18 +6,13 @@ import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { PublicCoachProfile, TRAINING_CATEGORY_LABEL } from '../../../core/models';
 import { formatCents } from '../../../shared/utils/currency';
+import { CheckoutStepsComponent, StepView, checkoutSteps } from '../../../shared/components/checkout-steps/checkout-steps.component';
 import {
-  apiMessage, checkoutErrorMessage, isEmailExists, isEmailNotVerified, isSafeCheckoutUrl, maskCpf,
+  apiMessage, checkoutErrorMessage, isEmailExists, isEmailNotVerified, maskCpf,
 } from '../../../shared/utils/signup-flow';
 
 type Step = 'account' | 'login' | 'verify' | 'payment';
 type PublicPlan = PublicCoachProfile['plans'][number];
-
-export interface StepView {
-  n: number;
-  label: string;
-  state: 'done' | 'current' | 'todo';
-}
 
 /**
  * Inscrição + pagamento a partir da landing do coach (`/c/:slug/assinar/:planId`).
@@ -27,7 +22,7 @@ export interface StepView {
 @Component({
   selector: 'app-public-signup',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, CheckoutStepsComponent],
   templateUrl: './signup.component.html',
 })
 export class PublicSignupComponent implements OnInit {
@@ -48,12 +43,7 @@ export class PublicSignupComponent implements OnInit {
 
   /** As 3 etapas do topo (dados → confirmar e-mail → pagamento/acesso), com a atual destacada. Login conta como etapa 1. */
   steps(isFree: boolean): StepView[] {
-    const current = this.step() === 'payment' ? 3 : this.step() === 'verify' ? 2 : 1;
-    return [
-      { n: 1, label: 'Seus dados' },
-      { n: 2, label: 'Confirme o e-mail' },
-      { n: 3, label: isFree ? 'Acesso' : 'Pagamento' },
-    ].map(s => ({ ...s, state: s.n < current ? 'done' : s.n === current ? 'current' : 'todo' }));
+    return checkoutSteps(this.step() === 'payment' ? 3 : this.step() === 'verify' ? 2 : 1, isFree);
   }
 
   plan = computed<PublicPlan | null>(() => this.profile()?.plans.find(p => p.id === this.planId) ?? null);
@@ -178,13 +168,10 @@ export class PublicSignupComponent implements OnInit {
     this.busy.set(true);
     this.errorMsg.set('');
     this.api.checkoutSubscription(this.planId, needsCpf ? this.cpf() : undefined).subscribe({
-      next: res => {
+      // Pago: a próxima tela mostra o PIX aqui mesmo (e a fatura do Asaas para boleto ou cartão). Grátis: já está ativo.
+      next: () => {
         this.busy.set(false);
-        if (isSafeCheckoutUrl(res.checkoutUrl)) {
-          this.redirectTo(res.checkoutUrl);
-          return;
-        }
-        this.router.navigate(['/athlete/home']);
+        this.router.navigate([needsCpf ? '/assinatura/pagar' : '/assinatura/confirmada']);
       },
       error: err => {
         this.busy.set(false);
@@ -192,10 +179,4 @@ export class PublicSignupComponent implements OnInit {
         this.errorMsg.set(checkoutErrorMessage(err));
       },
     });
-  }
-
-  /** Vai pra fatura do Asaas (fora do app). Separado pra teste. */
-  protected redirectTo(url: string): void {
-    window.location.assign(url);
-  }
-}
+  }}
