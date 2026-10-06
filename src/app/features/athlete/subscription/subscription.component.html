@@ -346,6 +346,11 @@
     </section>
 
     <div class="flex flex-col gap-3">
+      <a routerLink="/alterar-senha"
+        class="w-full min-h-[48px] rounded-sm bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-headline font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-colors">
+        <span class="material-symbols-outlined text-[20px]" aria-hidden="true">lock_reset</span>
+        Alterar senha
+      </a>
       <app-delete-account />
       <button type="button" (click)="auth.logout()"
         class="w-full min-h-[48px] rounded-sm bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-headline font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-colors">
