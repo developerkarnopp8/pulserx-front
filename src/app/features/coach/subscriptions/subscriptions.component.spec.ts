@@ -3,6 +3,9 @@ import { of, throwError } from 'rxjs';
 import { CoachSubscriptionsComponent } from './subscriptions.component';
 import { SubscriptionPlan } from '../../../core/models';
 
+/** Wallet ID no formato do Asaas (UUID). */
+const W = 'c0c1688f-636b-42c0-b6ee-7339182276b7';
+
 const plan = (over: Partial<SubscriptionPlan> = {}): SubscriptionPlan => ({
   id: 'p1', coachId: 'coach-1', name: 'Core', description: null, priceCents: 0,
   categories: ['CORE'], isFree: false, freeConfig: null, active: false, ...over,
@@ -13,8 +16,8 @@ function build(apiOver: Record<string, unknown> = {}) {
     getSubscriptionPlans: vi.fn().mockReturnValue(of([plan()])),
     createSubscriptionPlan: vi.fn().mockReturnValue(of(plan({ id: 'novo' }))),
     updateSubscriptionPlan: vi.fn().mockReturnValue(of(plan({ active: true }))),
-    getMyWallet: vi.fn().mockReturnValue(of({ walletId: null })),
-    setMyWallet: vi.fn().mockReturnValue(of({ walletId: 'wallet-abc-123456' })),
+    getMyWallet: vi.fn().mockReturnValue(of({ walletId: null, valid: false })),
+    setMyWallet: vi.fn().mockReturnValue(of({ walletId: W, valid: true })),
     ...apiOver,
   };
   const component = new CoachSubscriptionsComponent(api as any, new FormBuilder());
@@ -126,13 +129,24 @@ describe('CoachSubscriptionsComponent', () => {
 });
 
 describe('CoachSubscriptionsComponent — carteira Asaas', () => {
-  it('carrega a carteira atual (sem carteira = null)', () => {
-    const { component, api } = build({ getMyWallet: vi.fn().mockReturnValue(of({ walletId: 'w-atual-12345' })) });
+  it('carrega a carteira atual: salva e válida', () => {
+    const { component, api } = build({ getMyWallet: vi.fn().mockReturnValue(of({ walletId: W, valid: true })) });
     component.ngOnInit();
     expect(api.getMyWallet).toHaveBeenCalled();
-    expect(component.walletId()).toBe('w-atual-12345');
-    expect(component.walletInput()).toBe('w-atual-12345');
+    expect(component.walletId()).toBe(W);
+    expect(component.walletInput()).toBe(W);
+    expect(component.walletStatus()).toBe('saved');
     expect(component.walletLoading()).toBe(false);
+  });
+
+  it('sem carteira: "missing"; carteira antiga fora do formato (servidor diz valid false): "invalid"', () => {
+    const sem = build();
+    sem.component.ngOnInit();
+    expect(sem.component.walletStatus()).toBe('missing');
+
+    const antiga = build({ getMyWallet: vi.fn().mockReturnValue(of({ walletId: '00000000-0000-0000-0000-000000000000', valid: false })) });
+    antiga.component.ngOnInit();
+    expect(antiga.component.walletStatus()).toBe('invalid');
   });
 
   it('erro ao carregar só libera o cartão', () => {
@@ -142,21 +156,29 @@ describe('CoachSubscriptionsComponent — carteira Asaas', () => {
     expect(component.walletId()).toBeNull();
   });
 
-  it('salva o Wallet ID (sem espaços) e confirma', () => {
+  it('salva o Wallet ID (sem espaços, minúsculo) e avisa que o Asaas confirma no 1º pagamento', () => {
     const { component, api } = build();
-    component.walletInput.set('  wallet-abc-123456 ');
+    component.walletInput.set(`  ${W.toUpperCase()} `);
     component.saveWallet();
-    expect(api.setMyWallet).toHaveBeenCalledWith('wallet-abc-123456');
-    expect(component.walletId()).toBe('wallet-abc-123456');
-    expect(component.walletMsg()).toContain('já podem assinar');
+    expect(api.setMyWallet).toHaveBeenCalledWith(W);
+    expect(component.walletId()).toBe(W);
+    expect(component.walletStatus()).toBe('saved');
+    expect(component.walletMsg()).toContain('primeiro pagamento');
   });
 
-  it('valor curto ou salvando: não envia', () => {
+  it('o que não é Wallet ID (texto, curto, código de teste só com zeros) não é enviado e explica o formato', () => {
     const { component, api } = build();
-    component.walletInput.set('curto');
-    component.saveWallet();
-    expect(component.walletError()).toContain('Wallet ID completo');
-    component.walletInput.set('wallet-abc-123456');
+    for (const v of ['curto', 'minha-carteira-do-asaas', '00000000-0000-0000-0000-000000000000']) {
+      component.walletInput.set(v);
+      component.saveWallet();
+      expect(component.walletError()).toContain('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx');
+    }
+    expect(api.setMyWallet).not.toHaveBeenCalled();
+  });
+
+  it('salvando: clique repetido é ignorado', () => {
+    const { component, api } = build();
+    component.walletInput.set(W);
     component.savingWallet.set(true);
     component.saveWallet();
     expect(api.setMyWallet).not.toHaveBeenCalled();
@@ -169,7 +191,7 @@ describe('CoachSubscriptionsComponent — carteira Asaas', () => {
       [{}, 'Não foi possível salvar a carteira.'],
     ] as const) {
       const { component } = build({ setMyWallet: vi.fn().mockReturnValue(throwError(() => error)) });
-      component.walletInput.set('wallet-abc-123456');
+      component.walletInput.set(W);
       component.saveWallet();
       expect(component.walletError()).toBe(expected);
       expect(component.savingWallet()).toBe(false);

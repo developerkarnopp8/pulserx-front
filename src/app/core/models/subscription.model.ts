@@ -226,11 +226,12 @@ export interface AdminFinancialOverview {
 }
 
 /** Admin: o que falta configurar num coach para ele cobrar direito. */
-export type CoachAlert = 'NO_CONTRACT' | 'NO_WALLET' | 'PAGE_UNPUBLISHED';
+export type CoachAlert = 'NO_CONTRACT' | 'NO_WALLET' | 'INVALID_WALLET' | 'PAGE_UNPUBLISHED';
 
 export const COACH_ALERT_LABEL: Record<CoachAlert, string> = {
   NO_CONTRACT: 'Sem % de contrato',
   NO_WALLET: 'Sem carteira Asaas',
+  INVALID_WALLET: 'Carteira Asaas inválida',
   PAGE_UNPUBLISHED: 'Página despublicada',
 };
 
@@ -251,4 +252,10 @@ export interface CoachUsage {
   completedWorkouts30d: number;
   lastLoginAt: string | null;
   lastPlanUpdateAt: string | null;
+}
+
+/** GET/PUT /subscriptions/wallet — carteira Asaas do próprio coach. `valid` = no formato de um Wallet ID do Asaas. */
+export interface CoachWallet {
+  walletId: string | null;
+  valid: boolean;
 }

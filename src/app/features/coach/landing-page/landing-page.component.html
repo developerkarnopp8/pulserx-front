@@ -39,6 +39,17 @@
               {{ publishing() ? '...' : (p.published ? 'Despublicar' : 'Publicar') }}
             </button>
           </div>
+          @if (walletWarning()) {
+            <div role="alert" class="flex items-start gap-2 bg-yellow-500/5 border border-yellow-500/40 rounded-sm px-3 py-2.5">
+              <span class="material-symbols-outlined text-[18px] text-yellow-300" aria-hidden="true">warning</span>
+              <p class="text-xs text-on-surface-variant flex-1">
+                <strong class="text-yellow-300">Seus planos pagos ainda não podem ser assinados:</strong>
+                {{ walletStatus() === 'invalid' ? 'a carteira Asaas salva não é um Wallet ID válido.' : 'falta cadastrar a sua carteira Asaas.' }}
+                Configure antes de divulgar a página.
+                <a routerLink="/coach/subscriptions" class="underline underline-offset-2 text-on-surface font-semibold inline-flex min-h-[44px] items-center">Configurar carteira</a>
+              </p>
+            </div>
+          }
           <div class="flex items-center gap-2 bg-surface-container rounded-sm pl-3 min-h-[44px]">
             <span class="material-symbols-outlined text-[18px] text-outline" aria-hidden="true">link</span>
             <span class="flex-1 min-w-0 text-on-surface text-sm truncate">{{ publicUrlOrigin }}/c/{{ p.slug }}</span>

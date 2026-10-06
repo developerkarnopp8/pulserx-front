@@ -284,6 +284,7 @@ describe('CoachesComponent — detalhes (assinaturas e uso) e alertas', () => {
     const { component } = build();
     expect(component.alertLabel.NO_CONTRACT).toBe('Sem % de contrato');
     expect(component.alertLabel.NO_WALLET).toBe('Sem carteira Asaas');
+    expect(component.alertLabel.INVALID_WALLET).toBe('Carteira Asaas inválida');
     expect(component.alertLabel.PAGE_UNPUBLISHED).toBe('Página despublicada');
   });
 });

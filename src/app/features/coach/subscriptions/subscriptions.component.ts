@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { ApiService } from '../../../core/services/api.service';
 import { SubscriptionPlan, TrainingCategory, TRAINING_CATEGORY_LABEL } from '../../../core/models';
 import { formatCents, reaisToCents, centsToReaisInput } from '../../../shared/utils/currency';
+import { isValidWalletId, normalizeWalletId, walletState } from '../../../shared/utils/wallet-id';
 import { apiMessage } from '../../../shared/utils/signup-flow';
 
 type ModalMode = 'add' | 'edit';
@@ -47,24 +48,37 @@ export class CoachSubscriptionsComponent implements OnInit {
 
   // ── Recebimento (carteira Asaas) — sem ela, nenhum plano pago consegue ser cobrado ──
   walletId      = signal<string | null>(null);
+  /** O servidor diz se a carteira salva está no formato de um Wallet ID (as antigas podem não estar). */
+  walletValid   = signal(false);
   walletInput   = signal('');
   walletLoading = signal(true);
   savingWallet  = signal(false);
   walletMsg     = signal('');
   walletError   = signal('');
+  /** 'missing' (sem carteira), 'invalid' (salva fora do formato) ou 'saved'. */
+  walletStatus  = computed(() => walletState(this.walletId(), this.walletValid()));
 
   ngOnInit(): void {
     this.load();
     this.api.getMyWallet().subscribe({
-      next: w => { this.walletId.set(w.walletId); this.walletInput.set(w.walletId ?? ''); this.walletLoading.set(false); },
+      next: w => {
+        this.walletId.set(w.walletId);
+        this.walletValid.set(w.valid);
+        this.walletInput.set(w.walletId ?? '');
+        this.walletLoading.set(false);
+      },
       error: () => this.walletLoading.set(false),
     });
   }
 
   saveWallet(): void {
-    const value = this.walletInput().trim();
-    if (value.length < 10 || this.savingWallet()) {
-      this.walletError.set('Cole o Wallet ID completo da sua conta Asaas.');
+    if (this.savingWallet()) return;
+    const value = normalizeWalletId(this.walletInput());
+    if (!isValidWalletId(value)) {
+      this.walletMsg.set('');
+      this.walletError.set(
+        'Esse código não é um Wallet ID. Ele tem o formato xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (letras de a a f e números). Veja abaixo como encontrar.',
+      );
       return;
     }
     this.savingWallet.set(true);
@@ -73,8 +87,10 @@ export class CoachSubscriptionsComponent implements OnInit {
     this.api.setMyWallet(value).subscribe({
       next: w => {
         this.walletId.set(w.walletId);
+        this.walletValid.set(w.valid);
+        this.walletInput.set(w.walletId ?? '');
         this.savingWallet.set(false);
-        this.walletMsg.set('Carteira salva. Seus alunos já podem assinar planos pagos.');
+        this.walletMsg.set('Carteira salva. Ela é confirmada pelo Asaas no primeiro pagamento de um aluno.');
       },
       error: err => {
         this.savingWallet.set(false);
