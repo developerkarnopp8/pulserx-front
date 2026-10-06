@@ -1,9 +1,9 @@
-import { collectPlanVideos } from './plan-videos';
+import { collectPlanVideos, filterVideos } from './plan-videos';
 import { TrainingPlan } from '../../core/models';
 
 const YT = (id: string) => `https://www.youtube.com/watch?v=${id}`;
 
-function plan(category: TrainingPlan['category'], exercises: { name: string; youtubeUrl?: string }[], sessionName = 'Sessão A'): TrainingPlan {
+function plan(category: TrainingPlan['category'], exercises: { name: string; youtubeUrl?: string; sets?: number; reps?: string; loadPercent?: number; coachNotes?: string }[], sessionName = 'Sessão A'): TrainingPlan {
   return {
     id: `p-${category}`, studentId: null, category, scope: 'SHARED', coachId: 'c1', month: 1,
     startDate: '2026-09-01', title: 'Plano', published: true,
@@ -35,6 +35,7 @@ describe('collectPlanVideos', () => {
     expect(groups.map(g => g.label)).toEqual(['Performance', 'LPO', 'Core']);
     expect(groups[1].videos[0]).toEqual({
       videoId: 'ccccccccccc', url: YT('ccccccccccc'), exerciseName: 'Snatch', sessionName: 'Sessão A',
+      prescription: '', coachNotes: null,
     });
   });
 
@@ -66,5 +67,24 @@ describe('collectPlanVideos', () => {
       ]),
     ]);
     expect(groups).toEqual([]);
+  });
+});
+
+describe('vídeos — prescrição, recado e busca', () => {
+  it('guarda a prescrição e a observação do coach do exercício', () => {
+    const [g] = collectPlanVideos([plan('LPO', [{ name: 'Snatch', youtubeUrl: YT('ccccccccccc'), sets: 3, reps: '5', loadPercent: 82, coachNotes: ' Pés rápidos. ' }])]);
+    expect(g.videos[0].prescription).toBe('3x5 @ 82%');
+    expect(g.videos[0].coachNotes).toBe('Pés rápidos.');
+  });
+
+  it('busca por exercício ou sessão, sem acento e sem caixa', () => {
+    const [g] = collectPlanVideos([plan('LPO', [
+      { name: 'Agachamento', youtubeUrl: YT('aaaaaaaaaaa') },
+      { name: 'Snatch', youtubeUrl: YT('bbbbbbbbbbb') },
+    ], 'Força Máxima')]);
+    expect(filterVideos(g.videos, 'agach').map(v => v.exerciseName)).toEqual(['Agachamento']);
+    expect(filterVideos(g.videos, 'FORCA').length).toBe(2);
+    expect(filterVideos(g.videos, '  ').length).toBe(2);
+    expect(filterVideos(g.videos, 'remo')).toEqual([]);
   });
 });

@@ -170,3 +170,60 @@ describe('ActiveWorkoutComponent', () => {
     comp.ngOnDestroy();
   });
 });
+
+describe('ActiveWorkoutComponent — visual novo (Stitch mo04)', () => {
+  afterEach(() => {
+    clearDraft(SESSION_ID);
+    vi.useRealTimers();
+  });
+
+  it('tempo total conta do primeiro "Iniciar exercício"; antes disso é zero', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-10-06T10:00:00.000Z'));
+    const { api, router, route } = makeDeps(makeSession());
+    const comp = new ActiveWorkoutComponent(route as any, router as any, api as any);
+    comp.ngOnInit();
+    expect(comp.totalElapsed()).toBe(0);
+    comp.startExercise();
+    vi.advanceTimersByTime(65_000);
+    expect(comp.totalElapsed()).toBe(65);
+    comp.ngOnDestroy();
+  });
+
+  it('percentual feito acompanha os exercícios concluídos; sem sessão é 0', () => {
+    const { api, router, route } = makeDeps(makeSession());
+    const comp = new ActiveWorkoutComponent(route as any, router as any, api as any);
+    expect(comp.progressPercent()).toBe(0);
+    comp.ngOnInit();
+    comp.completeExercise();
+    expect(comp.progressPercent()).toBe(50);
+    comp.ngOnDestroy();
+  });
+
+  it('+15 s estica o descanso e a meta', () => {
+    const { api, router, route } = makeDeps(makeSession());
+    const comp = new ActiveWorkoutComponent(route as any, router as any, api as any);
+    comp.restSecs.set(30);
+    comp.restTarget.set(90);
+    comp.addRestTime();
+    expect(comp.restSecs()).toBe(45);
+    expect(comp.restTarget()).toBe(105);
+    comp.addRestTime(5);
+    expect(comp.restSecs()).toBe(50);
+  });
+
+  it('valor curto da prescrição; vídeo fecha ao trocar de exercício', () => {
+    const { api, router, route } = makeDeps(makeSession());
+    const comp = new ActiveWorkoutComponent(route as any, router as any, api as any);
+    expect(comp.isShort('1+1')).toBe(true);
+    expect(comp.isShort(10)).toBe(true);
+    expect(comp.isShort('21-15-9')).toBe(false);
+    expect(comp.isShort(null)).toBe(true);
+    comp.ngOnInit();
+    comp.showVideo.set(true);
+    comp.completeExercise();
+    expect(comp.showVideo()).toBe(false);
+    expect(comp.summary({ id: 'x', name: 'Supino', sets: 3, reps: 8, completed: false, status: 'none' })).toBe('Supino 3x8');
+    comp.ngOnDestroy();
+  });
+});

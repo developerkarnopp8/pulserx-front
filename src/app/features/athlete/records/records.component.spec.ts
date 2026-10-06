@@ -212,3 +212,35 @@ describe('RecordsComponent — novo movimento', () => {
     expect(noMsg.component.newMovementError()).toBe('Não foi possível cadastrar o movimento.');
   });
 });
+
+describe('RecordsComponent — destaque e contagens (Stitch mo05)', () => {
+  it('destaque = último recorde de carga; evolução com as últimas 5 tentativas do movimento', () => {
+    const records = [
+      rec('snatch', 80, undefined, '2026-09-01T10:00:00.000Z'),
+      rec('snatch', 85, undefined, '2026-09-05T10:00:00.000Z'),
+      rec('snatch', 83, undefined, '2026-09-08T10:00:00.000Z'),
+      rec('snatch', 88, undefined, '2026-09-10T10:00:00.000Z'),
+      rec('snatch', 90, undefined, '2026-09-12T10:00:00.000Z'),
+      rec('snatch', 92, undefined, '2026-09-15T10:00:00.000Z'),
+      rec('clean', undefined, 10, '2026-09-20T10:00:00.000Z'),
+    ];
+    const { component } = build({ getMyPersonalRecords: vi.fn().mockReturnValue(of(records)) });
+    component.ngOnInit();
+    expect(component.highlight()?.record.loadKg).toBe(92);
+    expect(component.highlight()?.deltaKg).toBe(2);
+    expect(component.highlightAttempts().map(r => r.loadKg)).toEqual([85, 83, 88, 90, 92]);
+    expect(component.highlightMax()).toBe(92);
+    expect(component.recordedCount()).toBe(2);
+    expect(component.categoryCounts().get('LPO')).toBe(2);
+    expect(component.categoryCounts().get('Strength')).toBe(1);
+  });
+
+  it('sem recordes: sem destaque e sem tentativas', () => {
+    const { component } = build();
+    component.ngOnInit();
+    expect(component.highlight()).toBeNull();
+    expect(component.highlightAttempts()).toEqual([]);
+    expect(component.highlightMax()).toBe(1);
+    expect(component.recordedCount()).toBe(0);
+  });
+});

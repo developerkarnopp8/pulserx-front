@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, OnDestroy } from '@angular/core';
+import { Component, OnInit, signal, computed, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
@@ -6,6 +6,7 @@ import { Session, Exercise, SkipReason, SkipDecision } from '../../../core/model
 import { SkipReasonModalComponent } from '../../../shared/components/skip-reason-modal/skip-reason-modal.component';
 import { Subject, interval, takeUntil } from 'rxjs';
 import { YoutubeEmbedComponent } from '../../../shared/components/youtube-embed/youtube-embed.component';
+import { SESSION_TYPE_ICON, SESSION_TYPE_LABEL, SessionStats, coachNoteOf, restLabel, sessionStats } from '../../../shared/utils/home-view';
 
 @Component({
   selector: 'app-session-detail',
@@ -23,6 +24,14 @@ export class SessionDetailComponent implements OnInit, OnDestroy {
   skipModalOpen = signal(false);
   skipError     = signal('');
   expandedVideoId = signal<string | null>(null);
+
+  readonly typeLabel = SESSION_TYPE_LABEL;
+  readonly typeIcon = SESSION_TYPE_ICON;
+  readonly restLabel = restLabel;
+  /** Números reais da prescrição (sem duração/volume estimados). */
+  stats = computed<SessionStats | null>(() => { const s = this.session(); return s ? sessionStats(s) : null; });
+  /** Primeira observação do coach na sessão, em destaque no topo. */
+  coachNote = computed(() => coachNoteOf(this.session()));
 
   toggleVideo(id: string): void {
     this.expandedVideoId.update(current => current === id ? null : id);

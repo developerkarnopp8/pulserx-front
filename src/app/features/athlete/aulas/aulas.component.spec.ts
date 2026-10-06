@@ -57,3 +57,18 @@ describe('AulasComponent', () => {
     expect(plansErr.component.errorMsg()).toContain('Não foi possível carregar');
   });
 });
+
+describe('AulasComponent — busca (Stitch mo05)', () => {
+  it('busca filtra por exercício e some com o grupo vazio; categoria + busca combinam', () => {
+    const { component } = build();
+    component.ngOnInit();
+    expect(component.visibleCount()).toBe(2);
+    component.query.set('snat');
+    expect(component.visibleGroups().map(g => g.label)).toEqual(['LPO']);
+    expect(component.visibleCount()).toBe(1);
+    component.select('CORE');
+    expect(component.visibleCount()).toBe(0);
+    component.query.set('');
+    expect(component.visibleCount()).toBe(1);
+  });
+});

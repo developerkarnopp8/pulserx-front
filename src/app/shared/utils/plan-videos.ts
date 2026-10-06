@@ -1,5 +1,6 @@
 import { TRAINING_CATEGORY_LABEL, TrainingCategory, TrainingPlan } from '../../core/models';
 import { extractYoutubeId } from './youtube';
+import { exerciseSummary } from './home-view';
 
 export interface PlanVideo {
   /** Id do vídeo no YouTube — também é a chave de deduplicação. */
@@ -7,6 +8,10 @@ export interface PlanVideo {
   url: string;
   exerciseName: string;
   sessionName: string;
+  /** Prescrição do exercício onde o vídeo apareceu primeiro ("3x5 @ 82%"); vazio se o coach não preencheu. */
+  prescription: string;
+  /** Observação do coach nesse exercício, se houver. */
+  coachNotes: string | null;
 }
 
 export interface PlanVideoGroup {
@@ -39,6 +44,8 @@ export function collectPlanVideos(plans: TrainingPlan[]): PlanVideoGroup[] {
               url: exercise.youtubeUrl!,
               exerciseName: exercise.name,
               sessionName: session.name,
+              prescription: exerciseSummary({ ...exercise, name: '' }).trim(),
+              coachNotes: exercise.coachNotes?.trim() || null,
             });
           }
         }
@@ -55,4 +62,11 @@ export function collectPlanVideos(plans: TrainingPlan[]): PlanVideoGroup[] {
       videos: [...byCategory.get(category)!.values()]
         .sort((a, b) => a.exerciseName.localeCompare(b.exerciseName, 'pt-BR')),
     }));
+}
+
+/** Busca por nome do exercício ou da sessão, sem diferenciar maiúsculas e acentos. */
+export function filterVideos(videos: PlanVideo[], query: string): PlanVideo[] {
+  const norm = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const q = norm(query.trim());
+  return q ? videos.filter(v => norm(v.exerciseName).includes(q) || norm(v.sessionName).includes(q)) : videos;
 }

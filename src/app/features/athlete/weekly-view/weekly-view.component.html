@@ -1,72 +1,68 @@
-<div class="px-5 py-4 animate-fade-in">
-
-  <!-- Header -->
-  <div class="mb-5 flex items-start justify-between">
-    <div>
-      <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-1">Plano de Treino</p>
-      <h2 class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none">
-        Semana {{ plan()?.weeks?.at(selectedWeek())?.weekNumber ?? 1 }}
-      </h2>
-      <p class="text-outline text-xs mt-1">
-        {{ plan()?.title }}
-        @if (plan()) {
-          <button type="button" (click)="exportCurrentMonthPdf()" class="text-primary-fixed underline ml-2">Exportar mês (PDF)</button>
-        }
-      </p>
-    </div>
-    @if (plan()) {
-      <div class="flex items-center gap-2 flex-shrink-0">
-        <button type="button" (click)="exportCurrentWeekPdf()"
-          class="w-10 h-10 rounded-sm bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
-          title="Exportar semana em PDF">
-          <span class="material-symbols-outlined text-[20px]">picture_as_pdf</span>
-        </button>
-        <button type="button" (click)="showCalendarModal.set(true)"
-          class="w-10 h-10 rounded-sm bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors">
-          <span class="material-symbols-outlined text-[20px]">calendar_month</span>
-        </button>
-      </div>
-    }
-  </div>
+<div class="px-5 py-4 flex flex-col gap-4 animate-fade-in">
 
   <!-- Categoria do plano (Performance / Core / LPO) — só aparece com mais de uma -->
   @if (categories().length > 1) {
-    <div class="flex gap-2 mb-4 overflow-x-auto pb-1 no-scrollbar" role="tablist" aria-label="Categoria do treino">
+    <div class="grid gap-2" [style.grid-template-columns]="'repeat(' + categories().length + ', minmax(0, 1fr))'"
+      role="tablist" aria-label="Categoria do treino">
       @for (cat of categories(); track cat) {
-        <button type="button" role="tab" [attr.aria-selected]="selectedCategory() === cat"
-          (click)="selectCategory(cat)"
-          class="flex-shrink-0 px-4 py-2 rounded-sm text-xs font-headline font-bold uppercase tracking-wider transition-all duration-200 border"
-          [class.bg-primary-fixed]="selectedCategory() === cat"
-          [class.text-on-primary-fixed]="selectedCategory() === cat"
+        <button type="button" role="tab" [attr.aria-selected]="selectedCategory() === cat" (click)="selectCategory(cat)"
+          class="min-h-[48px] rounded-sm flex items-center justify-center gap-1.5 font-headline text-xs font-bold uppercase tracking-wider transition-colors border"
+          [class.bg-primary-fixed]="selectedCategory() === cat" [class.text-on-primary-fixed]="selectedCategory() === cat"
           [class.border-transparent]="selectedCategory() === cat"
-          [class.border-outline-variant/30]="selectedCategory() !== cat"
-          [class.text-on-surface-variant]="selectedCategory() !== cat">
+          [class.bg-surface-container-low]="selectedCategory() !== cat" [class.text-on-surface-variant]="selectedCategory() !== cat"
+          [class.border-outline-variant/20]="selectedCategory() !== cat">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">{{ categoryIcon[cat] }}</span>
           {{ categoryLabel[cat] }}
         </button>
       }
     </div>
   }
 
-  <!-- Week Selector — horizontal scroll pills -->
-  <div class="flex gap-2 mb-5 overflow-x-auto pb-1 no-scrollbar">
-    @for (week of plan()?.weeks ?? []; track week.id; let i = $index) {
-      <button type="button"
-        (click)="selectedWeek.set(i); selectedDay.set(plan()!.weeks[i].days.at(0) ?? null)"
-        class="flex-shrink-0 px-4 py-2 rounded-sm text-xs font-headline font-bold uppercase tracking-wider transition-all duration-200"
-        [class.bg-primary-fixed]="selectedWeek() === i"
-        [class.text-on-primary-fixed]="selectedWeek() === i"
-        [class.bg-surface-container-low]="selectedWeek() !== i"
-        [class.text-outline]="selectedWeek() !== i">
-        S{{ week.weekNumber }}
-        @if (week.locked) {
-          <span class="material-symbols-outlined text-[12px] align-middle" aria-label="bloqueada">lock</span>
+  <!-- Plano + ações -->
+  @if (plan(); as p) {
+    <div class="flex items-start justify-between gap-3">
+      <div class="min-w-0">
+        <p class="flex items-center gap-1.5 font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">
+          <span class="material-symbols-outlined text-[16px]" aria-hidden="true">calendar_month</span>
+          Mês {{ p.month }}
+        </p>
+        <h2 class="font-headline font-black text-2xl text-on-surface uppercase leading-tight tracking-tight truncate">{{ p.title }}</h2>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <button type="button" (click)="exportCurrentWeekPdf()" aria-label="Exportar semana em PDF" title="Exportar semana em PDF"
+          class="w-11 h-11 rounded-sm bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors">
+          <span class="material-symbols-outlined text-[20px]" aria-hidden="true">picture_as_pdf</span>
+        </button>
+        <button type="button" (click)="showCalendarModal.set(true)" aria-label="Abrir calendário" title="Calendário"
+          class="w-11 h-11 rounded-sm bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors">
+          <span class="material-symbols-outlined text-[20px]" aria-hidden="true">calendar_month</span>
+        </button>
+      </div>
+    </div>
+    <button type="button" (click)="exportCurrentMonthPdf()"
+      class="self-start -mt-2 min-h-[44px] text-primary-fixed font-headline text-xs font-bold uppercase tracking-widest underline">
+      Exportar mês (PDF)
+    </button>
+  }
+
+  <!-- Semanas -->
+  <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar" aria-label="Semanas do plano">
+    @for (w of plan()?.weeks ?? []; track w.id; let i = $index) {
+      <button type="button" (click)="selectedWeek.set(i); selectedDay.set(plan()!.weeks[i].days.at(0) ?? null)"
+        [attr.aria-pressed]="selectedWeek() === i"
+        class="shrink-0 min-h-[44px] px-4 rounded-sm font-headline text-xs font-bold uppercase tracking-wider transition-colors inline-flex items-center gap-1"
+        [class.bg-primary-fixed]="selectedWeek() === i" [class.text-on-primary-fixed]="selectedWeek() === i"
+        [class.bg-surface-container-low]="selectedWeek() !== i" [class.text-on-surface-variant]="selectedWeek() !== i">
+        Sem {{ w.weekNumber.toString().padStart(2, '0') }}
+        @if (w.locked) {
+          <span class="material-symbols-outlined text-[14px]" aria-label="bloqueada">lock</span>
         }
       </button>
     }
   </div>
 
-  @if (plan()?.weeks?.at(selectedWeek())?.locked) {
-    <div class="bg-surface-container-low rounded-md p-5 mb-5 flex flex-col items-center text-center gap-2">
+  @if (week()?.locked) {
+    <div class="bg-surface-container-low rounded-md p-5 flex flex-col items-center text-center gap-2">
       <span class="material-symbols-outlined text-outline text-[28px]" aria-hidden="true">lock</span>
       <p class="text-on-surface text-sm font-semibold">Esta semana é para assinantes</p>
       <p class="text-on-surface-variant text-xs">No plano gratuito você vê a 1ª semana. Assine para liberar o mês inteiro.</p>
@@ -74,99 +70,106 @@
     </div>
   }
 
-  <!-- Day Cards — horizontal scroll -->
-  <div #dayScroller class="flex gap-3 overflow-x-auto pb-3 mb-5 no-scrollbar">
-    @for (day of plan()?.weeks?.at(selectedWeek())?.days ?? []; track day.id) {
-      <button type="button"
-        [attr.data-day-id]="day.id"
-        (click)="selectDay(day, $event)"
-        class="flex-shrink-0 flex flex-col items-center px-4 py-3 rounded-md border transition-all min-w-[72px]"
-        [class.border-primary-fixed]="selectedDay()?.id === day.id"
-        [class.bg-surface-container]="selectedDay()?.id === day.id"
-        [class.border-outline-variant/20]="selectedDay()?.id !== day.id"
-        [class.bg-surface-container-low]="selectedDay()?.id !== day.id">
-        <!-- Day letter -->
-        <span class="font-headline font-black text-base leading-none"
-          [class.text-primary-fixed]="selectedDay()?.id === day.id"
-          [class.text-on-surface-variant]="selectedDay()?.id !== day.id">
-          {{ day.dayOfWeek.charAt(0).toUpperCase() }}
+  <!-- Dias da semana -->
+  @if (week()?.days?.length) {
+    <div class="flex items-center justify-between">
+      <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Ciclo semanal</span>
+      @if (dayPosition(); as pos) {
+        <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">Dia {{ pos.index }} de {{ pos.total }}</span>
+      }
+    </div>
+  }
+  <div #dayScroller class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+    @for (day of week()?.days ?? []; track day.id) {
+      <button type="button" [attr.data-day-id]="day.id" (click)="selectDay(day, $event)"
+        [attr.aria-pressed]="selectedDay()?.id === day.id" [attr.aria-label]="dayTitle(day)"
+        class="shrink-0 min-w-[64px] flex flex-col items-center gap-1 px-3 py-2.5 rounded-md border transition-colors"
+        [class.border-primary-fixed]="selectedDay()?.id === day.id" [class.bg-surface-container]="selectedDay()?.id === day.id"
+        [class.border-outline-variant/20]="selectedDay()?.id !== day.id" [class.bg-surface-container-low]="selectedDay()?.id !== day.id">
+        <span class="font-headline text-[10px] font-bold uppercase tracking-widest"
+          [class.text-primary-fixed]="isToday(day)" [class.text-on-surface-variant]="!isToday(day)">
+          {{ isToday(day) ? 'Hoje' : day.dayOfWeek.slice(0, 3) }}
         </span>
-        <span class="text-[9px] font-headline uppercase tracking-wider mt-0.5"
-          [class.text-primary-fixed]="selectedDay()?.id === day.id"
-          [class.text-outline]="selectedDay()?.id !== day.id">
-          {{ day.dayOfWeek.slice(0,3) }}
+        <span class="font-headline font-black text-lg leading-none"
+          [class.text-primary-fixed]="selectedDay()?.id === day.id" [class.text-on-surface]="selectedDay()?.id !== day.id">
+          {{ dayDate(day) ? (dayDate(day) | date: 'dd') : day.dayOfWeek.slice(0, 3) }}
         </span>
-        <!-- Progress dots -->
-        <div class="flex gap-0.5 mt-2">
+        <span class="flex gap-0.5 mt-0.5" aria-hidden="true">
           @for (s of day.sessions; track s.id) {
-            <div class="w-1.5 h-1.5 rounded-full transition-all"
-              [class.bg-primary-fixed]="s.status === 'done'"
-              [class.bg-error]="s.status === 'abandoned'"
-              [class.bg-outline]="s.status === 'postponed'"
-              [class.bg-outline-variant]="s.status === 'none'">
-            </div>
+            <span class="w-1.5 h-1.5 rounded-full"
+              [class.bg-primary-fixed]="s.status === 'done'" [class.bg-error]="s.status === 'abandoned'"
+              [class.bg-outline]="s.status === 'postponed'" [class.bg-outline-variant]="s.status === 'none'"></span>
           }
-        </div>
-        @if (isToday(day)) {
-          <span class="text-[8px] font-headline text-primary-fixed uppercase mt-1">Hoje</span>
-        }
+        </span>
       </button>
     }
   </div>
 
-  <!-- Selected Day Sessions -->
-  @if (selectedDay()) {
-    <div class="animate-slide-up">
-
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="font-headline font-bold text-on-surface text-sm uppercase tracking-widest">
-          {{ selectedDay()!.dayOfWeek }}
-        </h3>
-        <span class="text-outline text-xs font-headline">
-          {{ selectedDay()!.sessions.length }} sess.
-        </span>
+  <!-- Sessões do dia aberto -->
+  @if (selectedDay(); as day) {
+    <section class="flex flex-col gap-2 animate-slide-up" aria-labelledby="titulo-dia">
+      <div class="flex items-end justify-between gap-3">
+        <h3 id="titulo-dia" class="font-headline font-black text-sm text-on-surface uppercase tracking-widest">{{ dayTitle(day) }}</h3>
+        @if (day.sessions.length) {
+          <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant shrink-0">{{ doneCount() }} de {{ day.sessions.length }} feito</span>
+        }
       </div>
-
-      @for (session of selectedDay()!.sessions; track session.id) {
-        <a [routerLink]="['/athlete/session', session.id]"
-          class="block bg-surface-container-low rounded-md p-4 mb-3 hover:bg-surface-container transition-colors">
-          <div class="flex items-center justify-between mb-3">
-            <div>
-              <p class="text-on-surface font-headline font-bold text-sm">{{ session.name }}</p>
-              <p class="text-outline text-xs mt-0.5">{{ session.exercises.length }} exercícios</p>
-            </div>
-            <span class="material-symbols-outlined text-outline text-[18px]">chevron_right</span>
-          </div>
-          <!-- Progress bar -->
-          <div class="w-full bg-surface-container rounded-full h-0.5">
-            <div class="bg-primary-fixed rounded-full h-0.5 transition-all"
-              [style.width.%]="getCompletionForDay(selectedDay()!)"></div>
-          </div>
-          <div class="flex justify-between items-center mt-1.5">
-            <span class="text-outline text-[10px] font-headline uppercase">Conclusão</span>
-            <span class="text-on-surface-variant text-[10px] font-headline font-bold">{{ getCompletionForDay(selectedDay()!) }}%</span>
-          </div>
-        </a>
+      @if (day.sessions.length) {
+        <div class="h-1.5 rounded-full bg-surface-container-highest overflow-hidden" role="progressbar"
+          [attr.aria-valuenow]="getCompletionForDay(day)" aria-valuemin="0" aria-valuemax="100" aria-label="Exercícios concluídos no dia">
+          <div class="h-full bg-primary-fixed transition-all" [style.width.%]="getCompletionForDay(day)"></div>
+        </div>
       }
 
-      @if (selectedDay()!.sessions.length > 0) {
-        <a [routerLink]="['/athlete/session', selectedDay()!.sessions[0].id]"
-          class="mt-2 w-full flex items-center justify-center gap-2 bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black py-4 rounded-sm uppercase tracking-tighter text-sm transition-all">
-          <span class="material-symbols-outlined text-[18px]">play_arrow</span>
-          COMEÇAR
-        </a>
+      @for (session of day.sessions; track session.id) {
+        <article class="relative bg-surface-container-low rounded-md p-4 flex flex-col gap-2 overflow-hidden"
+          [class.border]="session.id === nextSessionId()" [class.border-primary-fixed/40]="session.id === nextSessionId()">
+          @if (session.id === nextSessionId()) {
+            <span class="absolute left-0 inset-y-0 w-1 bg-primary-fixed" aria-hidden="true"></span>
+          }
+          <div class="flex items-center justify-between gap-2">
+            <span class="inline-flex items-center gap-1.5 font-headline text-[11px] font-bold uppercase tracking-widest"
+              [class.text-primary-fixed]="session.id === nextSessionId()" [class.text-on-surface-variant]="session.id !== nextSessionId()">
+              <span class="material-symbols-outlined text-[16px]" aria-hidden="true">{{ typeIcon[session.type] }}</span>
+              {{ typeLabel[session.type] }} · {{ session.exercises.length }} ex.
+            </span>
+            @if (session.status === 'done') {
+              <span class="inline-flex items-center gap-1 font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">
+                <span class="material-symbols-outlined text-[16px]" aria-hidden="true">check_circle</span> Concluído
+              </span>
+            } @else if (session.status === 'postponed') {
+              <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-outline">Vai fazer depois</span>
+            } @else if (session.status === 'abandoned') {
+              <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-outline">Pulado</span>
+            } @else if (session.id === nextSessionId()) {
+              <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">Próxima</span>
+            } @else {
+              <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-outline">Agendado</span>
+            }
+          </div>
+          <h4 class="font-headline font-black text-base text-on-surface uppercase leading-tight">{{ session.name }}</h4>
+          @if (preview(session)) {
+            <p class="text-on-surface-variant text-sm">{{ preview(session) }}</p>
+          }
+          @if (session.id === nextSessionId()) {
+            <a [routerLink]="['/athlete/session', session.id]"
+              class="mt-1 min-h-[48px] rounded-sm bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-colors">
+              <span class="material-symbols-outlined text-[20px]" aria-hidden="true">play_arrow</span> Iniciar
+            </a>
+          } @else {
+            <a [routerLink]="['/athlete/session', session.id]"
+              class="mt-1 self-start min-h-[44px] inline-flex items-center gap-1 text-primary-fixed font-headline text-xs font-bold uppercase tracking-widest">
+              Ver sessão <span class="material-symbols-outlined text-[16px]" aria-hidden="true">chevron_right</span>
+            </a>
+          }
+        </article>
       }
-    </div>
+
+      @if (!day.sessions.length) {
+        <p class="bg-surface-container-low rounded-md text-outline text-sm text-center py-6">Dia de descanso — nenhuma sessão.</p>
+      }
+    </section>
   }
-
-  <a routerLink="/athlete/records"
-    class="mt-4 mx-4 flex items-center justify-between bg-surface-container-low rounded-md p-4 hover:bg-surface-container transition-colors">
-    <div class="flex items-center gap-3">
-      <span class="material-symbols-outlined text-primary-fixed text-[20px]">military_tech</span>
-      <span class="text-on-surface font-headline font-bold text-sm">Meus Recordes</span>
-    </div>
-    <span class="material-symbols-outlined text-outline text-[18px]">chevron_right</span>
-  </a>
 
 </div>
 
