@@ -564,6 +564,8 @@ describe('ApiService — planos de assinatura, assinaturas, contrato/plataforma'
 
   it('contrato do coach e configurações da plataforma', () => {
     const { service, http } = build();
+    service.adminGetCoachStudents('coach1');
+    expect(http.get).toHaveBeenCalledWith(`${BASE}/admin/coaches/coach1/students`);
     service.getCoachContract('coach1');
     expect(http.get).toHaveBeenCalledWith(`${BASE}/admin/coaches/coach1/contract`);
     service.setCoachContract('coach1', 15);

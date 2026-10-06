@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
 import {
-  COACH_ALERT_LABEL, CoachAlert, CoachSubscriptionSummary, CoachUsage, PlatformSettings,
+  AdminCoachStudent, COACH_ALERT_LABEL, CoachAlert, CoachSubscriptionSummary, CoachUsage, PlatformSettings, SUBSCRIPTION_STATUS_LABEL,
 } from '../../../core/models';
 import { formatReais } from '../../../shared/utils/currency';
 import { AthleteDeletionComponent } from '../athlete-deletion/athlete-deletion.component';
@@ -241,6 +241,37 @@ export class CoachesComponent implements OnInit {
 
   toggleDetails(coach: Coach): void {
     this.detailsId.update(id => (id === coach.id ? null : coach.id));
+    // A lista de alunos é de outro coach (ou fechou): some — só carrega de novo no clique (cada consulta é registrada).
+    if (this.studentsCoachId() !== this.detailsId()) {
+      this.studentsCoachId.set(null);
+      this.students.set([]);
+      this.studentsError.set('');
+    }
+  }
+
+  // ── Alunos do coach (mínimo para suporte e cobrança; decisão do dono 2026-10-06) ──
+  studentsCoachId = signal<string | null>(null);
+  students        = signal<AdminCoachStudent[]>([]);
+  loadingStudents = signal(false);
+  studentsError   = signal('');
+  readonly statusLabel = SUBSCRIPTION_STATUS_LABEL;
+
+  /** Só no clique: o servidor registra quem viu a lista de qual coach. */
+  loadStudents(coach: Coach): void {
+    if (this.loadingStudents()) return;
+    this.loadingStudents.set(true);
+    this.studentsError.set('');
+    this.api.adminGetCoachStudents(coach.id).subscribe({
+      next: list => {
+        this.students.set(list);
+        this.studentsCoachId.set(coach.id);
+        this.loadingStudents.set(false);
+      },
+      error: err => {
+        this.loadingStudents.set(false);
+        this.studentsError.set(apiMessage(err, 'Não foi possível carregar os alunos.'));
+      },
+    });
   }
 
   /** Data curta em pt-BR, ou o texto de "sem registro" (último login/plano por IA só existem desde 30/09/2026). */

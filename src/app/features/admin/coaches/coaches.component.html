@@ -181,6 +181,57 @@
                 Enviar link de nova senha
               </button>
             </section>
+
+            <!-- Alunos: só o mínimo para suporte e cobrança; carrega no clique e cada consulta fica registrada. -->
+            <section class="md:col-span-3 bg-surface-container rounded-sm p-4" [attr.aria-label]="'Alunos de ' + coach.name">
+              <div class="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest">Alunos ativos</p>
+                  <p class="text-outline text-[11px] mt-0.5">Só nome, plano e situação da assinatura, para suporte e cobrança. Cada consulta fica registrada.</p>
+                </div>
+                @if (studentsCoachId() !== coach.id) {
+                  <button type="button" (click)="loadStudents(coach)" [disabled]="loadingStudents()"
+                    class="min-h-[40px] px-4 rounded-sm border border-outline-variant/30 text-on-surface hover:bg-surface-container-high text-[11px] font-headline font-bold uppercase tracking-wider disabled:opacity-50 inline-flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[16px]" aria-hidden="true">group</span>
+                    {{ loadingStudents() ? 'Carregando…' : 'Ver alunos' }}
+                  </button>
+                }
+              </div>
+              @if (studentsError()) {
+                <p role="alert" class="text-error text-xs mt-2">{{ studentsError() }}</p>
+              }
+              @if (studentsCoachId() === coach.id) {
+                @if (students().length) {
+                  <div class="mt-3 overflow-x-auto">
+                    <table class="w-full text-sm">
+                      <caption class="sr-only">Alunos ativos de {{ coach.name }}</caption>
+                      <thead>
+                        <tr class="text-outline text-[10px] font-headline uppercase tracking-widest text-left">
+                          <th scope="col" class="py-2 pr-3 font-normal">Aluno</th>
+                          <th scope="col" class="py-2 pr-3 font-normal">Plano</th>
+                          <th scope="col" class="py-2 pr-3 font-normal">Assinatura</th>
+                          <th scope="col" class="py-2 font-normal">Aluno desde</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (st of students(); track $index) {
+                          <tr class="border-t border-outline-variant/10">
+                            <td class="py-2 pr-3 text-on-surface">{{ st.name }}</td>
+                            <td class="py-2 pr-3 text-on-surface-variant">{{ st.planName ?? 'Sem plano' }}</td>
+                            <td class="py-2 pr-3" [class.text-error]="st.status === 'PAST_DUE'" [class.text-on-surface-variant]="st.status !== 'PAST_DUE'">
+                              {{ st.status ? statusLabel[st.status] : '—' }}
+                            </td>
+                            <td class="py-2 text-on-surface-variant">{{ formatDate(st.joinedAt) }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                } @else {
+                  <p class="text-on-surface-variant text-sm mt-3">Este coach ainda não tem alunos ativos.</p>
+                }
+              }
+            </section>
           </div>
         }
 
