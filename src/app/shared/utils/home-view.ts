@@ -72,3 +72,57 @@ export function longDate(date: Date): string {
   const s = date.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
+
+export interface SessionStats {
+  exercises: number;
+  /** Soma das séries prescritas (exercício sem séries conta 0). */
+  totalSets: number;
+  /** Maior % de carga prescrito; null se o coach não pôs carga em nenhum. */
+  maxLoadPercent: number | null;
+  /** Faixa do descanso prescrito, em segundos; null se nenhum exercício tem descanso. */
+  rest: { min: number; max: number } | null;
+}
+
+/** Números da sessão tirados só da prescrição do coach (nada estimado: sem duração nem volume em kg). */
+export function sessionStats(session: Session): SessionStats {
+  const ex = session.exercises;
+  const loads = ex.map(e => e.loadPercent ?? 0).filter(v => v > 0);
+  const rests = ex.map(e => e.restSeconds ?? 0).filter(v => v > 0);
+  return {
+    exercises: ex.length,
+    totalSets: ex.reduce((sum, e) => sum + (e.sets ?? 0), 0),
+    maxLoadPercent: loads.length ? Math.max(...loads) : null,
+    rest: rests.length ? { min: Math.min(...rests), max: Math.max(...rests) } : null,
+  };
+}
+
+/** "90 s" ou "60–120 s" (minutos quando passa de 1 min redondo: "2 min"). */
+export function restLabel(rest: { min: number; max: number }): string {
+  const fmt = (s: number) => (s >= 60 && s % 60 === 0 ? `${s / 60} min` : `${s} s`);
+  return rest.min === rest.max ? fmt(rest.min) : `${fmt(rest.min)}–${fmt(rest.max)}`;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+/** Posição do dia na semana do plano, começando na segunda (dayIndex: 0 = domingo … 6 = sábado). */
+const mondayOffset = (dayIndex: number) => (dayIndex + 6) % 7;
+
+/**
+ * Data de um dia do plano, só quando dá para saber com certeza: plano compartilhado tem calendário próprio
+ * (startDate = segunda da semana 1); o individual só na semana em que o aluno está hoje. Fora disso, null.
+ */
+export function planDayDate(
+  plan: TrainingPlan,
+  weekNumber: number,
+  dayIndex: number,
+  studentCurrentWeek: number,
+  today: Date = new Date(),
+): Date | null {
+  if (plan.scope === 'SHARED') {
+    const start = new Date(plan.startDate);
+    const base = new Date(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate());
+    return new Date(base.getTime() + ((weekNumber - 1) * 7 + mondayOffset(dayIndex)) * DAY_MS);
+  }
+  if (weekNumber !== studentCurrentWeek) return null;
+  const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  return new Date(todayLocal.getTime() + (mondayOffset(dayIndex) - mondayOffset(today.getDay())) * DAY_MS);
+}
