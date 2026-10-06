@@ -176,6 +176,31 @@ export interface MonthlyBreakdown {
 }
 
 /** Resposta do checkout do aluno: plano pago devolve o link da fatura do Asaas pra pagar. */
+/** GET /subscriptions/me/payment-status — só banco; a tela do PIX consulta em intervalos esperando a confirmação. */
+export interface MyPaymentStatus {
+  coachName: string;
+  status: Subscription['status'] | null;
+  plan: { name: string; priceCents: number; isFree: boolean } | null;
+  hasOpenPayment: boolean;
+  lastPaidAt: string | null;
+}
+
+/** GET /subscriptions/me/pix — PIX da cobrança em aberto mais antiga do próprio aluno. */
+export interface MyPix {
+  /** Em reais (como vem do Asaas). */
+  amount: number;
+  dueDate: string;
+  planName: string;
+  coachName: string;
+  /** PNG em base64, sem o prefixo `data:`. */
+  qrCodeImage: string;
+  /** Código "copia e cola". */
+  pixCode: string;
+  /** "AAAA-MM-DD HH:mm:ss" no horário de Brasília; null = o Asaas não informou. */
+  expiresAt: string | null;
+  invoiceUrl: string | null;
+}
+
 export interface CheckoutResult {
   subscription: Subscription;
   checkoutUrl: string | null;

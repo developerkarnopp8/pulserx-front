@@ -126,7 +126,7 @@
           @if (!sub.plan.isFree && sub.status !== 'CANCELED') {
             <li class="flex items-center gap-3 bg-surface-container rounded-md px-4 py-3">
               <span class="material-symbols-outlined text-[20px] text-primary-fixed" aria-hidden="true">event</span>
-              <div>
+              <div class="flex-1">
                 <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest">Próxima cobrança</p>
                 @if (nextCharge(); as next) {
                   <p class="text-on-surface text-sm font-semibold">
@@ -139,6 +139,13 @@
                   <p class="text-on-surface-variant text-sm">Nenhuma fatura em aberto</p>
                 }
               </div>
+              @if (nextCharge()) {
+                <a routerLink="/assinatura/pagar"
+                  class="min-h-[44px] inline-flex items-center gap-1 px-3 rounded-sm bg-primary-fixed text-on-primary-fixed text-xs font-headline uppercase tracking-widest flex-shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-fixed"
+                  aria-label="Pagar a próxima cobrança com PIX">
+                  <span class="material-symbols-outlined text-[16px]" aria-hidden="true">qr_code_2</span> Pagar com PIX
+                </a>
+              }
             </li>
             <li class="flex items-center gap-3 bg-surface-container rounded-md px-4 py-3">
               <span class="material-symbols-outlined text-[20px] text-primary-fixed" aria-hidden="true">{{ d.autoDebitCard ? 'credit_card' : 'qr_code_2' }}</span>

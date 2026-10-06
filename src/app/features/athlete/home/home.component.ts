@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Session, TRAINING_CATEGORY_LABEL } from '../../../core/models';
@@ -9,6 +9,7 @@ import { todaySessions, todayWeekLocked } from '../../../shared/utils/plan-selec
 import {
   PlanPosition, SESSION_TYPE_ICON, SESSION_TYPE_LABEL, coachNoteOf, goalPercent, longDate, planPosition, sessionPreview,
 } from '../../../shared/utils/home-view';
+import { shouldShowWelcome } from '../../../shared/utils/welcome';
 import { LatestPr, StreakResult, WeekDay, currentWeek, latestLoadPr, trainingStreak } from '../../../shared/utils/training-streak';
 
 const WATER_TAP_ML = 250;
@@ -76,7 +77,7 @@ export class HomeComponent implements OnInit {
   latestPr = signal<LatestPr | null>(null);
   prsLoaded = signal(false);
 
-  constructor(private api: ApiService, public auth: AuthService) {}
+  constructor(private api: ApiService, public auth: AuthService, private router: Router) {}
 
   ngOnInit(): void {
     const h = new Date().getHours();
@@ -100,6 +101,11 @@ export class HomeComponent implements OnInit {
     // Cards de sequência e PR: falha só esconde o card, não derruba a Início.
     this.api.getWorkoutHistory(STREAK_HISTORY_LIMIT).subscribe({
       next: logs => {
+        // Primeiro acesso (nenhum treino e ainda não viu neste navegador): boas-vindas antes do Início.
+        if (shouldShowWelcome(this.auth.currentUser()?.id, logs.length)) {
+          this.router.navigate(['/athlete/bem-vindo']);
+          return;
+        }
         const now = new Date();
         const dates = logs.map(l => l.completedAt);
         this.streak.set(trainingStreak(dates, now, logs.length >= STREAK_HISTORY_LIMIT));

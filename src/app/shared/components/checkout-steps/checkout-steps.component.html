@@ -1,0 +1,17 @@
+<ol class="grid grid-cols-3 gap-2 mb-6" aria-label="Etapas">
+  @for (st of steps(); track st.n) {
+    <li class="flex flex-col gap-1.5" [attr.aria-current]="st.state === 'current' ? 'step' : null">
+      <span class="h-1 rounded-full" [class.bg-primary-fixed]="st.state !== 'todo'" [class.bg-surface-container-highest]="st.state === 'todo'" aria-hidden="true"></span>
+      <span class="flex items-center gap-1.5 font-condensed font-bold text-[11px] uppercase tracking-widest"
+        [class.text-primary-fixed]="st.state === 'current'" [class.text-on-surface]="st.state === 'done'" [class.text-outline]="st.state === 'todo'">
+        <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0"
+          [class.bg-primary-fixed]="st.state !== 'todo'" [class.text-on-primary-fixed]="st.state !== 'todo'"
+          [class.bg-surface-container-highest]="st.state === 'todo'" aria-hidden="true">
+          @if (st.state === 'done') { <span class="material-symbols-outlined text-[14px]">check</span> } @else { {{ st.n }} }
+        </span>
+        {{ st.label }}
+        <span class="sr-only">{{ st.state === 'done' ? '(concluída)' : st.state === 'current' ? '(etapa atual)' : '' }}</span>
+      </span>
+    </li>
+  }
+</ol>

@@ -556,6 +556,10 @@ describe('ApiService — planos de assinatura, assinaturas, contrato/plataforma'
     expect(http.get).toHaveBeenCalledWith(`${BASE}/subscriptions/me`);
     service.getMyPayments();
     expect(http.get).toHaveBeenCalledWith(`${BASE}/subscriptions/me/payments`);
+    service.getMyPaymentStatus();
+    expect(http.get).toHaveBeenCalledWith(`${BASE}/subscriptions/me/payment-status`);
+    service.getMyPix();
+    expect(http.get).toHaveBeenCalledWith(`${BASE}/subscriptions/me/pix`);
   });
 
   it('contrato do coach e configurações da plataforma', () => {

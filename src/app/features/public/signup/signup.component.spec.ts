@@ -21,8 +21,7 @@ function build(planId = 'p-core', over: { api?: Record<string, unknown>; user?: 
   const router = { navigate: vi.fn() };
   const route = { snapshot: { paramMap: new Map([['slug', 'luan'], ['planId', planId]]) } };
   const component = new PublicSignupComponent(route as any, router as any, api as any, auth as any, new FormBuilder());
-  const redirect = vi.spyOn(component as any, 'redirectTo').mockImplementation(() => {});
-  return { component, api, auth, router, redirect };
+  return { component, api, auth, router };
 }
 
 const fillAccount = (c: PublicSignupComponent, healthConsent = false) =>
@@ -200,24 +199,22 @@ describe('PublicSignupComponent — pagamento', () => {
     expect(api.checkoutSubscription).not.toHaveBeenCalled();
   });
 
-  it('CPF ok: gera a cobrança e vai pra fatura do Asaas (https)', () => {
-    const { component, api, redirect } = build();
-    component.ngOnInit();
-    component.onCpfInput('52998224725');
-    component.pay();
-    expect(api.checkoutSubscription).toHaveBeenCalledWith('p-core', '529.982.247-25');
-    expect(redirect).toHaveBeenCalledWith('https://www.asaas.com/i/abc');
-  });
-
-  it('link que não é https nunca é aberto: cai no app', () => {
-    const { component, redirect, router } = build('p-core', {
+  it('CPF ok: gera a cobrança e vai para a tela do PIX dentro do app (nunca abre link vindo da resposta)', () => {
+    const { component, api, router } = build('p-core', {
       api: { checkoutSubscription: vi.fn().mockReturnValue(of({ subscription: {}, checkoutUrl: 'javascript:alert(1)' })) },
     });
     component.ngOnInit();
     component.onCpfInput('52998224725');
     component.pay();
-    expect(redirect).not.toHaveBeenCalled();
-    expect(router.navigate).toHaveBeenCalledWith(['/athlete/home']);
+    expect(api.checkoutSubscription).toHaveBeenCalledWith('p-core', '529.982.247-25');
+    expect(router.navigate).toHaveBeenCalledWith(['/assinatura/pagar']);
+  });
+
+  it('plano grátis (aluno já logado): assina sem CPF e vai para a tela de assinatura ativa', () => {
+    const { component, api, router } = build('p-free', { user: { role: 'athlete', name: 'Ana' } });
+    component.ngOnInit();
+    expect(api.checkoutSubscription).toHaveBeenCalledWith('p-free', undefined);
+    expect(router.navigate).toHaveBeenCalledWith(['/assinatura/confirmada']);
   });
 
   it('conta de outro treinador (404): mensagem específica e fica no pagamento', () => {
@@ -236,20 +233,6 @@ describe('PublicSignupComponent — pagamento', () => {
     component.busy.set(true);
     component.pay();
     expect(api.checkoutSubscription).not.toHaveBeenCalled();
-  });
-
-  it('redirectTo usa window.location.assign', () => {
-    const { component, redirect } = build();
-    redirect.mockRestore();
-    const assign = vi.fn();
-    const original = window.location;
-    Object.defineProperty(window, 'location', { value: { assign }, writable: true, configurable: true });
-    try {
-      (component as any).redirectTo('https://www.asaas.com/i/abc');
-      expect(assign).toHaveBeenCalledWith('https://www.asaas.com/i/abc');
-    } finally {
-      Object.defineProperty(window, 'location', { value: original, writable: true, configurable: true });
-    }
   });
 });
 

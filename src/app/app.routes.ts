@@ -108,6 +108,18 @@ export const routes: Routes = [
     loadComponent: () => import('./features/athlete/account-closed/account-closed.component').then(m => m.AccountClosedComponent),
     canActivate: [authGuard, athleteGuard],
   },
+  // Pagar com PIX dentro do app e assinatura ativa (fora do shell do aluno: são o fim da inscrição, antes de entrar no app).
+  {
+    path: 'assinatura/pagar',
+    loadComponent: () => import('./features/athlete/pix-payment/pix-payment.component').then(m => m.PixPaymentComponent),
+    canActivate: [authGuard, athleteGuard],
+  },
+  {
+    path: 'assinatura/confirmada',
+    loadComponent: () =>
+      import('./features/athlete/subscription-confirmed/subscription-confirmed.component').then(m => m.SubscriptionConfirmedComponent),
+    canActivate: [authGuard, athleteGuard],
+  },
   {
     path: 'consentimento',
     loadComponent: () => import('./features/athlete/consent/consent.component').then(m => m.ConsentComponent),
@@ -124,6 +136,11 @@ export const routes: Routes = [
         path: 'home',
         loadComponent: () =>
           import('./features/athlete/home/home.component').then(m => m.HomeComponent)
+      },
+      {
+        path: 'bem-vindo',
+        loadComponent: () =>
+          import('./features/athlete/welcome/welcome.component').then(m => m.WelcomeComponent)
       },
       {
         path: 'weekly',

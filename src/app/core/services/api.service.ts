@@ -6,7 +6,7 @@ import {
   ExerciseLibraryItem, Payment, PaymentSummary, SkipReason, SkipDecision,
   Movement, PersonalRecord, AppNotification,
   WorkoutSessionRecord, SessionTimeSummary, SessionTimeDetail, CoachAvgDuration,
-  SubscriptionPlan, Subscription, MySubscription, MyGatewayPayment, CheckoutResult, CoachGatewayPayment, MonthlyBreakdown, CoachContract, PlatformSettings, FreeConfig, FinancialSummary,
+  SubscriptionPlan, Subscription, MySubscription, MyGatewayPayment, MyPaymentStatus, MyPix, CheckoutResult, CoachGatewayPayment, MonthlyBreakdown, CoachContract, PlatformSettings, FreeConfig, FinancialSummary,
   CoachProfile, UpdateCoachProfileInput, PublicCoachProfile, CreateLeadInput, PublicSignupInput, PublicSignupResult,
   Testimonial, UpsertTestimonialInput, FaqItem, UpsertFaqItemInput,
   ConsentStatus, User, AthleteLookup, AdminFinancialOverview, CoachAlert, CoachSubscriptionSummary, CoachUsage,
@@ -662,6 +662,16 @@ export class ApiService {
   /** Aluno: a própria assinatura + o que ela libera hoje. */
   getMySubscription(): Observable<MySubscription> {
     return this.http.get<MySubscription>(`${this.base}/subscriptions/me`);
+  }
+
+  /** Situação da própria assinatura (só banco) — a tela do PIX consulta em intervalos esperando a confirmação. */
+  getMyPaymentStatus(): Observable<MyPaymentStatus> {
+    return this.http.get<MyPaymentStatus>(`${this.base}/subscriptions/me/payment-status`);
+  }
+
+  /** PIX (QR + copia e cola) da cobrança em aberto do próprio aluno. */
+  getMyPix(): Observable<MyPix> {
+    return this.http.get<MyPix>(`${this.base}/subscriptions/me/pix`);
   }
 
   /** Aluno: assina o plano (Free direto; pago cria a cobrança PIX no Asaas e devolve o link). */

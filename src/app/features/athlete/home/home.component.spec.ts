@@ -1,7 +1,7 @@
 import { of, throwError } from 'rxjs';
 import { HomeComponent } from './home.component';
 
-function build(apiOver: Record<string, unknown> = {}) {
+function build(apiOver: Record<string, unknown> = {}, user: unknown = { name: 'Ana Souza' }) {
   const api = {
     getMyStudentProfile: vi.fn().mockReturnValue(of({ id: 's1', currentWeek: 1 })),
     getPlansByStudent: vi.fn().mockReturnValue(of([])),
@@ -12,9 +12,10 @@ function build(apiOver: Record<string, unknown> = {}) {
     logCalories: vi.fn().mockReturnValue(of({})),
     ...apiOver,
   };
-  const auth = { currentUser: vi.fn().mockReturnValue({ name: 'Ana Souza' }) };
-  const component = new HomeComponent(api as any, auth as any);
-  return { component, api };
+  const auth = { currentUser: vi.fn().mockReturnValue(user) };
+  const router = { navigate: vi.fn() };
+  const component = new HomeComponent(api as any, auth as any, router as any);
+  return { component, api, router };
 }
 
 describe('HomeComponent — carga inicial', () => {
@@ -237,8 +238,29 @@ describe('HomeComponent — visual novo (Stitch mo03), só dado real', () => {
 
   it('primeiro nome do aluno, ou "Atleta" sem nome', () => {
     expect(build().component.firstName()).toBe('Ana');
-    const semNome = new HomeComponent({} as any, { currentUser: vi.fn().mockReturnValue(null) } as any);
+    const semNome = new HomeComponent({} as any, { currentUser: vi.fn().mockReturnValue(null) } as any, {} as any);
     expect(semNome.firstName()).toBe('Atleta');
     expect(semNome.today()).toMatch(/feira|sábado|domingo/);
+  });
+});
+
+describe('HomeComponent — boas-vindas do primeiro acesso', () => {
+  beforeEach(() => localStorage.clear());
+
+  it('nenhum treino e ainda não viu: vai para as boas-vindas', () => {
+    const { component, router } = build({}, { id: 'u1', name: 'Ana' });
+    component.ngOnInit();
+    expect(router.navigate).toHaveBeenCalledWith(['/athlete/bem-vindo']);
+  });
+
+  it('já viu neste navegador ou já treinou: fica no Início', () => {
+    localStorage.setItem('pulserx_welcome_seen_u1', '1');
+    const viu = build({}, { id: 'u1', name: 'Ana' });
+    viu.component.ngOnInit();
+    expect(viu.router.navigate).not.toHaveBeenCalled();
+
+    const treinou = build({ getWorkoutHistory: vi.fn().mockReturnValue(of([{ completedAt: new Date() }])) }, { id: 'u2', name: 'Bia' });
+    treinou.component.ngOnInit();
+    expect(treinou.router.navigate).not.toHaveBeenCalled();
   });
 });
