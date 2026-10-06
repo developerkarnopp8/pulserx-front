@@ -15,7 +15,7 @@ export const COOKIE_NOTICE_KEY = 'pulserx_cookie_notice_ok';
   template: `
     @if (visible()) {
       <div role="region" aria-label="Aviso de cookies"
-        class="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:bottom-6 md:max-w-md z-[70] bg-surface-container-high border border-outline-variant/20 rounded-xl shadow-2xl p-4 flex flex-col gap-3">
+        class="print:hidden fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:bottom-6 md:max-w-md z-[70] bg-surface-container-high border border-outline-variant/20 rounded-xl shadow-2xl p-4 flex flex-col gap-3">
         <p class="text-on-surface text-sm">
           Usamos apenas armazenamento essencial para manter você conectado e salvar seu treino.
           Não usamos cookies de publicidade nem de rastreamento.

@@ -12,6 +12,7 @@ describe('coachScreenTitle', () => {
     ['/coach/financial', 'Financeiro'],
     ['/coach/subscriptions', 'Assinaturas'],
     ['/coach/landing-page', 'Minha Página'],
+    ['/coach/ajuda', 'Ajuda'],
   ])('%s → %s', (url, title) => {
     expect(coachScreenTitle(url)).toBe(title);
   });

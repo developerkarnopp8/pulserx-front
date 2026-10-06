@@ -98,6 +98,12 @@
 > `['admin']` em /login/root; devolve o usuário e a tela navega pelo perfil); senha continua mínimo 8; confirmação continua por link e mostra o
 > plano e o coach reais (`signupTargetFromHash` + `GET /public/coaches/:slug`; falhou = sem o cartão).
 
+> **Manual do coach (2026-10-06, branch `feat-manual-coach`):** texto ÚNICO em `features/help/coach-manual.ts` → página **Ajuda**
+> (`/coach/ajuda`, item no menu, botão "Baixar PDF") e versão clara pública **`/manual-coach`** (sem login; é dela que sai o PDF).
+> **Mudou o texto? Gere o PDF de novo:** `npx ng serve --port 4300` e
+> `google-chrome --headless=new --no-sandbox --virtual-time-budget=8000 --no-pdf-header-footer --print-to-pdf=public/manual-coach-pulserx.pdf http://localhost:4300/manual-coach`
+> (A4 e título vêm do componente; o aviso de cookies tem `print:hidden`). Só texto verdadeiro — conferir cada passo na tela antes.
+
 ## Visão Geral
 
 **PulseRx** é uma plataforma SaaS para gestão de academias. O frontend é construído em Angular 21 e consome dados mock (json-server) — o backend real NestJS será integrado posteriormente.
