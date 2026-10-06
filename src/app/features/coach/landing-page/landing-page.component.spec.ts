@@ -37,6 +37,8 @@ function build(apiOver: Record<string, unknown> = {}) {
     createFaqItem: vi.fn().mockReturnValue(of(faqItem())),
     updateFaqItem: vi.fn().mockReturnValue(of(faqItem())),
     deleteFaqItem: vi.fn().mockReturnValue(of({ removed: true })),
+    getSubscriptionPlans: vi.fn().mockReturnValue(of([])),
+    getMyWallet: vi.fn().mockReturnValue(of({ walletId: null, valid: false })),
     ...apiOver,
   };
   const component = new LandingPageComponent(api as any, new FormBuilder());
@@ -494,5 +496,55 @@ describe('LandingPageComponent — copiar link (Stitch mo12)', () => {
     expect(component.linkCopied()).toBe(false);
     vi.stubGlobal('navigator', {});
     expect(() => component.copyPublicLink('x')).not.toThrow();
+  });
+});
+
+describe('LandingPageComponent — aviso de recebimento (carteira Asaas)', () => {
+  const pago = { id: 'p1', name: 'Core', active: true, isFree: false, priceCents: 14900 };
+  const W = 'c0c1688f-636b-42c0-b6ee-7339182276b7';
+
+  it('plano pago ativo e sem carteira: avisa antes de divulgar', () => {
+    const { component } = build({ getSubscriptionPlans: vi.fn().mockReturnValue(of([pago])) });
+    component.ngOnInit();
+    expect(component.walletStatus()).toBe('missing');
+    expect(component.walletWarning()).toBe(true);
+  });
+
+  it('carteira salva fora do formato: também avisa (como inválida)', () => {
+    const { component } = build({
+      getSubscriptionPlans: vi.fn().mockReturnValue(of([pago])),
+      getMyWallet: vi.fn().mockReturnValue(of({ walletId: '00000000-0000-0000-0000-000000000000', valid: false })),
+    });
+    component.ngOnInit();
+    expect(component.walletStatus()).toBe('invalid');
+    expect(component.walletWarning()).toBe(true);
+  });
+
+  it('carteira válida, ou só planos grátis/inativos: sem aviso', () => {
+    const ok = build({
+      getSubscriptionPlans: vi.fn().mockReturnValue(of([pago])),
+      getMyWallet: vi.fn().mockReturnValue(of({ walletId: W, valid: true })),
+    });
+    ok.component.ngOnInit();
+    expect(ok.component.walletWarning()).toBe(false);
+
+    const semPago = build({
+      getSubscriptionPlans: vi.fn().mockReturnValue(of([
+        { ...pago, isFree: true, priceCents: 0 }, { ...pago, active: false },
+      ])),
+    });
+    semPago.component.ngOnInit();
+    expect(semPago.component.hasPaidPlans()).toBe(false);
+    expect(semPago.component.walletWarning()).toBe(false);
+  });
+
+  it('falha ao carregar planos ou carteira: sem aviso e a tela abre igual', () => {
+    const { component } = build({
+      getSubscriptionPlans: vi.fn().mockReturnValue(throwError(() => new Error('x'))),
+      getMyWallet: vi.fn().mockReturnValue(throwError(() => new Error('x'))),
+    });
+    component.ngOnInit();
+    expect(component.walletStatus()).toBeNull();
+    expect(component.walletWarning()).toBe(false);
   });
 });
