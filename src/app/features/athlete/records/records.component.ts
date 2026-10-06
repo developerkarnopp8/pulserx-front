@@ -5,6 +5,10 @@ import { ApiService } from '../../../core/services/api.service';
 import { Movement, PersonalRecord } from '../../../core/models';
 import { MOVEMENT_CATEGORIES, filterMovements } from '../../../shared/utils/movement-filter';
 import { apiMessage } from '../../../shared/utils/signup-flow';
+import { latestLoadPr } from '../../../shared/utils/training-streak';
+
+/** Quantas tentativas aparecem na evolução do recorde em destaque. */
+export const HIGHLIGHT_ATTEMPTS = 5;
 
 interface MovementWithPR {
   movement: Movement;
@@ -65,6 +69,28 @@ export class RecordsComponent implements OnInit {
         : undefined;
       return { movement, bestLoadKg, bestReps, lastAchievedAt };
     });
+  });
+
+  /** Último registro que foi recorde de carga (mesma regra do Início). */
+  highlight = computed(() => latestLoadPr(this.records()));
+  /** Últimas tentativas com carga do movimento em destaque, da mais antiga para a mais nova (para a evolução). */
+  highlightAttempts = computed(() => {
+    const h = this.highlight();
+    if (!h) return [];
+    return this.records()
+      .filter(r => r.movementId === h.record.movementId && (r.loadKg ?? 0) > 0)
+      .sort((a, b) => a.achievedAt.localeCompare(b.achievedAt))
+      .slice(-HIGHLIGHT_ATTEMPTS);
+  });
+  /** Maior carga entre as tentativas mostradas (altura das barras). */
+  highlightMax = computed(() => Math.max(1, ...this.highlightAttempts().map(r => r.loadKg ?? 0)));
+  /** Movimentos com pelo menos um registro. */
+  recordedCount = computed(() => this.movementsWithPR().filter(m => m.bestLoadKg || m.bestReps).length);
+  /** Movimentos por grupo (para os botões de filtro). */
+  categoryCounts = computed(() => {
+    const counts = new Map<string, number>();
+    for (const m of this.movements()) counts.set(m.category, (counts.get(m.category) ?? 0) + 1);
+    return counts;
   });
 
   /** Grupos que existem no catálogo carregado (pro seletor "Selecione um grupo"). */

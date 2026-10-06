@@ -92,3 +92,43 @@ describe('HistoryComponent (Evolução)', () => {
     expect(component.sparkLast(p)).toEqual({ x: 92, y: 4 });
   });
 });
+
+describe('HistoryComponent — card do movimento (Stitch mo05)', () => {
+  const rec = (movementId: string, loadKg: number, achievedAt: string) =>
+    ({ id: `${movementId}-${loadKg}`, athleteId: 'a', movementId, loadKg, achievedAt, movement: { id: movementId, name: movementId, category: 'LPO' } });
+
+  it('abre o primeiro movimento; troca pelo escolhido; % de ganho da primeira marca', () => {
+    const { component } = buildEvo([
+      rec('snatch', 80, '2026-09-01T10:00:00.000Z'), rec('snatch', 100, '2026-09-10T10:00:00.000Z'),
+      rec('clean', 100, '2026-09-02T10:00:00.000Z'),
+    ]);
+    const first = component.selected()!;
+    expect(component.progressions().length).toBe(2);
+    component.selectedMovementId.set('snatch');
+    expect(component.selected()?.movementId).toBe('snatch');
+    expect(component.gainPercent()).toBe(25);
+    expect(component.bigPoints(component.selected()!).length).toBe(2);
+    expect(component.bigPath(component.selected()!)).toMatch(/^M.* L/);
+    component.selectedMovementId.set('clean');
+    expect(component.gainPercent()).toBe(0);
+    component.selectedMovementId.set('nao-existe');
+    expect(component.selected()?.movementId).toBe(first.movementId);
+  });
+
+  it('sem PR: sem card e ganho 0', () => {
+    const { component } = buildEvo([]);
+    expect(component.selected()).toBeNull();
+    expect(component.gainPercent()).toBe(0);
+  });
+});
+
+function buildEvo(records: unknown[]) {
+  const api = {
+    getWorkoutHistory: vi.fn().mockReturnValue(of([])),
+    getMyWorkoutSessions: vi.fn().mockReturnValue(of([])),
+    getMyPersonalRecords: vi.fn().mockReturnValue(of(records)),
+  };
+  const component = new HistoryComponent(api as any);
+  component.ngOnInit();
+  return { component };
+}

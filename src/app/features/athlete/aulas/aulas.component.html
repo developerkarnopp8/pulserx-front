@@ -1,62 +1,99 @@
-<div class="px-5 py-4 animate-fade-in">
+<div class="px-5 py-4 flex flex-col gap-4 animate-fade-in">
 
-  <div class="mb-5">
-    <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-1">Vídeos do seu treino</p>
-    <h2 class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none uppercase">Aulas</h2>
+  <div>
+    <div class="flex items-center gap-2 mb-1">
+      <span class="w-1.5 h-1.5 rounded-full bg-primary-fixed" aria-hidden="true"></span>
+      <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">Aulas</p>
+    </div>
+    <h2 class="font-headline font-black text-3xl text-on-surface uppercase leading-none tracking-tight">Vídeos do seu treino</h2>
+    <p class="text-on-surface-variant text-sm mt-2">Demonstrações que o seu coach colocou nos exercícios dos seus planos.</p>
   </div>
 
   @if (loading()) {
-    <div class="space-y-3" aria-busy="true" aria-label="Carregando aulas">
-      <div class="h-10 bg-surface-container-low rounded-md animate-pulse"></div>
+    <div class="flex flex-col gap-3" aria-busy="true" aria-label="Carregando aulas">
+      <div class="h-12 bg-surface-container-low rounded-md animate-pulse"></div>
       <div class="h-48 bg-surface-container-low rounded-md animate-pulse"></div>
     </div>
   } @else if (errorMsg()) {
     <div role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-3 text-error text-sm">{{ errorMsg() }}</div>
   } @else if (!totalVideos()) {
-    <div class="bg-surface-container-low rounded-md p-5 text-center">
-      <span class="material-symbols-outlined text-[32px] text-outline" aria-hidden="true">play_circle</span>
-      <p class="text-on-surface text-sm font-semibold mt-2">Nenhuma aula ainda</p>
-      <p class="text-on-surface-variant text-xs mt-1">Os vídeos aparecem aqui quando seu coach adicionar vídeo aos exercícios do seu treino.</p>
+    <div class="bg-surface-container-low rounded-md p-6 flex flex-col items-center text-center gap-2">
+      <span class="material-symbols-outlined text-[36px] text-outline" aria-hidden="true">videocam_off</span>
+      <p class="font-headline font-black text-on-surface uppercase">Nenhuma aula ainda</p>
+      <p class="text-on-surface-variant text-sm">Os vídeos aparecem aqui quando seu coach adicionar vídeo aos exercícios do seu treino.</p>
+      <a routerLink="/athlete/weekly" class="mt-2 min-h-[44px] inline-flex items-center gap-2 px-4 rounded-sm bg-primary-fixed text-on-primary-fixed font-headline text-xs font-black uppercase tracking-wider">
+        <span class="material-symbols-outlined text-[18px]" aria-hidden="true">fitness_center</span> Ver meu treino
+      </a>
     </div>
   } @else {
+    <!-- Busca -->
+    <div class="flex items-center gap-3 bg-surface-container-low rounded-sm px-4 min-h-[48px] focus-within:ring-1 focus-within:ring-primary-fixed">
+      <span class="material-symbols-outlined text-outline text-[20px] shrink-0" aria-hidden="true">search</span>
+      <label for="busca-aulas" class="sr-only">Buscar exercício</label>
+      <input id="busca-aulas" type="search" [value]="query()" (input)="query.set($any($event.target).value)" placeholder="Buscar exercício"
+        class="min-w-0 flex-1 bg-transparent text-on-surface placeholder:text-outline text-sm" />
+      @if (query()) {
+        <button type="button" (click)="query.set('')" aria-label="Limpar busca"
+          class="w-11 h-11 -mr-3 flex items-center justify-center text-outline hover:text-on-surface">
+          <span class="material-symbols-outlined text-[20px]" aria-hidden="true">close</span>
+        </button>
+      }
+    </div>
+
     <!-- Filtro por categoria -->
     @if (groups().length > 1) {
-      <div class="flex gap-2 mb-5 overflow-x-auto" role="group" aria-label="Filtrar por categoria">
+      <div class="flex gap-2 overflow-x-auto no-scrollbar" role="group" aria-label="Filtrar por categoria">
         <button type="button" (click)="select(null)" [attr.aria-pressed]="selected() === null"
-          class="min-h-[44px] px-4 rounded-full text-xs font-headline uppercase tracking-widest flex-shrink-0 transition-colors"
+          class="min-h-[44px] px-4 rounded-sm font-headline text-xs font-bold uppercase tracking-wider shrink-0 transition-colors"
           [class.bg-primary-fixed]="selected() === null" [class.text-on-primary-fixed]="selected() === null"
           [class.bg-surface-container-low]="selected() !== null" [class.text-on-surface-variant]="selected() !== null">
-          Todas
+          Todas ({{ totalVideos() }})
         </button>
         @for (g of groups(); track g.category) {
           <button type="button" (click)="select(g.category)" [attr.aria-pressed]="selected() === g.category"
-            class="min-h-[44px] px-4 rounded-full text-xs font-headline uppercase tracking-widest flex-shrink-0 transition-colors"
+            class="min-h-[44px] px-4 rounded-sm font-headline text-xs font-bold uppercase tracking-wider shrink-0 transition-colors"
             [class.bg-primary-fixed]="selected() === g.category" [class.text-on-primary-fixed]="selected() === g.category"
             [class.bg-surface-container-low]="selected() !== g.category" [class.text-on-surface-variant]="selected() !== g.category">
-            {{ g.label }}
+            {{ g.label }} ({{ g.videos.length }})
           </button>
         }
       </div>
     }
 
+    <p class="text-on-surface-variant text-xs" aria-live="polite">
+      {{ visibleCount() }} {{ visibleCount() === 1 ? 'vídeo' : 'vídeos' }}
+    </p>
+
     @for (g of visibleGroups(); track g.category) {
-      <section class="mb-6" [attr.aria-labelledby]="'aulas-' + g.category">
-        <h3 [id]="'aulas-' + g.category" class="flex items-center justify-between text-on-surface font-headline font-black text-sm uppercase tracking-widest mb-3">
-          {{ g.label }}
-          <span class="text-outline text-[10px] font-normal">{{ g.videos.length }} {{ g.videos.length === 1 ? 'vídeo' : 'vídeos' }}</span>
-        </h3>
-        <ul class="space-y-3">
+      <section class="flex flex-col gap-3" [attr.aria-labelledby]="'aulas-' + g.category">
+        <h3 [id]="'aulas-' + g.category" class="font-headline font-black text-sm text-on-surface uppercase tracking-widest">{{ g.label }}</h3>
+        <ul class="flex flex-col gap-3">
           @for (v of g.videos; track v.videoId) {
             <li class="bg-surface-container-low rounded-md overflow-hidden">
               <app-youtube-embed [url]="v.url" />
-              <div class="px-4 py-3">
-                <p class="text-on-surface text-sm font-semibold">{{ v.exerciseName }}</p>
-                <p class="text-on-surface-variant text-xs mt-0.5">{{ v.sessionName }}</p>
+              <div class="p-4 flex flex-col gap-2">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed truncate">{{ v.sessionName }}</span>
+                  @if (v.prescription) {
+                    <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant px-2 py-0.5 rounded-sm bg-surface-container shrink-0">{{ v.prescription }}</span>
+                  }
+                </div>
+                <h4 class="font-headline font-black text-base text-on-surface uppercase leading-tight">{{ v.exerciseName }}</h4>
+                @if (v.coachNotes) {
+                  <p class="flex items-start gap-2 text-on-surface-variant text-xs">
+                    <span class="material-symbols-outlined text-[16px] text-primary-fixed" aria-hidden="true">tips_and_updates</span>
+                    {{ v.coachNotes }}
+                  </p>
+                }
               </div>
             </li>
           }
         </ul>
       </section>
+    }
+
+    @if (!visibleCount()) {
+      <p class="bg-surface-container-low rounded-md text-on-surface-variant text-sm text-center py-6">Nenhum vídeo encontrado para "{{ query() }}".</p>
     }
   }
 

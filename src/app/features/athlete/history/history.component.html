@@ -1,8 +1,12 @@
 <div class="px-5 py-4 animate-fade-in pb-6">
 
   <div class="mb-5">
-    <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-1">Seu desempenho</p>
-    <h2 class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none uppercase">Evolução</h2>
+    <div class="flex items-center gap-2 mb-1">
+      <span class="w-1.5 h-1.5 rounded-full bg-primary-fixed" aria-hidden="true"></span>
+      <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">Seu desempenho · últimas 8 semanas</p>
+    </div>
+    <h2 class="font-headline font-black text-3xl text-on-surface uppercase leading-none tracking-tight">Evolução e consistência</h2>
+    <p class="text-on-surface-variant text-sm mt-2">Tudo calculado dos seus treinos e PRs registrados.</p>
   </div>
 
   @if (loading()) {
@@ -17,28 +21,32 @@
     <!-- Números principais -->
     <div class="grid grid-cols-3 gap-2 mb-4">
       <div class="bg-surface-container-low rounded-md p-3">
-        <p class="text-on-surface-variant text-[9px] font-headline uppercase tracking-widest">Sequência</p>
-        <p class="font-headline font-black text-2xl text-on-surface leading-tight mt-1">
-          {{ streak().days }}{{ streak().atLeast ? '+' : '' }}
+        <p class="flex items-center gap-1 text-on-surface-variant font-headline text-[10px] font-bold uppercase tracking-widest">
+          <span class="material-symbols-outlined text-[14px] text-primary-fixed" aria-hidden="true">local_fire_department</span> Sequência
         </p>
-        <p class="text-outline text-[10px]">{{ streak().days === 1 ? 'dia seguido' : 'dias seguidos' }}</p>
+        <p class="font-headline font-black text-3xl text-on-surface leading-none mt-2">{{ streak().days }}{{ streak().atLeast ? '+' : '' }}</p>
+        <p class="text-outline text-[10px] mt-0.5">{{ streak().days === 1 ? 'dia seguido' : 'dias seguidos' }}</p>
       </div>
       <div class="bg-surface-container-low rounded-md p-3">
-        <p class="text-on-surface-variant text-[9px] font-headline uppercase tracking-widest">Por semana</p>
-        <p class="font-headline font-black text-2xl text-on-surface leading-tight mt-1">{{ weeklyAverage() }}</p>
-        <p class="text-outline text-[10px]">dias (média 8 sem.)</p>
+        <p class="flex items-center gap-1 text-on-surface-variant font-headline text-[10px] font-bold uppercase tracking-widest">
+          <span class="material-symbols-outlined text-[14px] text-primary-fixed" aria-hidden="true">calendar_today</span> Por sem.
+        </p>
+        <p class="font-headline font-black text-3xl text-on-surface leading-none mt-2">{{ weeklyAverage() }}</p>
+        <p class="text-outline text-[10px] mt-0.5">dias (média)</p>
       </div>
       <div class="bg-surface-container-low rounded-md p-3">
-        <p class="text-on-surface-variant text-[9px] font-headline uppercase tracking-widest">Sessão média</p>
-        <p class="font-headline font-black text-2xl text-on-surface leading-tight mt-1">{{ formatDuration(avgSessionSeconds()) }}</p>
-        <p class="text-outline text-[10px]">{{ sessions().length }} {{ sessions().length === 1 ? 'sessão' : 'sessões' }}</p>
+        <p class="flex items-center gap-1 text-on-surface-variant font-headline text-[10px] font-bold uppercase tracking-widest">
+          <span class="material-symbols-outlined text-[14px] text-primary-fixed" aria-hidden="true">timer</span> Sessão
+        </p>
+        <p class="font-headline font-black text-2xl text-on-surface leading-none mt-2">{{ formatDuration(avgSessionSeconds()) }}</p>
+        <p class="text-outline text-[10px] mt-0.5">média · {{ sessions().length }} {{ sessions().length === 1 ? 'sessão' : 'sessões' }}</p>
       </div>
     </div>
 
     <!-- Dias treinados por semana (1 série: sem legenda, o título nomeia) -->
     <section class="bg-surface-container-low rounded-md p-4 mb-4" aria-labelledby="evo-semanas">
-      <h3 id="evo-semanas" class="text-on-surface font-headline font-black text-sm uppercase tracking-widest mb-1">Dias treinados por semana</h3>
-      <p class="text-outline text-[10px] mb-4">Últimas 8 semanas · máximo 7</p>
+      <h3 id="evo-semanas" class="text-on-surface font-headline font-black text-sm uppercase tracking-widest mb-1">Frequência semanal</h3>
+      <p class="text-outline text-[11px] mb-4">Dias treinados · últimas 8 semanas · máximo 7</p>
       <div class="flex items-end gap-2 h-28 border-b border-outline-variant/20" aria-hidden="true">
         @for (w of weeks(); track w.label; let last = $last) {
           <div class="flex-1 h-full flex flex-col justify-end items-center group relative"
@@ -64,40 +72,91 @@
       </ul>
     </section>
 
-    <!-- Evolução dos PRs por movimento -->
-    <section class="mb-4" aria-labelledby="evo-prs">
-      <div class="flex items-center justify-between mb-2">
+    <!-- Evolução dos PRs -->
+    <section class="mb-4 flex flex-col gap-3" aria-labelledby="evo-prs">
+      <div class="flex items-center justify-between">
         <h3 id="evo-prs" class="text-on-surface font-headline font-black text-sm uppercase tracking-widest">Evolução dos PRs</h3>
-        <a routerLink="/athlete/records" class="text-primary-fixed text-xs font-headline hover:underline min-h-[44px] flex items-center">Registrar</a>
+        <a routerLink="/athlete/records" class="text-primary-fixed text-xs font-headline font-bold uppercase tracking-widest min-h-[44px] flex items-center">Registrar</a>
       </div>
-      @for (p of progressions(); track p.movementId) {
-        <div class="bg-surface-container-low rounded-md px-4 py-3 mb-2 flex items-center gap-3">
-          <div class="flex-1 min-w-0">
-            <p class="text-on-surface text-sm font-semibold truncate">{{ p.movementName }}</p>
-            <p class="text-on-surface-variant text-xs">
-              <span class="text-on-surface font-headline font-bold">{{ p.bestKg }}kg</span>
-              @if (p.gainKg > 0) {
-                · +{{ p.gainKg }}kg desde {{ p.points[0].achievedAt | date:'dd/MM/yy' }}
-              } @else {
-                · em {{ p.lastPrAt | date:'dd/MM/yy' }}
+
+      @if (selected(); as p) {
+        <div class="bg-surface-container-low rounded-md p-4 flex flex-col gap-3">
+          @if (progressions().length > 1) {
+            <label for="evo-movimento" class="sr-only">Movimento</label>
+            <select id="evo-movimento" [value]="p.movementId" (change)="selectedMovementId.set($any($event.target).value)"
+              class="w-full min-h-[44px] bg-surface-container text-on-surface rounded-sm px-3 text-sm font-headline font-bold uppercase">
+              @for (opt of progressions(); track opt.movementId) {
+                <option [value]="opt.movementId">{{ opt.movementName }}</option>
               }
+            </select>
+          } @else {
+            <p class="font-headline font-black text-sm text-on-surface uppercase">{{ p.movementName }}</p>
+          }
+          <div class="flex items-end justify-between gap-3">
+            <p class="font-headline font-black text-5xl text-on-surface leading-none">{{ p.bestKg }} <span class="text-xl">kg</span>
+              <span class="block font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mt-1">atual</span>
             </p>
+            @if (p.gainKg > 0) {
+              <p class="text-right">
+                <span class="flex items-center justify-end gap-1 text-primary-fixed font-headline font-bold text-sm">
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">trending_up</span> +{{ p.gainKg }} kg
+                </span>
+                <span class="text-on-surface-variant text-xs">+{{ gainPercent() }}% de ganho</span>
+              </p>
+            }
           </div>
           @if (p.points.length > 1) {
-            <svg [attr.width]="sparkW" [attr.height]="sparkH" [attr.viewBox]="'0 0 ' + sparkW + ' ' + sparkH"
-              role="img" [attr.aria-label]="'PRs de ' + p.movementName + ': de ' + p.firstKg + ' para ' + p.bestKg + ' kg em ' + p.points.length + ' marcas'"
-              class="flex-shrink-0">
-              <title>{{ p.firstKg }}kg → {{ p.bestKg }}kg ({{ p.points.length }} PRs)</title>
-              <path [attr.d]="sparkPath(p)" fill="none" stroke="var(--color-primary-fixed)" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" />
-              <circle [attr.cx]="sparkLast(p).x" [attr.cy]="sparkLast(p).y" r="4"
-                fill="var(--color-primary-fixed)" stroke="var(--color-surface-container-low)" stroke-width="2" />
+            <svg [attr.viewBox]="'-6 -6 ' + (bigW + 12) + ' ' + (bigH + 12)" class="w-full h-28" preserveAspectRatio="none"
+              role="img" [attr.aria-label]="'PRs de ' + p.movementName + ': de ' + p.firstKg + ' para ' + p.bestKg + ' kg em ' + p.points.length + ' marcas'">
+              <path [attr.d]="bigPath(p)" fill="none" stroke="var(--color-primary-fixed)" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" />
+              @for (pt of bigPoints(p); track $index; let last = $last) {
+                <circle [attr.cx]="pt.x" [attr.cy]="pt.y" [attr.r]="last ? 5 : 3"
+                  [attr.fill]="last ? 'var(--color-primary-fixed)' : 'var(--color-surface-container-highest)'"
+                  stroke="var(--color-primary-fixed)" stroke-width="1.5" />
+              }
             </svg>
           }
+          <p class="text-on-surface-variant text-xs">
+            Marco inicial: <span class="text-on-surface font-bold">{{ p.firstKg }} kg</span> ({{ p.points[0].achievedAt | date: 'dd/MM/yyyy' }})
+            · {{ p.points.length }} {{ p.points.length === 1 ? 'recorde' : 'recordes' }}
+          </p>
         </div>
-      } @empty {
-        <div class="bg-surface-container-low rounded-md p-4 text-center">
+
+        @if (progressions().length > 1) {
+          <ul class="flex flex-col gap-2">
+            @for (q of progressions(); track q.movementId) {
+              @if (q.movementId !== p.movementId) {
+                <li>
+                  <button type="button" (click)="selectedMovementId.set(q.movementId)"
+                    class="w-full bg-surface-container-low hover:bg-surface-container rounded-md px-4 py-3 flex items-center gap-3 text-left transition-colors">
+                    <span class="flex-1 min-w-0">
+                      <span class="block text-on-surface text-sm font-headline font-bold uppercase truncate">{{ q.movementName }}</span>
+                      <span class="block text-on-surface-variant text-xs">
+                        <span class="text-on-surface font-bold">{{ q.bestKg }} kg</span>
+                        @if (q.gainKg > 0) { · +{{ q.gainKg }} kg desde {{ q.points[0].achievedAt | date:'dd/MM/yy' }} } @else { · em {{ q.lastPrAt | date:'dd/MM/yy' }} }
+                      </span>
+                    </span>
+                    @if (q.points.length > 1) {
+                      <svg [attr.width]="sparkW" [attr.height]="sparkH" [attr.viewBox]="'0 0 ' + sparkW + ' ' + sparkH" aria-hidden="true" class="shrink-0">
+                        <path [attr.d]="sparkPath(q)" fill="none" stroke="var(--color-primary-fixed)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <circle [attr.cx]="sparkLast(q).x" [attr.cy]="sparkLast(q).y" r="4" fill="var(--color-primary-fixed)" stroke="var(--color-surface-container-low)" stroke-width="2" />
+                      </svg>
+                    }
+                  </button>
+                </li>
+              }
+            }
+          </ul>
+        }
+      } @else {
+        <div class="bg-surface-container-low rounded-md p-6 flex flex-col items-center text-center gap-2">
+          <span class="material-symbols-outlined text-[32px] text-outline" aria-hidden="true">fitness_center</span>
+          <p class="font-headline font-black text-on-surface uppercase">Nenhum PR registrado</p>
           <p class="text-on-surface-variant text-sm">Registre seus PRs pra acompanhar a evolução de carga aqui.</p>
+          <a routerLink="/athlete/records" class="mt-1 min-h-[44px] inline-flex items-center gap-1 px-4 rounded-sm bg-primary-fixed text-on-primary-fixed font-headline text-xs font-black uppercase tracking-wider">
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">add_circle</span> Registrar primeiro PR
+          </a>
         </div>
       }
     </section>
