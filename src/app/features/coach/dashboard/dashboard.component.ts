@@ -3,7 +3,9 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Student } from '../../../core/models';
+import { AppNotification, FinancialSummary, Student } from '../../../core/models';
+import { formatCents } from '../../../shared/utils/currency';
+import { NOTIFICATION_FEED, attentionList, initials, latestNotifications } from '../../../shared/utils/coach-dashboard';
 import { formatDurationShort } from '../../../shared/utils/format-duration';
 
 @Component({
@@ -30,6 +32,19 @@ export class DashboardComponent implements OnInit {
   /** Tempo médio de treino (em segundos) entre os alunos do coach — últimos 30 dias */
   avgDuration = signal<number>(0);
   fmtDuration = formatDurationShort;
+  readonly fmtCents = formatCents;
+  readonly feedStyle = NOTIFICATION_FEED;
+  readonly initials = initials;
+
+  /** Resumo financeiro (MRR e inadimplentes); null = não carregou (o card não aparece). */
+  financial = signal<FinancialSummary | null>(null);
+  skipCounts = signal<{ studentId: string; count: number }[]>([]);
+  notifications = signal<AppNotification[]>([]);
+
+  /** Pulos de treino ainda sem resposta do coach (todos os alunos). */
+  pendingSkips = computed(() => this.skipCounts().reduce((n, s) => n + s.count, 0));
+  attention = computed(() => attentionList(this.students(), this.skipCounts()));
+  feed = computed(() => latestNotifications(this.notifications(), 5));
 
   constructor(private api: ApiService, public auth: AuthService) {}
 
@@ -43,9 +58,10 @@ export class DashboardComponent implements OnInit {
       this.weeklyCompletion.set(byIndex);
     });
     this.api.getCoachAvgDuration().subscribe(r => this.avgDuration.set(r.overallAvgSeconds));
+    // Cards extras: falha só esconde o card, não derruba o painel.
+    this.api.getFinancialSummary().subscribe({ next: f => this.financial.set(f), error: () => {} });
+    this.api.getPendingSkipCounts().subscribe({ next: c => this.skipCounts.set(c), error: () => {} });
+    this.api.getNotifications().subscribe({ next: n => this.notifications.set(n), error: () => {} });
   }
 
-  getInitials(name: string): string {
-    return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
-  }
 }

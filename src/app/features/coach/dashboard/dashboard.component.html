@@ -1,112 +1,205 @@
 <div class="flex flex-col h-full overflow-y-auto animate-fade-in">
+  <div class="px-4 md:px-8 py-5 md:py-6 flex flex-col gap-6 max-w-7xl w-full">
 
-  <!-- Header -->
-  <header class="px-4 md:px-8 py-4 md:py-6 flex items-center justify-between flex-shrink-0 gap-3">
-    <div>
-      <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-1">Coach Premium</p>
-      <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface tracking-tighter leading-none">PERFORMANCE HUB</h2>
-    </div>
-    <div class="hidden sm:flex items-center gap-3">
-      <div class="flex items-center gap-2 bg-surface-container rounded-md px-3 py-2">
-        <span class="material-symbols-outlined text-outline text-[16px]">search</span>
-        <input
-          type="search"
-          placeholder="Buscar aluno..."
-          class="bg-transparent text-on-surface placeholder:text-outline text-sm w-36"/>
+    <!-- Título -->
+    <header class="flex flex-col gap-1">
+      <div class="flex items-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-primary-fixed" aria-hidden="true"></span>
+        <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">Painel geral</p>
       </div>
-    </div>
-  </header>
+      <h2 class="font-headline font-black text-3xl md:text-4xl text-on-surface uppercase leading-none tracking-tight">Performance hub</h2>
+      <p class="text-on-surface-variant text-sm max-w-xl">Conclusão, engajamento e assinaturas dos seus alunos.</p>
+    </header>
 
-  <!-- Content -->
-  <div class="flex flex-col md:flex-row flex-1 overflow-y-auto md:overflow-hidden min-h-0">
-
-    <!-- Right sidebar: Stats -->
-    <aside class="w-full md:w-60 px-4 md:px-5 pt-4 md:pt-0 pb-4 md:pb-8 flex-shrink-0 md:overflow-y-auto md:order-2">
-
-      <!-- Monthly avg -->
-      <div class="bg-surface-container-low rounded-md p-5 mb-4 text-center">
-        <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-2">Progresso do Mês</p>
-        <p class="font-headline font-black text-5xl text-on-surface tracking-tighter leading-none">{{ monthlyAvg() }}%</p>
-        <p class="text-on-surface-variant text-xs mt-2 font-headline">Média do time no plano atual</p>
+    <!-- Números -->
+    <section class="grid grid-cols-2 lg:grid-cols-5 gap-3" aria-label="Resumo">
+      <div class="bg-surface-container-low rounded-md p-4 flex flex-col gap-1">
+        <p class="flex items-center justify-between font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+          Alunos <span class="material-symbols-outlined text-[18px] text-primary-fixed" aria-hidden="true">groups</span>
+        </p>
+        <p class="font-headline font-black text-4xl text-on-surface leading-none mt-1">{{ students().length }}</p>
+        <p class="text-outline text-[11px]">vinculados a você</p>
       </div>
-
-    </aside>
-
-    <!-- Left: Main -->
-    <section class="flex-1 px-4 md:px-8 pb-8 md:overflow-y-auto md:order-1">
-
-      <!-- Hero heading -->
-      <div class="mb-6">
-        <h3 class="font-headline font-black text-4xl md:text-5xl text-on-surface leading-none tracking-tighter">PROGRESSO</h3>
-        <h3 class="font-headline font-black text-4xl md:text-5xl text-primary-fixed leading-none tracking-tighter">DA EQUIPE</h3>
-        <p class="text-on-surface-variant text-sm mt-3 max-w-sm">Análise em tempo real de retenção, completude e engajamento dos seus atletas.</p>
+      <div class="bg-surface-container-low rounded-md p-4 flex flex-col gap-1">
+        <p class="flex items-center justify-between font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+          Conclusão <span class="material-symbols-outlined text-[18px] text-primary-fixed" aria-hidden="true">donut_large</span>
+        </p>
+        <p class="font-headline font-black text-4xl text-on-surface leading-none mt-1">{{ monthlyAvg() }}%</p>
+        <div class="h-1.5 rounded-full bg-surface-container-highest overflow-hidden mt-1" aria-hidden="true">
+          <div class="h-full bg-primary-fixed" [style.width.%]="monthlyAvg()"></div>
+        </div>
+        <p class="text-outline text-[11px]">média do plano do mês</p>
       </div>
-
-      <!-- Chart card -->
-      <div class="bg-surface-container-low rounded-md p-5 mb-6">
-        <div class="flex items-center justify-between mb-4">
-          <p class="text-on-surface-variant text-xs font-headline uppercase tracking-widest">Taxa de Conclusão</p>
-          <div class="flex gap-1 text-[10px] text-outline font-headline">
-            <span class="px-2 py-0.5 bg-surface-container rounded-sm">Semana</span>
-          </div>
-        </div>
-        <!-- Bar chart -->
-        <div class="flex items-end gap-2 h-28">
-          @for (dayIndex of [0,1,2,3,4,5,6]; track dayIndex) {
-            <div
-              class="flex-1 rounded-sm transition-all"
-              [style.height.%]="weeklyCompletion()[dayIndex] || 2"
-              [class.bg-primary-fixed]="dayIndex === todayDayIndex"
-              [class.bg-surface-container-high]="dayIndex !== todayDayIndex">
-            </div>
-          }
-        </div>
-        <div class="flex justify-between text-outline text-[10px] font-headline uppercase mt-2">
-          @for (d of ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']; track d) {
-            <span>{{ d }}</span>
-          }
-        </div>
+      <div class="bg-surface-container-low rounded-md p-4 flex flex-col gap-1">
+        <p class="flex items-center justify-between font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+          Tempo médio <span class="material-symbols-outlined text-[18px] text-primary-fixed" aria-hidden="true">timer</span>
+        </p>
+        <p class="font-headline font-black text-4xl text-on-surface leading-none mt-1">{{ fmtDuration(avgDuration()) }}</p>
+        <p class="text-outline text-[11px]">por treino · últimos 30 dias</p>
       </div>
-
-      <!-- Tempo médio de treino -->
-      <div class="bg-surface-container-low rounded-md p-5 mb-6 flex items-center justify-between">
-        <div>
-          <p class="text-on-surface-variant text-xs font-headline uppercase tracking-widest">Tempo médio de treino</p>
-          <p class="text-outline text-[10px] font-headline mt-1">Últimos 30 dias · seus alunos</p>
-        </div>
-        <p class="font-headline font-black text-3xl text-primary-fixed tracking-tighter">{{ fmtDuration(avgDuration()) }}</p>
-      </div>
-
-      <!-- Atividade Semanal -->
-      <div>
-        <div class="flex items-center justify-between mb-4">
-          <h4 class="text-on-surface font-headline font-black text-xs uppercase tracking-widest">Atividade Semanal</h4>
-          <button type="button" class="text-primary-fixed text-xs font-headline hover:underline">Ver Tudo</button>
-        </div>
-
-        @for (student of students(); track student.id) {
-          <div class="bg-surface-container-low rounded-md px-5 py-4 mb-2 flex items-center gap-4 hover:bg-surface-container transition-colors">
-            <div class="w-9 h-9 rounded-sm bg-primary-fixed/20 text-primary-fixed flex items-center justify-center text-xs font-headline font-bold flex-shrink-0">
-              {{ getInitials(student.name) }}
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-on-surface font-headline font-bold text-sm truncate">{{ student.name }}</p>
-              <p class="text-outline text-xs">Semana {{ student.currentWeek }} · Mês {{ student.currentMonth }}</p>
-            </div>
-            <div class="flex items-center gap-4">
-              <div class="text-right">
-                <p class="text-on-surface font-headline font-black text-sm">{{ student.completionPercent }}%</p>
-                <p class="text-outline text-[10px]">conclusão</p>
-              </div>
-              <a [routerLink]="['/coach/plan-builder', student.id]"
-                class="text-[11px] font-headline font-bold bg-primary-fixed/10 text-primary-fixed hover:bg-primary-fixed hover:text-on-primary-fixed px-3 py-1.5 rounded-sm transition-all uppercase tracking-wider">
-                Ver Plano
-              </a>
-            </div>
-          </div>
-        }
+      @if (financial(); as f) {
+        <a routerLink="/coach/financial" class="bg-surface-container-low hover:bg-surface-container rounded-md p-4 flex flex-col gap-1 transition-colors">
+          <p class="flex items-center justify-between font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+            MRR <span class="material-symbols-outlined text-[18px] text-primary-fixed" aria-hidden="true">monetization_on</span>
+          </p>
+          <p class="font-headline font-black text-3xl text-on-surface leading-none mt-1">{{ fmtCents(f.mrrCents) }}</p>
+          <p class="text-outline text-[11px]">
+            {{ f.totalActive }} {{ f.totalActive === 1 ? 'assinatura ativa' : 'assinaturas ativas' }}
+            @if (f.totalPastDue) { · <span class="text-error">{{ f.totalPastDue }} vencida{{ f.totalPastDue === 1 ? '' : 's' }}</span> }
+          </p>
+        </a>
+      }
+      <div class="bg-surface-container-low rounded-md p-4 flex flex-col gap-1">
+        <p class="flex items-center justify-between font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+          Pulos de treino
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true"
+            [class.text-error]="pendingSkips()" [class.text-primary-fixed]="!pendingSkips()">warning</span>
+        </p>
+        <p class="font-headline font-black text-4xl leading-none mt-1" [class.text-error]="pendingSkips()" [class.text-on-surface]="!pendingSkips()">{{ pendingSkips() }}</p>
+        <p class="text-outline text-[11px]">aguardando sua resposta</p>
       </div>
     </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Coluna principal -->
+      <div class="lg:col-span-2 flex flex-col gap-6">
+
+        <!-- Conclusão por dia -->
+        <section class="bg-surface-container-low rounded-md p-5" aria-labelledby="titulo-semana">
+          <div class="flex items-center justify-between mb-4 gap-2">
+            <div>
+              <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Esta semana</p>
+              <h3 id="titulo-semana" class="font-headline font-black text-lg text-on-surface uppercase">Taxa de conclusão por dia</h3>
+            </div>
+            <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">Hoje em destaque</span>
+          </div>
+          <div class="flex items-end gap-2 h-36" aria-hidden="true">
+            @for (dayIndex of [1,2,3,4,5,6,0]; track dayIndex) {
+              <div class="flex-1 h-full flex flex-col justify-end items-center gap-1">
+                <span class="font-headline text-[11px] font-bold"
+                  [class.text-primary-fixed]="dayIndex === todayDayIndex" [class.text-on-surface-variant]="dayIndex !== todayDayIndex">{{ weeklyCompletion()[dayIndex] }}%</span>
+                <div class="w-full rounded-sm transition-all"
+                  [style.height.%]="weeklyCompletion()[dayIndex] || 2"
+                  [class.bg-primary-fixed]="dayIndex === todayDayIndex"
+                  [class.bg-surface-container-highest]="dayIndex !== todayDayIndex"></div>
+              </div>
+            }
+          </div>
+          <div class="flex gap-2 mt-2" aria-hidden="true">
+            @for (d of ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom']; track d) {
+              <span class="flex-1 text-center text-outline font-headline text-[10px] uppercase">{{ d }}</span>
+            }
+          </div>
+          <ul class="sr-only">
+            @for (d of [{i:1,n:'Segunda'},{i:2,n:'Terça'},{i:3,n:'Quarta'},{i:4,n:'Quinta'},{i:5,n:'Sexta'},{i:6,n:'Sábado'},{i:0,n:'Domingo'}]; track d.i) {
+              <li>{{ d.n }}: {{ weeklyCompletion()[d.i] }}% de conclusão</li>
+            }
+          </ul>
+        </section>
+
+        <!-- Alunos -->
+        <section class="flex flex-col gap-2" aria-labelledby="titulo-alunos">
+          <div class="flex items-center justify-between">
+            <h3 id="titulo-alunos" class="font-headline font-black text-sm text-on-surface uppercase tracking-widest">Alunos · progresso do mês</h3>
+            <a routerLink="/coach/students" class="min-h-[44px] inline-flex items-center gap-1 text-primary-fixed font-headline text-xs font-bold uppercase tracking-widest">
+              Ver todos <span class="material-symbols-outlined text-[16px]" aria-hidden="true">chevron_right</span>
+            </a>
+          </div>
+          @for (student of students(); track student.id) {
+            <div class="bg-surface-container-low hover:bg-surface-container rounded-md px-4 py-3 flex items-center gap-3 transition-colors">
+              <span class="w-10 h-10 rounded-sm bg-primary-fixed/15 text-primary-fixed flex items-center justify-center font-headline font-black text-sm shrink-0" aria-hidden="true">
+                {{ initials(student.name) }}
+              </span>
+              <div class="flex-1 min-w-0">
+                <p class="font-headline font-bold text-sm text-on-surface truncate">{{ student.name }}</p>
+                <div class="flex items-center gap-2 mt-1">
+                  <div class="flex-1 h-1.5 rounded-full bg-surface-container-highest overflow-hidden max-w-40" aria-hidden="true">
+                    <div class="h-full bg-primary-fixed" [style.width.%]="student.completionPercent ?? 0"></div>
+                  </div>
+                  <span class="text-on-surface-variant text-xs shrink-0">{{ student.completionPercent ?? 0 }}% · Mês {{ student.currentMonth }} · Sem. {{ student.currentWeek }}</span>
+                </div>
+              </div>
+              <a [routerLink]="['/coach/plan-builder', student.id]"
+                class="min-h-[44px] inline-flex items-center px-3 rounded-sm bg-primary-fixed/10 text-primary-fixed hover:bg-primary-fixed hover:text-on-primary-fixed font-headline text-[11px] font-bold uppercase tracking-wider transition-colors shrink-0">
+                Ver plano
+              </a>
+            </div>
+          } @empty {
+            <p class="bg-surface-container-low rounded-md text-on-surface-variant text-sm text-center py-6">Nenhum aluno vinculado ainda.</p>
+          }
+        </section>
+      </div>
+
+      <!-- Coluna lateral -->
+      <div class="flex flex-col gap-6">
+
+        <!-- Atenção -->
+        <section class="relative bg-surface-container-low rounded-md p-5 flex flex-col gap-3 overflow-hidden" aria-labelledby="titulo-atencao">
+          <span class="absolute top-0 inset-x-0 h-1" [class.bg-error]="attention().length" [class.bg-primary-fixed]="!attention().length" aria-hidden="true"></span>
+          <div class="flex items-center justify-between">
+            <h3 id="titulo-atencao" class="font-headline font-black text-sm text-on-surface uppercase tracking-widest">Alunos sob atenção</h3>
+            <span class="font-headline text-[11px] font-bold uppercase tracking-widest" [class.text-error]="attention().length" [class.text-on-surface-variant]="!attention().length">
+              {{ attention().length }} {{ attention().length === 1 ? 'pendência' : 'pendências' }}
+            </span>
+          </div>
+          @for (item of attention(); track item.student.id) {
+            <div class="bg-surface-container rounded-sm p-3 flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-sm bg-surface-container-highest text-on-surface flex items-center justify-center font-headline font-black text-xs shrink-0" aria-hidden="true">{{ initials(item.student.name) }}</span>
+                <p class="font-headline font-bold text-sm text-on-surface truncate">{{ item.student.name }}</p>
+              </div>
+              <ul class="flex flex-wrap gap-1.5">
+                @for (r of item.reasons; track r.kind) {
+                  <li class="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm bg-error/10 text-error font-headline text-[10px] font-bold uppercase tracking-wider">
+                    @if (r.kind === 'skips') {
+                      <span class="material-symbols-outlined text-[14px]" aria-hidden="true">event_busy</span>
+                      {{ r.count }} {{ r.count === 1 ? 'pulo sem resposta' : 'pulos sem resposta' }}
+                    } @else {
+                      <span class="material-symbols-outlined text-[14px]" aria-hidden="true">credit_card_off</span> Mensalidade vencida
+                    }
+                  </li>
+                }
+              </ul>
+              <div class="flex gap-2">
+                <a routerLink="/coach/messages" class="flex-1 min-h-[40px] rounded-sm bg-surface-container-high text-on-surface font-headline text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-1">
+                  <span class="material-symbols-outlined text-[16px]" aria-hidden="true">chat</span> Mensagem
+                </a>
+                <a routerLink="/coach/students" class="flex-1 min-h-[40px] rounded-sm bg-surface-container-high text-on-surface font-headline text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-1">
+                  <span class="material-symbols-outlined text-[16px]" aria-hidden="true">person</span> Ver aluno
+                </a>
+              </div>
+            </div>
+          } @empty {
+            <p class="text-on-surface-variant text-sm">Nenhuma pendência: sem pulos aguardando resposta e sem mensalidade vencida.</p>
+          }
+        </section>
+
+        <!-- Avisos recentes -->
+        <section class="bg-surface-container-low rounded-md p-5 flex flex-col gap-3" aria-labelledby="titulo-feed">
+          <h3 id="titulo-feed" class="font-headline font-black text-sm text-on-surface uppercase tracking-widest">Atividades recentes</h3>
+          <ol class="flex flex-col gap-3">
+            @for (n of feed(); track n.id) {
+              <li class="flex gap-3">
+                <span class="w-8 h-8 rounded-sm bg-surface-container flex items-center justify-center shrink-0" aria-hidden="true">
+                  <span class="material-symbols-outlined text-[18px] text-primary-fixed">{{ feedStyle[n.type].icon }}</span>
+                </span>
+                <div class="min-w-0 flex-1">
+                  <p class="flex items-center justify-between gap-2 font-headline text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                    {{ feedStyle[n.type].label }}
+                    <span class="font-normal text-outline normal-case tracking-normal">{{ n.createdAt | date: 'dd/MM HH:mm' }}</span>
+                  </p>
+                  <p class="text-on-surface text-sm" [class.font-semibold]="!n.read">{{ n.title }}</p>
+                  @if (n.body) { <p class="text-on-surface-variant text-xs truncate">{{ n.body }}</p> }
+                </div>
+              </li>
+            } @empty {
+              <li class="text-on-surface-variant text-sm">Nenhuma atividade ainda.</li>
+            }
+          </ol>
+        </section>
+      </div>
+    </div>
 
   </div>
 </div>
