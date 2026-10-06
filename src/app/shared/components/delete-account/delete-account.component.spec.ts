@@ -15,8 +15,10 @@ describe('DeleteAccountComponent — excluir a própria conta', () => {
     expect(component.open()).toBe(true);
     component.password.set('x');
     component.confirmed.set(true);
+    component.showPassword.set(true);
     component.errorMsg.set('erro');
     component.toggle();
+    expect(component.showPassword()).toBe(false);
     expect(component.open()).toBe(false);
     expect(component.password()).toBe('');
     expect(component.confirmed()).toBe(false);

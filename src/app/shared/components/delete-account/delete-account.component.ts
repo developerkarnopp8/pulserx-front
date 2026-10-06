@@ -16,6 +16,7 @@ export class DeleteAccountComponent {
   open = signal(false);
   password = signal('');
   confirmed = signal(false);
+  showPassword = signal(false);
   busy = signal(false);
   errorMsg = signal('');
 
@@ -31,6 +32,7 @@ export class DeleteAccountComponent {
   toggle(): void {
     this.open.update(v => !v);
     this.password.set('');
+    this.showPassword.set(false);
     this.confirmed.set(false);
     this.errorMsg.set('');
   }

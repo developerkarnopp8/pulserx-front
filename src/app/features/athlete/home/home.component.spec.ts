@@ -123,9 +123,6 @@ describe('HomeComponent — meta diária e próxima sessão', () => {
     expect(component.isNextSession({ id: 'a' } as any)).toBe(false);
   });
 
-  it('getWeekDay devolve o dia por extenso em pt-BR', () => {
-    expect(typeof build().component.getWeekDay()).toBe('string');
-  });
 });
 
 describe('HomeComponent — água e calorias', () => {
@@ -186,5 +183,62 @@ describe('HomeComponent — água e calorias', () => {
     component.confirmCalories();
     expect(component.calories()).toBe(0);
     expect(component.loggingCalories()).toBe(false);
+  });
+});
+
+describe('HomeComponent — visual novo (Stitch mo03), só dado real', () => {
+  const ex = (over: Record<string, unknown> = {}) => ({ id: 'e1', name: 'Snatch', completed: false, status: 'none', ...over });
+  const sess = (id: string, status: string, exercises: unknown[] = []) =>
+    ({ id, name: id, type: 'LPO', order: 1, status, exercises });
+
+  it('objetivo do aluno e posição no plano (mês e semana) vêm do perfil e do plano', () => {
+    const plan = { id: 'p1', category: 'PERFORMANCE', scope: 'INDIVIDUAL', month: 2, weeks: [] };
+    const { component } = build({
+      getMyStudentProfile: vi.fn().mockReturnValue(of({ id: 's1', currentMonth: 2, currentWeek: 3, goal: '  Força  ' })),
+      getPlansByStudent: vi.fn().mockReturnValue(of([plan])),
+    });
+    component.ngOnInit();
+    expect(component.goal()).toBe('Força');
+    expect(component.position()).toEqual({ category: 'PERFORMANCE', month: 2, week: 3 });
+  });
+
+  it('sem objetivo e sem plano: nada inventado', () => {
+    const { component } = build();
+    component.ngOnInit();
+    expect(component.goal()).toBe('');
+    expect(component.position()).toBeNull();
+  });
+
+  it('próxima sessão = primeira pendente; recado do coach sai dela', () => {
+    const { component } = build();
+    component.todaySessions.set([
+      sess('feita', 'done', [ex({ coachNotes: 'não é esta' })]),
+      sess('proxima', 'none', [ex(), ex({ coachNotes: 'Segure a pegada.' })]),
+      sess('depois', 'none'),
+    ] as any);
+    expect(component.nextSession()?.id).toBe('proxima');
+    expect(component.isNextSession(component.todaySessions()[1])).toBe(true);
+    expect(component.isNextSession(component.todaySessions()[2])).toBe(false);
+    expect(component.doneCount()).toBe(1);
+    expect(component.coachNote()).toBe('Segure a pegada.');
+    component.todaySessions.set([sess('feita', 'done')] as any);
+    expect(component.nextSession()).toBeNull();
+    expect(component.coachNote()).toBeNull();
+  });
+
+  it('água e calorias em percentual da meta (3 L e 2500 kcal)', () => {
+    const { component } = build();
+    component.ngOnInit();
+    expect(component.waterGoalL).toBe('3,0');
+    expect(component.waterPercent()).toBe(17);
+    expect(component.caloriesGoal).toBe(2500);
+    expect(component.caloriesPercent()).toBe(48);
+  });
+
+  it('primeiro nome do aluno, ou "Atleta" sem nome', () => {
+    expect(build().component.firstName()).toBe('Ana');
+    const semNome = new HomeComponent({} as any, { currentUser: vi.fn().mockReturnValue(null) } as any);
+    expect(semNome.firstName()).toBe('Atleta');
+    expect(semNome.today()).toMatch(/feira|sábado|domingo/);
   });
 });

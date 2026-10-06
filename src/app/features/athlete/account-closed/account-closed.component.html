@@ -1,14 +1,56 @@
-<main class="min-h-screen bg-surface px-5 py-8 flex justify-center">
-  <div class="w-full max-w-lg flex flex-col gap-5 animate-fade-in">
-    <div>
-      <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-1">Acesso encerrado</p>
-      <h1 class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none">Seu vínculo com o treinador terminou</h1>
+<app-auth-shell>
+  <div class="flex flex-col gap-5 animate-fade-in">
+    <div class="flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-error" aria-hidden="true"></span>
+      <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-error">Acesso encerrado</p>
     </div>
-    <p class="text-on-surface-variant text-sm">
-      Seu treinador encerrou o acompanhamento e a sua assinatura foi cancelada — não haverá novas cobranças. Seus dados
-      continuam guardados. Se quiser, você pode excluir a sua conta abaixo.
-    </p>
+
+    <section class="bg-surface-container-low rounded-md p-5 shadow-xl flex flex-col gap-5" aria-labelledby="titulo-encerrada">
+      <div class="flex flex-col items-center justify-center gap-2 h-32 bg-surface-container-lowest rounded-sm" aria-hidden="true">
+        <span class="w-14 h-14 rounded-sm bg-surface-container-high flex items-center justify-center">
+          <span class="material-symbols-outlined text-error text-[32px]">link_off</span>
+        </span>
+        <span class="font-headline text-[11px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm bg-error/15 text-error">Vínculo encerrado</span>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <h1 id="titulo-encerrada" class="font-headline font-black text-3xl uppercase leading-none tracking-tight text-on-surface">
+          Seu vínculo com o treinador <span class="text-primary-fixed">terminou</span>
+        </h1>
+        <p class="text-on-surface-variant text-sm">
+          Seu treinador encerrou o acompanhamento. A sua conta PulseRx continua existindo e os seus dados continuam guardados.
+          Se quiser, você pode excluir a sua conta abaixo.
+        </p>
+      </div>
+
+      <ul class="flex flex-col gap-2">
+        <li class="flex items-center gap-3 p-3 rounded-sm bg-surface-container">
+          <span class="w-8 h-8 rounded-sm bg-surface-container-highest flex items-center justify-center shrink-0" aria-hidden="true">
+            <span class="material-symbols-outlined text-primary-fixed text-[18px]">credit_card_off</span>
+          </span>
+          <span class="flex flex-col min-w-0">
+            <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Assinatura</span>
+            <span class="text-sm text-on-surface">Cancelada — não haverá novas cobranças</span>
+          </span>
+        </li>
+        <li class="flex items-center gap-3 p-3 rounded-sm bg-surface-container">
+          <span class="w-8 h-8 rounded-sm bg-surface-container-highest flex items-center justify-center shrink-0" aria-hidden="true">
+            <span class="material-symbols-outlined text-primary-fixed text-[18px]">verified_user</span>
+          </span>
+          <span class="flex flex-col min-w-0">
+            <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Seus dados</span>
+            <span class="text-sm text-on-surface">Continuam guardados na sua conta</span>
+          </span>
+        </li>
+      </ul>
+    </section>
+
+    <button type="button" (click)="auth.logout()"
+      class="w-full min-h-[48px] rounded-sm bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-headline font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-colors">
+      <span class="material-symbols-outlined text-[20px]" aria-hidden="true">logout</span>
+      Sair da conta
+    </button>
+
     <app-delete-account />
-    <button type="button" (click)="auth.logout()" class="text-on-surface-variant text-sm underline min-h-[44px]">Sair</button>
   </div>
-</main>
+</app-auth-shell>

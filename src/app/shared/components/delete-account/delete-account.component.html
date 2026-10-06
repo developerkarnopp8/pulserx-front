@@ -1,37 +1,55 @@
-<section class="bg-surface-container-low rounded-md p-4 flex flex-col gap-3" aria-labelledby="titulo-excluir-conta">
-  <h3 id="titulo-excluir-conta" class="font-headline font-bold text-sm text-on-surface uppercase tracking-wider">Excluir minha conta</h3>
-  <p class="text-on-surface-variant text-xs">
-    Apaga seus treinos, registros, recordes, mensagens e dados pessoais, e cancela sua assinatura. Guardamos só o
-    histórico de pagamentos, sem seu nome, porque a lei fiscal exige. Não dá para desfazer.
-  </p>
-  @if (!open()) {
-    <button type="button" (click)="toggle()"
-      class="self-start min-h-[44px] px-4 rounded-sm border border-error/40 text-error font-headline text-xs uppercase tracking-wider">
-      Excluir minha conta
-    </button>
-  } @else {
-    <label class="flex flex-col gap-1 text-xs text-on-surface">
-      Sua senha
-      <input type="password" autocomplete="current-password" [value]="password()"
-        (input)="password.set($any($event.target).value)"
-        class="bg-surface-container text-on-surface rounded-sm px-3 py-2.5 text-sm" />
-    </label>
-    <label class="flex items-start gap-3 text-xs text-on-surface cursor-pointer min-h-[44px]">
-      <input type="checkbox" [checked]="confirmed()" (change)="confirmed.set($any($event.target).checked)" class="mt-0.5 w-5 h-5" />
+@if (!open()) {
+  <button type="button" (click)="toggle()"
+    class="w-full min-h-[48px] rounded-sm bg-surface-container-lowest hover:bg-surface-container border border-error/30 text-error font-headline font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-colors">
+    <span class="material-symbols-outlined text-[20px]" aria-hidden="true">warning</span>
+    Excluir minha conta
+  </button>
+} @else {
+  <section class="relative bg-surface-container-lowest rounded-md p-5 shadow-xl flex flex-col gap-4 overflow-hidden" aria-labelledby="titulo-excluir-conta">
+    <span class="absolute top-0 inset-x-0 h-1 bg-error" aria-hidden="true"></span>
+    <div class="flex items-start gap-3">
+      <span class="w-10 h-10 rounded-sm bg-error/15 text-error flex items-center justify-center shrink-0" aria-hidden="true">
+        <span class="material-symbols-outlined text-[22px]">delete_forever</span>
+      </span>
+      <div class="flex flex-col">
+        <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-error">Não dá para desfazer</span>
+        <h3 id="titulo-excluir-conta" class="font-headline font-black text-lg uppercase leading-tight text-on-surface">Excluir minha conta</h3>
+      </div>
+    </div>
+    <p class="p-3 rounded-sm bg-surface-container-low text-on-surface-variant text-sm">
+      Apaga seus treinos, registros, recordes, mensagens e dados pessoais, e cancela sua assinatura. Guardamos só o
+      histórico de pagamentos, sem seu nome, porque a lei fiscal exige.
+    </p>
+    <div class="flex flex-col gap-1">
+      <label for="senha-excluir-conta" class="text-on-surface-variant text-xs font-medium uppercase tracking-wide">Digite sua senha para confirmar</label>
+      <div class="flex items-center gap-3 bg-surface-container-high rounded-sm px-4 min-h-[48px] focus-within:ring-1 focus-within:ring-error">
+        <span class="material-symbols-outlined text-outline text-[18px] shrink-0" aria-hidden="true">lock</span>
+        <input id="senha-excluir-conta" [type]="showPassword() ? 'text' : 'password'" autocomplete="current-password" [value]="password()"
+          (input)="password.set($any($event.target).value)"
+          class="min-w-0 flex-1 bg-transparent text-on-surface placeholder:text-outline text-sm" />
+        <button type="button" (click)="showPassword.set(!showPassword())"
+          [attr.aria-label]="showPassword() ? 'Esconder senha' : 'Mostrar senha'" [attr.aria-pressed]="showPassword()"
+          class="min-w-[44px] min-h-[44px] -mr-2 flex items-center justify-center text-outline hover:text-on-surface">
+          <span class="material-symbols-outlined text-[20px]" aria-hidden="true">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+        </button>
+      </div>
+    </div>
+    <label class="flex items-start gap-3 text-sm text-on-surface cursor-pointer min-h-[44px]">
+      <input type="checkbox" [checked]="confirmed()" (change)="confirmed.set($any($event.target).checked)" class="mt-0.5 w-5 h-5 accent-[var(--color-error)] flex-shrink-0" />
       Entendo que minha conta e meus dados serão excluídos e que isso não tem volta.
     </label>
     @if (errorMsg()) {
-      <p role="alert" class="text-error text-xs">{{ errorMsg() }}</p>
+      <p role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-3 text-error text-xs">{{ errorMsg() }}</p>
     }
-    <div class="flex gap-2">
-      <button type="button" (click)="submit()" [disabled]="!canSubmit"
-        class="min-h-[44px] px-4 rounded-sm bg-error text-on-error disabled:opacity-40 font-headline font-black text-xs uppercase tracking-wider">
-        {{ busy() ? 'Excluindo…' : 'Excluir definitivamente' }}
-      </button>
-      <button type="button" (click)="toggle()" [disabled]="busy()"
-        class="min-h-[44px] px-4 rounded-sm border border-outline-variant/30 text-on-surface-variant font-headline text-xs uppercase tracking-wider">
-        Voltar
-      </button>
-    </div>
-  }
-</section>
+    <button type="button" (click)="submit()" [disabled]="!canSubmit"
+      class="w-full min-h-[48px] rounded-sm bg-error text-on-error disabled:opacity-40 font-headline font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2">
+      <span class="material-symbols-outlined text-[20px]" aria-hidden="true">delete_forever</span>
+      {{ busy() ? 'Excluindo…' : 'Excluir definitivamente' }}
+    </button>
+    <button type="button" (click)="toggle()" [disabled]="busy()"
+      class="w-full min-h-[44px] rounded-sm text-on-surface-variant hover:text-on-surface font-headline text-xs uppercase tracking-wider flex items-center justify-center gap-2">
+      <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_back</span>
+      Voltar
+    </button>
+  </section>
+}
