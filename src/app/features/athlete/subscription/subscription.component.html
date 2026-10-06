@@ -1,8 +1,11 @@
 <div class="px-5 py-4 animate-fade-in">
 
   <div class="mb-5">
-    <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-1">Meu Plano</p>
-    <h2 class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none">Assinatura</h2>
+    <div class="flex items-center gap-2 mb-1">
+      <span class="w-1.5 h-1.5 rounded-full bg-primary-fixed" aria-hidden="true"></span>
+      <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">Perfil</p>
+    </div>
+    <h2 class="font-headline font-black text-3xl text-on-surface uppercase leading-none tracking-tight">Minha assinatura</h2>
   </div>
 
   @if (loading()) {
@@ -15,7 +18,8 @@
   } @else if (data(); as d) {
 
     <!-- Perfil -->
-    <div class="bg-gradient-to-br from-surface-container-low to-primary-fixed/10 rounded-md p-4 mb-3 flex items-center gap-4">
+    <div class="relative bg-surface-container-low rounded-md p-4 mb-5 flex items-center gap-4 overflow-hidden">
+      <span class="absolute left-0 inset-y-0 w-1 bg-primary-fixed" aria-hidden="true"></span>
       @if (auth.currentUser()?.avatarUrl; as avatar) {
         <img [src]="avatar" alt="" class="w-14 h-14 rounded-full object-cover ring-2 ring-primary-fixed flex-shrink-0" />
       } @else {
@@ -24,7 +28,7 @@
         </div>
       }
       <div class="min-w-0">
-        <p class="font-headline font-black text-lg text-on-surface leading-tight truncate">{{ auth.currentUser()?.name || 'Atleta' }}</p>
+        <p class="font-headline font-black text-lg text-on-surface uppercase leading-tight truncate">{{ auth.currentUser()?.name || 'Atleta' }}</p>
         @if (d.subscription; as sub) {
           <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mt-1">
             Atleta PulseRx · assinante desde {{ sub.startedAt | date:'MM/yyyy' }}
@@ -35,39 +39,7 @@
       </div>
     </div>
 
-    <!-- Privacidade: dados de saúde (LGPD) -->
-    <section class="bg-surface-container-low rounded-md p-4 mb-5 flex flex-col gap-2" aria-labelledby="privacidade-saude">
-      <h3 id="privacidade-saude" class="font-headline font-bold text-sm text-on-surface uppercase tracking-wider">Dados de saúde</h3>
-      <p class="text-on-surface-variant text-sm">
-        @if (saudeAutorizada) {
-          Você autorizou registrar lesão/dor e observações ao pular um treino, compartilhados com seu treinador.
-        } @else {
-          Você não autorizou: ao pular um treino, as opções de lesão/dor e observação não aparecem.
-        }
-      </p>
-      @if (confirmandoRetirar()) {
-        <p class="text-on-surface text-sm">
-          Retirar apaga o motivo "Lesão / dor" e as observações que você já registrou (o treino continua marcado como
-          pulado). Confirmar?
-        </p>
-        <div class="flex gap-2">
-          <button type="button" (click)="alterarSaude(false)" [disabled]="salvandoSaude()"
-            class="flex-1 min-h-[44px] rounded-sm bg-error text-on-error font-headline text-xs uppercase tracking-wider">Retirar</button>
-          <button type="button" (click)="cancelarRetirar()"
-            class="flex-1 min-h-[44px] rounded-sm border border-outline-variant/30 text-on-surface-variant font-headline text-xs uppercase tracking-wider">Voltar</button>
-        </div>
-      } @else {
-        <button type="button" (click)="alterarSaude(!saudeAutorizada)" [disabled]="salvandoSaude()"
-          class="self-start min-h-[44px] px-4 rounded-sm border border-outline-variant/30 text-on-surface font-headline text-xs uppercase tracking-wider">
-          {{ saudeAutorizada ? 'Retirar autorização' : 'Autorizar' }}
-        </button>
-      }
-      <div aria-live="polite">
-        @if (saudeMsg()) { <p class="text-on-surface-variant text-xs">{{ saudeMsg() }}</p> }
-        @if (saudeErro()) { <p role="alert" class="text-error text-xs">{{ saudeErro() }}</p> }
-      </div>
-    </section>
-
+    <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Assinatura e plano</p>
     @if (d.subscription; as sub) {
       <!-- Plano atual -->
       <section class="bg-surface-container-low rounded-md p-5 mb-5" aria-labelledby="plano-atual">
@@ -284,7 +256,8 @@
       @if (sub.status !== 'CANCELED') {
         <div class="text-center">
           <button type="button" (click)="cancel()" [disabled]="canceling()"
-            class="min-h-[44px] px-4 text-on-surface-variant hover:text-error text-xs underline disabled:opacity-50">
+            class="w-full min-h-[48px] rounded-sm border border-error/30 text-error font-headline text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50">
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">cancel</span>
             {{ canceling() ? 'Cancelando…' : 'Cancelar assinatura' }}
           </button>
         </div>
@@ -294,8 +267,84 @@
       <p class="text-on-surface-variant text-xs mt-2 text-center" aria-live="polite">{{ cancelMsg() }}</p>
     }
 
-    <div class="mt-8">
+    <!-- Dados de saúde (LGPD Art. 11) -->
+    <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 mt-6">Privacidade</p>
+    <section class="relative bg-surface-container-low rounded-md p-5 mb-3 flex flex-col gap-3 overflow-hidden" aria-labelledby="privacidade-saude">
+      <span class="absolute left-0 inset-y-0 w-1 bg-tertiary" aria-hidden="true"></span>
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-tertiary text-[24px]" aria-hidden="true">ecg_heart</span>
+          <div>
+            <h3 id="privacidade-saude" class="font-headline font-black text-base text-on-surface uppercase leading-tight">Dados de saúde</h3>
+            <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mt-0.5">LGPD · dado sensível</p>
+          </div>
+        </div>
+        @if (!confirmandoRetirar()) {
+          <button type="button" role="switch" [attr.aria-checked]="saudeAutorizada" aria-labelledby="privacidade-saude"
+            (click)="alterarSaude(!saudeAutorizada)" [disabled]="salvandoSaude()"
+            class="w-16 h-11 -mr-1 flex items-center justify-center shrink-0 disabled:opacity-50">
+            <span class="relative w-14 h-8 rounded-full transition-colors"
+              [class.bg-primary-fixed]="saudeAutorizada" [class.bg-surface-container-highest]="!saudeAutorizada" aria-hidden="true">
+              <span class="absolute top-1 w-6 h-6 rounded-full bg-on-surface shadow transition-all"
+                [class.left-7]="saudeAutorizada" [class.left-1]="!saudeAutorizada"></span>
+            </span>
+          </button>
+        }
+      </div>
+      <p class="text-on-surface-variant text-sm">
+        @if (saudeAutorizada) {
+          <span class="text-on-surface font-semibold">Autorizado.</span> Você pode registrar lesão/dor e observações ao pular um treino, compartilhados com seu treinador.
+        } @else {
+          <span class="text-on-surface font-semibold">Não autorizado.</span> Ao pular um treino, as opções de lesão/dor e observação não aparecem.
+        }
+      </p>
+      @if (saudeAutorizada && !confirmandoRetirar()) {
+        <p class="flex items-start gap-2 bg-surface-container rounded-sm px-3 py-2 text-on-surface-variant text-xs">
+          <span class="material-symbols-outlined text-[16px]" aria-hidden="true">info</span>
+          Se retirar, o motivo "Lesão / dor" e as observações que você já registrou são apagados (o treino continua marcado como pulado).
+        </p>
+      }
+      @if (confirmandoRetirar()) {
+        <p class="text-on-surface text-sm">
+          Retirar apaga o motivo "Lesão / dor" e as observações que você já registrou (o treino continua marcado como
+          pulado). Confirmar?
+        </p>
+        <div class="flex gap-2">
+          <button type="button" (click)="alterarSaude(false)" [disabled]="salvandoSaude()"
+            class="flex-1 min-h-[44px] rounded-sm bg-error text-on-error font-headline text-xs uppercase tracking-wider">Retirar</button>
+          <button type="button" (click)="cancelarRetirar()"
+            class="flex-1 min-h-[44px] rounded-sm border border-outline-variant/30 text-on-surface-variant font-headline text-xs uppercase tracking-wider">Voltar</button>
+        </div>
+      }
+      <div aria-live="polite">
+        @if (saudeMsg()) { <p class="text-on-surface-variant text-xs">{{ saudeMsg() }}</p> }
+        @if (saudeErro()) { <p role="alert" class="text-error text-xs">{{ saudeErro() }}</p> }
+      </div>
+    </section>
+
+    <!-- Termos e privacidade -->
+    <section class="bg-surface-container-low rounded-md p-2 mb-6 flex flex-col" aria-label="Documentos">
+      <a routerLink="/termos" target="_blank" class="min-h-[48px] px-3 flex items-center justify-between gap-2 rounded-sm text-on-surface hover:bg-surface-container transition-colors">
+        <span class="flex items-center gap-3 text-sm"><span class="material-symbols-outlined text-[20px] text-on-surface-variant" aria-hidden="true">article</span>Termos de Uso</span>
+        <span class="material-symbols-outlined text-[18px] text-outline" aria-hidden="true">open_in_new</span>
+      </a>
+      <a routerLink="/privacidade" target="_blank" class="min-h-[48px] px-3 flex items-center justify-between gap-2 rounded-sm text-on-surface hover:bg-surface-container transition-colors">
+        <span class="flex items-center gap-3 text-sm"><span class="material-symbols-outlined text-[20px] text-on-surface-variant" aria-hidden="true">policy</span>Política de Privacidade</span>
+        <span class="material-symbols-outlined text-[18px] text-outline" aria-hidden="true">open_in_new</span>
+      </a>
+      <a routerLink="/cookies" target="_blank" class="min-h-[48px] px-3 flex items-center justify-between gap-2 rounded-sm text-on-surface hover:bg-surface-container transition-colors">
+        <span class="flex items-center gap-3 text-sm"><span class="material-symbols-outlined text-[20px] text-on-surface-variant" aria-hidden="true">cookie</span>Cookies</span>
+        <span class="material-symbols-outlined text-[18px] text-outline" aria-hidden="true">open_in_new</span>
+      </a>
+    </section>
+
+    <div class="flex flex-col gap-3">
       <app-delete-account />
+      <button type="button" (click)="auth.logout()"
+        class="w-full min-h-[48px] rounded-sm bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-headline font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-colors">
+        <span class="material-symbols-outlined text-[20px]" aria-hidden="true">logout</span>
+        Sair da conta
+      </button>
     </div>
   }
 
