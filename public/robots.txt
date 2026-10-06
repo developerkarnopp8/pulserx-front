@@ -2,4 +2,4 @@ User-agent: *
 Disallow: /coach/
 Disallow: /athlete/
 
-Sitemap: https://aevonfit.aevon.online/sitemap.xml
+Sitemap: https://pulserx.com.br/sitemap.xml
