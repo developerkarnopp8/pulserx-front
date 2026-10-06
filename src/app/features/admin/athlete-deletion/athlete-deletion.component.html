@@ -4,7 +4,7 @@
     Para pedidos que chegam por e-mail. Confirme a identidade de quem pediu antes. O aluno também pode excluir a própria
     conta no Perfil.
   </p>
-  <form class="flex flex-wrap gap-2" (submit)="$event.preventDefault(); search()">
+  <form class="flex flex-wrap gap-2" novalidate (submit)="$event.preventDefault(); search()">
     <label class="sr-only" for="email-exclusao">E-mail do aluno</label>
     <input id="email-exclusao" type="email" placeholder="e-mail exato do aluno" [value]="email()"
       (input)="email.set($any($event.target).value)"

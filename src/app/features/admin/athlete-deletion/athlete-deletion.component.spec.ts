@@ -92,3 +92,16 @@ describe('AthleteDeletionComponent — admin exclui conta a pedido', () => {
     expect(semMsg.component.errorMsg()).toBe('Não foi possível excluir. Tente de novo.');
   });
 });
+
+describe('AthleteDeletionComponent — busca só por e-mail exato', () => {
+  it('nome ou texto sem @: aviso em português e não busca (a busca não vira listagem)', () => {
+    const { component, api } = build();
+    for (const v of ['Gustavo Karnopp', 'ana@', 'ana@example']) {
+      component.email.set(v);
+      component.search();
+      expect(component.errorMsg()).toContain('e-mail exato do aluno');
+    }
+    expect(api.adminFindAthlete).not.toHaveBeenCalled();
+    expect(component.found()).toBeNull();
+  });
+});

@@ -20,6 +20,13 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent)
   },
+  // Alterar a própria senha estando logado (qualquer perfil).
+  {
+    path: 'alterar-senha',
+    loadComponent: () =>
+      import('./features/auth/change-password/change-password.component').then(m => m.ChangePasswordComponent),
+    canActivate: [authGuard],
+  },
   {
     path: 'confirmar-email',
     loadComponent: () =>

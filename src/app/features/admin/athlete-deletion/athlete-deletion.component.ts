@@ -27,6 +27,13 @@ export class AthleteDeletionComponent {
   search(): void {
     const email = this.email().trim();
     if (!email || this.busy()) return;
+    // Só e-mail exato (de propósito: a busca não vira listagem de alunos). Aviso nosso, em português.
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      this.found.set(null);
+      this.doneMsg.set('');
+      this.errorMsg.set('Digite o e-mail exato do aluno (com @). A busca não aceita nome.');
+      return;
+    }
     this.busy.set(true);
     this.found.set(null);
     this.errorMsg.set('');

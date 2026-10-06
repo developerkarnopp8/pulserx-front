@@ -1,0 +1,9 @@
+// O <main> do painel do coach não rola (cada tela cuida da própria rolagem, como o Dashboard): sem isto a
+// tela cortava o conteúdo abaixo da dobra (a rolagem interna não tinha altura para limitar).
+:host {
+  display: block;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}

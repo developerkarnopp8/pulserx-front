@@ -14,6 +14,7 @@ type SharedCategory = 'CORE' | 'LPO';
   standalone: true,
   imports: [CommonModule, RouterLink, ReactiveFormsModule],
   templateUrl: './plans.component.html',
+  styleUrl: './plans.component.scss',
 })
 export class PlansComponent implements OnInit {
   students = signal<Student[]>([]);

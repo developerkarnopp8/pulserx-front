@@ -259,3 +259,11 @@ export interface CoachWallet {
   walletId: string | null;
   valid: boolean;
 }
+
+/** Admin: aluno ativo de um coach — só o mínimo para suporte e cobrança (sem e-mail, CPF, saúde ou treino). */
+export interface AdminCoachStudent {
+  name: string;
+  joinedAt: string;
+  planName: string | null;
+  status: SubscriptionStatus | null;
+}

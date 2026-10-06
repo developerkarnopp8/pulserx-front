@@ -6,7 +6,7 @@ import {
   ExerciseLibraryItem, Payment, PaymentSummary, SkipReason, SkipDecision,
   Movement, PersonalRecord, AppNotification,
   WorkoutSessionRecord, SessionTimeSummary, SessionTimeDetail, CoachAvgDuration,
-  SubscriptionPlan, Subscription, MySubscription, MyGatewayPayment, MyPaymentStatus, MyPix, CoachWallet, CheckoutResult, CoachGatewayPayment, MonthlyBreakdown, CoachContract, PlatformSettings, FreeConfig, FinancialSummary,
+  SubscriptionPlan, Subscription, MySubscription, MyGatewayPayment, AdminCoachStudent, MyPaymentStatus, MyPix, CoachWallet, CheckoutResult, CoachGatewayPayment, MonthlyBreakdown, CoachContract, PlatformSettings, FreeConfig, FinancialSummary,
   CoachProfile, UpdateCoachProfileInput, PublicCoachProfile, CreateLeadInput, PublicSignupInput, PublicSignupResult,
   Testimonial, UpsertTestimonialInput, FaqItem, UpsertFaqItemInput,
   ConsentStatus, User, AthleteLookup, AdminFinancialOverview, CoachAlert, CoachSubscriptionSummary, CoachUsage,
@@ -710,6 +710,11 @@ export class ApiService {
 
   // ── Admin: contrato do coach e configurações da plataforma ────────────────
 
+  /** Admin: alunos ativos do coach (nome, plano, situação, entrada). Cada consulta fica registrada no servidor. */
+  adminGetCoachStudents(coachId: string): Observable<AdminCoachStudent[]> {
+    return this.http.get<AdminCoachStudent[]>(`${this.base}/admin/coaches/${coachId}/students`);
+  }
+
   getCoachContract(coachId: string): Observable<CoachContract> {
     return this.http.get<CoachContract>(`${this.base}/admin/coaches/${coachId}/contract`);
   }
@@ -811,6 +816,11 @@ export class ApiService {
   }
 
   /** Cria a senha nova pelo link recebido por e-mail. */
+  /** Troca a própria senha (confirma a atual). Devolve sessão nova; as outras sessões são encerradas. */
+  changePassword(currentPassword: string, newPassword: string): Observable<{ access_token: string; user: User }> {
+    return this.http.post<{ access_token: string; user: User }>(`${this.base}/auth/change-password`, { currentPassword, newPassword });
+  }
+
   resetPassword(token: string, password: string): Observable<{ reset: true }> {
     return this.http.post<{ reset: true }>(`${this.base}/auth/reset-password`, { token, password });
   }
