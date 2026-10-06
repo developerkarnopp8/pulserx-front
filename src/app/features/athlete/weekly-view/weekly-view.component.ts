@@ -8,6 +8,10 @@ import { categoriesOf, currentWeekNumber, defaultCategory, pickPlan } from '../.
 import { PlanCalendarModalComponent } from '../../../shared/components/plan-calendar-modal/plan-calendar-modal.component';
 import { toLocalDateKey } from '../../../shared/utils/date-key';
 import { exportWeekToPdf, exportMonthToPdf } from '../../../shared/utils/plan-pdf-export';
+import { SESSION_TYPE_ICON, SESSION_TYPE_LABEL, longDate, planDayDate, sessionPreview } from '../../../shared/utils/home-view';
+
+/** Ícone de cada categoria nas abas do treino. */
+export const CATEGORY_ICON: Record<TrainingCategory, string> = { PERFORMANCE: 'bolt', CORE: 'sports_gymnastics', LPO: 'fitness_center' };
 
 @Component({
   selector: 'app-weekly-view',
@@ -24,6 +28,22 @@ export class WeeklyViewComponent implements OnInit {
   categories = signal<TrainingCategory[]>([]);
   selectedCategory = signal<TrainingCategory | null>(null);
   readonly categoryLabel = TRAINING_CATEGORY_LABEL;
+  readonly categoryIcon = CATEGORY_ICON;
+  readonly typeLabel = SESSION_TYPE_LABEL;
+  readonly typeIcon = SESSION_TYPE_ICON;
+  readonly preview = sessionPreview;
+
+  /** Semana aberta (objeto) — atalho para o template. */
+  week = computed(() => this.plan()?.weeks.at(this.selectedWeek()) ?? null);
+  /** "Dia X de N" do dia aberto dentro da semana do plano. */
+  dayPosition = computed(() => {
+    const days = this.week()?.days ?? [];
+    const i = days.findIndex(d => d.id === this.selectedDay()?.id);
+    return i >= 0 ? { index: i + 1, total: days.length } : null;
+  });
+  doneCount = computed(() => (this.selectedDay()?.sessions ?? []).filter(s => s.status === 'done').length);
+  /** Primeira sessão pendente do dia aberto: ganha destaque e o botão Iniciar. */
+  nextSessionId = computed(() => (this.selectedDay()?.sessions ?? []).find(s => s.status === 'none')?.id ?? null);
   /** Só os planos da categoria aberta — o calendário não mistura Core com Performance. */
   plansOfCategory = computed(() => this.allPlans().filter(p => p.category === this.selectedCategory()));
   private student: { currentMonth: number; currentWeek: number } = { currentMonth: 1, currentWeek: 1 };
@@ -124,6 +144,19 @@ export class WeeklyViewComponent implements OnInit {
     const all = day.sessions.flatMap(s => s.exercises);
     if (!all.length) return 0;
     return Math.round((all.filter(e => e.completed).length / all.length) * 100);
+  }
+
+  /** Data real do dia (quando dá para saber — ver planDayDate); null = mostra só o dia da semana. */
+  dayDate(day: TrainingDay): Date | null {
+    const p = this.plan();
+    const w = this.week();
+    return p && w ? planDayDate(p, w.weekNumber, day.dayIndex, this.student.currentWeek) : null;
+  }
+
+  /** Título do dia aberto: "Quinta-feira, 24 de outubro" quando a data é conhecida, senão o nome do dia. */
+  dayTitle(day: TrainingDay): string {
+    const date = this.dayDate(day);
+    return date ? longDate(date) : day.dayOfWeek;
   }
 
   isToday(day: TrainingDay): boolean {

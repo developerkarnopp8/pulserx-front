@@ -7,6 +7,10 @@ import { SkipReasonModalComponent } from '../../../shared/components/skip-reason
 import { Subject, interval, takeUntil } from 'rxjs';
 import { loadDraft, saveDraft, clearDraft, WorkoutDraft } from '../../../shared/utils/workout-draft';
 import { YoutubeEmbedComponent } from '../../../shared/components/youtube-embed/youtube-embed.component';
+import { SESSION_TYPE_LABEL, exerciseSummary } from '../../../shared/utils/home-view';
+
+/** Quanto o "+15 s" acrescenta ao descanso. */
+export const REST_EXTRA_SECS = 15;
 
 type Phase = 'exercise' | 'rest' | 'done';
 
@@ -24,6 +28,22 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
   skipError     = signal('');
   phase         = signal<Phase>('exercise');
   resumedToast  = signal(false);
+  showVideo     = signal(false);
+  readonly typeLabel = SESSION_TYPE_LABEL;
+  readonly summary = exerciseSummary;
+
+  /** Relógio de parede (1 s) só para o "tempo total" do topo. */
+  private clockMs = signal(Date.now());
+  /** Tempo desde o primeiro "Iniciar exercício" (0 antes de começar). */
+  totalElapsed = computed(() => {
+    const start = this.sessionStartedAt();
+    return start ? Math.max(0, Math.round((this.clockMs() - new Date(start).getTime()) / 1000)) : 0;
+  });
+  /** % de exercícios concluídos na sessão. */
+  progressPercent = computed(() => {
+    const ex = this.session()?.exercises ?? [];
+    return ex.length ? Math.round((ex.filter(e => e.completed).length / ex.length) * 100) : 0;
+  });
 
   /** ISO do primeiro "Iniciar exercício" do treino (relógio de parede da sessão) */
   sessionStartedAt = signal<string | null>(null);
@@ -149,6 +169,7 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('sessionId') ?? '';
+    interval(1000).pipe(takeUntil(this.destroy$)).subscribe(() => this.clockMs.set(Date.now()));
     this.api.getSession(id).subscribe(s => {
       this.session.set(s);
       this.restoreDraftIfAny(s);
@@ -210,6 +231,7 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
     const ex = this.currentExercise();
     if (!ex) { this.goToSummary(); return; }
     this.phase.set('exercise');
+    this.showVideo.set(false);
     this.exRunning.set(false);
     this.exPaused.set(false);
     this.exElapsed.set(0);
@@ -329,6 +351,11 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
   }
 
   toggleRestPause(): void { this.restPaused.update(v => !v); }
+  /** "+15 s": estica o descanso atual (e a meta, para a barra continuar certa). */
+  addRestTime(secs = REST_EXTRA_SECS): void {
+    this.restSecs.update(v => v + secs);
+    this.restTarget.update(v => v + secs);
+  }
   skipRest(): void { this.stopTimers(); this.advance(); }
 
   // ── Avançar ────────────────────────────────────────────────────────────────
@@ -366,11 +393,9 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
     return 0;
   }
 
-  repsFontSizeClass(reps: string | number): string {
-    const len = String(reps).length;
-    if (len <= 3)  return 'text-[64px]';
-    if (len <= 7)  return 'text-[40px]';
-    if (len <= 14) return 'text-2xl';
-    return 'text-base';
+  /** Valor curto (até 4 caracteres, ex.: "10", "1+1") cabe em letra grande no cartão de prescrição. */
+  isShort(v: string | number | null | undefined): boolean {
+    return String(v ?? '—').length <= 4;
   }
+
 }
