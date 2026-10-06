@@ -811,6 +811,11 @@ export class ApiService {
   }
 
   /** Cria a senha nova pelo link recebido por e-mail. */
+  /** Troca a própria senha (confirma a atual). Devolve sessão nova; as outras sessões são encerradas. */
+  changePassword(currentPassword: string, newPassword: string): Observable<{ access_token: string; user: User }> {
+    return this.http.post<{ access_token: string; user: User }>(`${this.base}/auth/change-password`, { currentPassword, newPassword });
+  }
+
   resetPassword(token: string, password: string): Observable<{ reset: true }> {
     return this.http.post<{ reset: true }>(`${this.base}/auth/reset-password`, { token, password });
   }

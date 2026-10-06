@@ -697,6 +697,8 @@ describe('ApiService — senha por e-mail', () => {
     expect(http.post).toHaveBeenCalledWith(`${BASE}/auth/forgot-password`, { email: 'ana@example.com' });
     service.resetPassword('tok', 'senha-forte');
     expect(http.post).toHaveBeenCalledWith(`${BASE}/auth/reset-password`, { token: 'tok', password: 'senha-forte' });
+    service.changePassword('atual', 'nova-senha-1');
+    expect(http.post).toHaveBeenCalledWith(`${BASE}/auth/change-password`, { currentPassword: 'atual', newPassword: 'nova-senha-1' });
     service.sendStudentPasswordReset('s1');
     expect(http.post).toHaveBeenCalledWith(`${BASE}/students/s1/password-reset`, {});
   });
