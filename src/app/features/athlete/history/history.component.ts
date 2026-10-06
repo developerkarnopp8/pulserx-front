@@ -11,6 +11,9 @@ import { PrProgression, WeekTraining, prProgressions, sparklinePoints, weeklyTra
 const HISTORY_LIMIT = 200;
 const SPARK_W = 96;
 const SPARK_H = 28;
+/** Gráfico grande do movimento escolhido. */
+const BIG_W = 300;
+const BIG_H = 96;
 
 /**
  * Evolução: painel do PRÓPRIO atleta (nos planos fixos quem analisa o desempenho é ele — decisão
@@ -53,6 +56,20 @@ export class HistoryComponent implements OnInit {
 
   progressions = computed<PrProgression[]>(() => prProgressions(this.records()));
 
+  readonly bigW = BIG_W;
+  readonly bigH = BIG_H;
+  /** Movimento aberto no card grande; null = o primeiro da lista. */
+  selectedMovementId = signal<string | null>(null);
+  selected = computed<PrProgression | null>(() => {
+    const list = this.progressions();
+    return list.find(p => p.movementId === this.selectedMovementId()) ?? list[0] ?? null;
+  });
+  /** Ganho em % da primeira marca até a melhor (arredondado); 0 sem ganho. */
+  gainPercent = computed(() => {
+    const p = this.selected();
+    return p && p.firstKg > 0 && p.gainKg > 0 ? Math.round((p.gainKg / p.firstKg) * 100) : 0;
+  });
+
   constructor(private api: ApiService) {}
 
   ngOnInit(): void {
@@ -73,6 +90,17 @@ export class HistoryComponent implements OnInit {
     return sparklinePoints(p.points.map(x => x.loadKg), SPARK_W, SPARK_H)
       .map((pt, i) => `${i ? 'L' : 'M'}${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`)
       .join(' ');
+  }
+
+  /** Mesma linha da evolução, no tamanho do card grande. */
+  bigPath(p: PrProgression): string {
+    return sparklinePoints(p.points.map(x => x.loadKg), BIG_W, BIG_H)
+      .map((pt, i) => `${i ? 'L' : 'M'}${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`)
+      .join(' ');
+  }
+
+  bigPoints(p: PrProgression): { x: number; y: number }[] {
+    return sparklinePoints(p.points.map(x => x.loadKg), BIG_W, BIG_H);
   }
 
   sparkLast(p: PrProgression): { x: number; y: number } {

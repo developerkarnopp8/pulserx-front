@@ -2,7 +2,8 @@ import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../core/services/api.service';
 import { TrainingCategory } from '../../../core/models';
-import { PlanVideoGroup, collectPlanVideos } from '../../../shared/utils/plan-videos';
+import { PlanVideoGroup, collectPlanVideos, filterVideos } from '../../../shared/utils/plan-videos';
+import { RouterLink } from '@angular/router';
 import { YoutubeEmbedComponent } from '../../../shared/components/youtube-embed/youtube-embed.component';
 
 /**
@@ -13,7 +14,7 @@ import { YoutubeEmbedComponent } from '../../../shared/components/youtube-embed/
 @Component({
   selector: 'app-athlete-aulas',
   standalone: true,
-  imports: [CommonModule, YoutubeEmbedComponent],
+  imports: [CommonModule, RouterLink, YoutubeEmbedComponent],
   templateUrl: './aulas.component.html',
 })
 export class AulasComponent implements OnInit {
@@ -22,11 +23,18 @@ export class AulasComponent implements OnInit {
   errorMsg = signal('');
   /** null = todas as categorias. */
   selected = signal<TrainingCategory | null>(null);
+  /** Busca por nome do exercício/sessão (só filtra o que já está na tela). */
+  query = signal('');
 
+  /** Grupos do filtro de categoria + busca; grupo sem resultado some. */
   visibleGroups = computed(() => {
     const sel = this.selected();
-    return sel ? this.groups().filter(g => g.category === sel) : this.groups();
+    const q = this.query();
+    return (sel ? this.groups().filter(g => g.category === sel) : this.groups())
+      .map(g => ({ ...g, videos: filterVideos(g.videos, q) }))
+      .filter(g => g.videos.length > 0);
   });
+  visibleCount = computed(() => this.visibleGroups().reduce((n, g) => n + g.videos.length, 0));
 
   totalVideos = computed(() => this.groups().reduce((n, g) => n + g.videos.length, 0));
 
