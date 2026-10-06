@@ -1,7 +1,9 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DEFAULT_PILLARS, buildPageCopy } from '../../../shared/utils/landing-copy';
+import { WalletState, walletState } from '../../../shared/utils/wallet-id';
 import { ApiService } from '../../../core/services/api.service';
 import { CoachProfile, Testimonial, FaqItem } from '../../../core/models';
 import { confirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
@@ -12,7 +14,7 @@ const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 @Component({
   selector: 'app-landing-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './landing-page.component.html',
   styleUrl: './landing-page.component.scss',
 })
@@ -29,6 +31,12 @@ export class LandingPageComponent implements OnInit {
   selectedPhotoFile  = signal<File | null>(null);
 
   testimonials = signal<Testimonial[]>([]);
+  /** Algum plano pago ativo (que o visitante pode tentar assinar). */
+  hasPaidPlans = signal(false);
+  /** Carteira Asaas do coach: sem ela (ou inválida), quem tenta assinar um plano pago não consegue pagar. */
+  walletStatus = signal<WalletState | null>(null);
+  /** Aviso no cartão de publicação: há plano pago e a carteira não está pronta. */
+  walletWarning = computed(() => this.hasPaidPlans() && (this.walletStatus() === 'missing' || this.walletStatus() === 'invalid'));
   showTestimonialForm = signal(false);
   editingTestimonialId = signal<string | null>(null);
   savingTestimonial = signal(false);
@@ -92,6 +100,7 @@ export class LandingPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadPaymentReadiness();
     this.api.getMyCoachProfile().subscribe({
       next: profile => {
         this.profile.set(profile);
@@ -118,6 +127,18 @@ export class LandingPageComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
+    });
+  }
+
+  /** Planos e carteira para o aviso de recebimento. Falha só esconde o aviso (nunca derruba a tela). */
+  private loadPaymentReadiness(): void {
+    this.api.getSubscriptionPlans().subscribe({
+      next: plans => this.hasPaidPlans.set(plans.some(p => p.active && !p.isFree && p.priceCents > 0)),
+      error: () => {},
+    });
+    this.api.getMyWallet().subscribe({
+      next: w => this.walletStatus.set(walletState(w.walletId, w.valid)),
+      error: () => {},
     });
   }
 

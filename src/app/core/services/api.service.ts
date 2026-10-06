@@ -6,7 +6,7 @@ import {
   ExerciseLibraryItem, Payment, PaymentSummary, SkipReason, SkipDecision,
   Movement, PersonalRecord, AppNotification,
   WorkoutSessionRecord, SessionTimeSummary, SessionTimeDetail, CoachAvgDuration,
-  SubscriptionPlan, Subscription, MySubscription, MyGatewayPayment, MyPaymentStatus, MyPix, CheckoutResult, CoachGatewayPayment, MonthlyBreakdown, CoachContract, PlatformSettings, FreeConfig, FinancialSummary,
+  SubscriptionPlan, Subscription, MySubscription, MyGatewayPayment, MyPaymentStatus, MyPix, CoachWallet, CheckoutResult, CoachGatewayPayment, MonthlyBreakdown, CoachContract, PlatformSettings, FreeConfig, FinancialSummary,
   CoachProfile, UpdateCoachProfileInput, PublicCoachProfile, CreateLeadInput, PublicSignupInput, PublicSignupResult,
   Testimonial, UpsertTestimonialInput, FaqItem, UpsertFaqItemInput,
   ConsentStatus, User, AthleteLookup, AdminFinancialOverview, CoachAlert, CoachSubscriptionSummary, CoachUsage,
@@ -680,12 +680,12 @@ export class ApiService {
   }
 
   /** Coach: carteira Asaas onde recebe a parte dele de cada cobrança. */
-  getMyWallet(): Observable<{ walletId: string | null }> {
-    return this.http.get<{ walletId: string | null }>(`${this.base}/subscriptions/wallet`);
+  getMyWallet(): Observable<CoachWallet> {
+    return this.http.get<CoachWallet>(`${this.base}/subscriptions/wallet`);
   }
 
-  setMyWallet(walletId: string): Observable<{ walletId: string }> {
-    return this.http.put<{ walletId: string }>(`${this.base}/subscriptions/wallet`, { walletId });
+  setMyWallet(walletId: string): Observable<CoachWallet> {
+    return this.http.put<CoachWallet>(`${this.base}/subscriptions/wallet`, { walletId });
   }
 
   /** Aluno: histórico real das próprias cobranças (Asaas). */

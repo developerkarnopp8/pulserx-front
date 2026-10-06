@@ -20,27 +20,35 @@
   <!-- Recebimento: carteira Asaas do coach (split automático de cada cobrança) -->
   @if (!walletLoading()) {
     <section class="relative rounded-md border p-5 mb-6 overflow-hidden"
-      [class.border-yellow-500/40]="!walletId()" [class.bg-yellow-500/5]="!walletId()"
-      [class.border-outline-variant/10]="walletId()" [class.bg-surface-container-low]="walletId()"
+      [class.border-yellow-500/40]="walletStatus() !== 'saved'" [class.bg-yellow-500/5]="walletStatus() !== 'saved'"
+      [class.border-outline-variant/10]="walletStatus() === 'saved'" [class.bg-surface-container-low]="walletStatus() === 'saved'"
       aria-labelledby="wallet-titulo">
       <div class="flex items-start gap-3 mb-3">
         <span class="material-symbols-outlined text-[22px]" aria-hidden="true"
-          [class.text-yellow-300]="!walletId()" [class.text-green-400]="walletId()">{{ walletId() ? 'account_balance_wallet' : 'warning' }}</span>
+          [class.text-yellow-300]="walletStatus() !== 'saved'" [class.text-green-400]="walletStatus() === 'saved'">{{ walletStatus() === 'saved' ? 'account_balance_wallet' : 'warning' }}</span>
         <div>
           <h3 id="wallet-titulo" class="font-headline font-black text-base text-on-surface uppercase">Carteira Asaas · recebimento</h3>
           <p class="text-on-surface-variant text-xs mt-0.5">
-            @if (walletId()) {
-              Configurado. A sua parte de cada pagamento cai direto na sua conta Asaas.
-            } @else {
-              <strong class="text-yellow-300">Sem carteira configurada, nenhum aluno consegue assinar um plano pago.</strong>
-              Cole o <em>Wallet ID</em> (identificador da carteira) da sua conta Asaas, disponível no painel do Asaas.
+            @switch (walletStatus()) {
+              @case ('saved') {
+                Carteira salva. A sua parte de cada pagamento cai direto na sua conta Asaas — o Asaas confirma a carteira no primeiro pagamento de um aluno.
+              }
+              @case ('invalid') {
+                <strong class="text-yellow-300">A carteira salva não é um Wallet ID válido: nenhum aluno consegue assinar um plano pago.</strong>
+                Cole abaixo o Wallet ID correto da sua conta Asaas.
+              }
+              @default {
+                <strong class="text-yellow-300">Sem carteira configurada, nenhum aluno consegue assinar um plano pago.</strong>
+                Cole abaixo o <em>Wallet ID</em> da sua conta Asaas.
+              }
             }
           </p>
         </div>
       </div>
       <div class="flex gap-2 flex-wrap">
         <label for="wallet-id" class="sr-only">Wallet ID do Asaas</label>
-        <input id="wallet-id" type="text" autocomplete="off" placeholder="Ex.: 3f2b6a1c-...-9e1d"
+        <input id="wallet-id" type="text" autocomplete="off" spellcheck="false" placeholder="Ex.: c0c1688f-636b-42c0-b6ee-7339182276b7"
+          aria-describedby="wallet-ajuda" [attr.aria-invalid]="walletError() ? true : null"
           [value]="walletInput()" (input)="walletInput.set($any($event.target).value)"
           class="flex-1 min-w-[220px] min-h-[44px] bg-surface-container text-on-surface rounded-sm px-3 text-sm font-mono" />
         <button type="button" (click)="saveWallet()" [disabled]="savingWallet()"
@@ -50,6 +58,35 @@
       </div>
       @if (walletError()) { <p role="alert" class="text-error text-xs mt-2">{{ walletError() }}</p> }
       @if (walletMsg()) { <p class="text-green-400 text-xs mt-2" aria-live="polite">{{ walletMsg() }}</p> }
+
+      <details id="wallet-ajuda" class="mt-4 group" [attr.open]="walletStatus() !== 'saved' ? '' : null">
+        <summary class="cursor-pointer min-h-[44px] inline-flex items-center gap-2 text-on-surface text-sm font-semibold">
+          <span class="material-symbols-outlined text-[18px] text-primary-fixed" aria-hidden="true">help</span>
+          Como funciona e como encontrar meu Wallet ID
+        </summary>
+        <div class="mt-2 grid md:grid-cols-2 gap-4 text-xs text-on-surface-variant">
+          <div class="bg-surface-container rounded-sm p-4">
+            <p class="font-headline font-black text-on-surface uppercase text-[11px] tracking-widest mb-2">Como você recebe</p>
+            <ol class="list-decimal pl-4 space-y-1.5">
+              <li>O aluno paga a mensalidade pelo PulseRx (PIX, boleto ou cartão).</li>
+              <li>O Asaas divide o pagamento na hora: a sua parte vai direto para a <strong class="text-on-surface">sua conta Asaas</strong>, e a parte da plataforma fica com a AEVON.</li>
+              <li>Você saca ou usa o dinheiro pela sua conta Asaas, nas regras e prazos do Asaas.</li>
+            </ol>
+            <p class="mt-2">O Wallet ID só serve para receber: com ele ninguém tira dinheiro da sua conta.</p>
+          </div>
+          <div class="bg-surface-container rounded-sm p-4">
+            <p class="font-headline font-black text-on-surface uppercase text-[11px] tracking-widest mb-2">Como encontrar</p>
+            <ol class="list-decimal pl-4 space-y-1.5">
+              <li>Ainda não tem conta? Crie a sua grátis em
+                <a href="https://www.asaas.com" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2 text-on-surface">asaas.com</a>
+                <span class="sr-only">(abre em nova aba)</span>.</li>
+              <li>Entre no painel do Asaas e procure o <strong class="text-on-surface">Wallet ID</strong> (identificador da carteira) da sua conta.</li>
+              <li>Não achou? Peça ao suporte do Asaas: <em>"Qual é o Wallet ID da minha conta?"</em></li>
+              <li>Copie e cole aqui. Ele tem o formato <code class="font-mono text-on-surface">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</code>.</li>
+            </ol>
+          </div>
+        </div>
+      </details>
     </section>
   }
 
