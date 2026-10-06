@@ -8,6 +8,7 @@ import { YoutubeEmbedComponent } from '../../../shared/components/youtube-embed/
 import { exportWeekToPdf, exportMonthToPdf } from '../../../shared/utils/plan-pdf-export';
 import { formatDurationShort } from '../../../shared/utils/format-duration';
 import { confirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { SESSION_TYPE_LABEL } from '../../../shared/utils/home-view';
 
 type DrawerMode = 'add' | 'edit';
 
@@ -171,6 +172,7 @@ export class PlanBuilderComponent implements OnInit, OnChanges {
   showAddSession    = signal<string | null>(null); // dayId being edited
   savingSession     = signal(false);
 
+  readonly typeLabel = SESSION_TYPE_LABEL;
   sessionTypes: SessionType[] = ['LPO','Strength','Gymnastics','Metcon','Endurance','Mobility','Core'];
 
   typeColors: Record<SessionType, string> = {
