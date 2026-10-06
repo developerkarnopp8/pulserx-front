@@ -113,3 +113,17 @@ describe('ConsentComponent — enviar', () => {
     expect(component.errorMsg()).toBe('Não foi possível salvar. Tente de novo.');
   });
 });
+
+describe('ConsentComponent — contador de respostas', () => {
+  it('conta o aceite dos termos e a escolha sobre saúde (sim OU não conta como resposta)', () => {
+    const { component } = build();
+    expect(component.answered).toBe(0);
+    component.acceptTerms.set(true);
+    expect(component.answered).toBe(1);
+    component.health.set(false);
+    expect(component.answered).toBe(2);
+    component.acceptTerms.set(false);
+    component.health.set(true);
+    expect(component.answered).toBe(1);
+  });
+});

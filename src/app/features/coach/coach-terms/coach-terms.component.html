@@ -1,42 +1,89 @@
-<main class="min-h-screen bg-surface px-5 py-8 flex justify-center">
-  <div class="w-full max-w-2xl flex flex-col gap-5 animate-fade-in">
-    <div>
-      <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-1">Antes de continuar</p>
-      <h1 class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none">{{ doc.title }}</h1>
-    </div>
-    <p class="text-on-surface-variant text-sm">{{ doc.intro }}</p>
-
-    <section class="bg-surface-container-low rounded-md p-5 flex flex-col gap-4 max-h-[55vh] overflow-y-auto"
-      aria-label="Texto do Termo do Coach" tabindex="0">
-      @for (s of doc.sections; track s.title) {
-        <div class="flex flex-col gap-2">
-          <h2 class="font-headline font-bold text-sm text-on-surface">{{ s.title }}</h2>
-          @for (p of s.paragraphs; track $index) {
-            <p class="text-on-surface-variant text-sm leading-relaxed">{{ p }}</p>
-          }
-          @if (s.items?.length) {
-            <ul class="list-disc pl-5 text-on-surface-variant text-sm flex flex-col gap-1">
-              @for (i of s.items; track $index) { <li>{{ i }}</li> }
-            </ul>
-          }
+<app-auth-shell [wide]="true">
+  <div class="flex flex-col gap-6 animate-fade-in">
+    <div class="flex flex-col gap-3">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 bg-primary-fixed" aria-hidden="true"></span>
+          <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">Antes de entrar no painel</p>
         </div>
-      }
-    </section>
+        <p class="flex items-center gap-1.5 text-on-surface-variant text-xs">
+          <span class="material-symbols-outlined text-[16px] text-primary-fixed" aria-hidden="true">schedule</span>
+          Última atualização: {{ lastUpdated }}
+        </p>
+      </div>
+      <h1 class="font-headline font-black text-3xl md:text-4xl uppercase leading-none tracking-tight text-on-surface">
+        {{ doc.title }}
+      </h1>
+      <p class="text-on-surface-variant text-sm max-w-3xl">{{ doc.intro }}</p>
+    </div>
 
-    <label class="flex items-start gap-3 text-sm text-on-surface cursor-pointer min-h-[44px]">
-      <input type="checkbox" [checked]="accepted()" (change)="accepted.set($any($event.target).checked)"
-        class="mt-1 w-5 h-5 accent-[var(--color-primary-fixed)] flex-shrink-0" />
-      <span>Li e aceito o Termo do Coach e me comprometo a usar os dados dos meus alunos só como descrito nele.</span>
-    </label>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <aside class="hidden lg:block lg:col-span-3">
+        <nav class="sticky top-20 bg-surface-container-low rounded-md p-4 flex flex-col gap-3" aria-label="Cláusulas do termo">
+          <div class="flex items-center justify-between">
+            <span class="font-headline text-xs font-bold uppercase tracking-widest text-on-surface">Cláusulas</span>
+            <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">{{ clauses.length }}</span>
+          </div>
+          <ol class="flex flex-col gap-1">
+            @for (c of clauses; track c.id) {
+              <li>
+                <button type="button" (click)="goTo(c.id)"
+                  class="w-full min-h-[44px] flex items-center gap-2.5 px-2 rounded-sm text-left text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors">
+                  <span class="w-6 h-6 bg-surface-container-highest flex items-center justify-center text-primary-fixed text-[10px] font-bold shrink-0">{{ c.num }}</span>
+                  <span class="font-headline text-[11px] font-bold uppercase tracking-wide truncate">{{ c.title }}</span>
+                </button>
+              </li>
+            }
+          </ol>
+        </nav>
+      </aside>
 
-    @if (errorMsg()) {
-      <p role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-3 text-error text-sm">{{ errorMsg() }}</p>
-    }
+      <div class="lg:col-span-9 flex flex-col gap-3">
+        @for (c of clauses; track c.id) {
+          <article [id]="c.id" tabindex="-1" class="bg-surface-container-low rounded-md p-5 flex gap-4 scroll-mt-20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-fixed"
+            [attr.aria-labelledby]="c.id + '-titulo'">
+            <span class="font-headline font-black text-2xl text-primary-fixed leading-none shrink-0 w-8" aria-hidden="true">{{ c.num }}</span>
+            <div class="flex flex-col gap-2 min-w-0">
+              <h2 [id]="c.id + '-titulo'" class="font-headline font-black text-base uppercase text-on-surface">{{ c.title }}</h2>
+              @for (p of c.paragraphs; track $index) {
+                <p class="text-on-surface-variant text-sm leading-relaxed">{{ p }}</p>
+              }
+              @if (c.items.length) {
+                <ul class="list-disc pl-5 text-on-surface-variant text-sm flex flex-col gap-1">
+                  @for (i of c.items; track $index) { <li>{{ i }}</li> }
+                </ul>
+              }
+            </div>
+          </article>
+        }
 
-    <button type="button" (click)="submit()" [disabled]="!canSubmit"
-      class="w-full min-h-[52px] rounded-lg bg-primary-fixed disabled:opacity-40 text-on-primary-fixed font-headline font-black text-sm uppercase tracking-wider">
-      {{ busy() ? 'Salvando...' : 'Aceitar e continuar' }}
-    </button>
-    <button type="button" (click)="auth.logout()" class="text-on-surface-variant text-sm underline min-h-[44px]">Sair</button>
+        <section class="sticky bottom-0 mt-2 bg-surface-container rounded-md p-5 shadow-xl flex flex-col gap-4 border border-outline-variant/20" aria-label="Aceite do termo">
+          <label class="flex items-start gap-3 text-sm text-on-surface cursor-pointer min-h-[44px]">
+            <input type="checkbox" [checked]="accepted()" (change)="accepted.set($any($event.target).checked)"
+              class="mt-0.5 w-5 h-5 accent-[var(--color-primary-fixed)] flex-shrink-0" />
+            <span class="flex flex-col">
+              <span>Li e aceito o Termo do Coach e me comprometo a usar os dados dos meus alunos só como descrito nele.</span>
+              <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed mt-0.5">Necessário para usar o painel</span>
+            </span>
+          </label>
+
+          @if (errorMsg()) {
+            <p role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-3 text-error text-sm">{{ errorMsg() }}</p>
+          }
+
+          <div class="flex flex-col sm:flex-row gap-2">
+            <button type="button" (click)="auth.logout()"
+              class="min-h-[48px] px-5 rounded-sm text-on-surface-variant hover:text-on-surface font-headline text-xs uppercase tracking-wider">
+              Sair
+            </button>
+            <button type="button" (click)="submit()" [disabled]="!canSubmit"
+              class="flex-1 min-h-[48px] rounded-sm bg-primary-fixed hover:bg-primary-dim disabled:opacity-40 text-on-primary-fixed font-headline font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-colors">
+              <span class="material-symbols-outlined text-[20px]" aria-hidden="true">verified_user</span>
+              {{ busy() ? 'Salvando…' : 'Aceitar e entrar no painel' }}
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>
   </div>
-</main>
+</app-auth-shell>
