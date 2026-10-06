@@ -1,6 +1,7 @@
 import { Exercise, Session, TrainingPlan } from '../../core/models';
 import {
-  SESSION_TYPE_ICON, SESSION_TYPE_LABEL, coachNoteOf, exerciseSummary, goalPercent, longDate, planPosition, sessionPreview,
+  SESSION_TYPE_ICON, SESSION_TYPE_LABEL, coachNoteOf, exerciseSummary, goalPercent, longDate, planDayDate, planPosition,
+  restLabel, sessionPreview, sessionStats,
 } from './home-view';
 
 const ex = (over: Partial<Exercise> = {}): Exercise => ({ id: 'e', name: 'Back Squat', completed: false, status: 'none', ...over });
@@ -53,5 +54,34 @@ describe('home-view — textos do Início', () => {
 
   it('data por extenso com a primeira letra maiúscula', () => {
     expect(longDate(new Date(2026, 9, 6))).toBe('Terça-feira, 6 de outubro');
+  });
+});
+
+describe('home-view — números da sessão e datas do plano', () => {
+  it('estatísticas só da prescrição', () => {
+    const s = session([
+      ex({ sets: 3, loadPercent: 60, restSeconds: 60 }),
+      ex({ sets: 5, loadPercent: 80, restSeconds: 120 }),
+      ex({ sets: null }),
+    ]);
+    expect(sessionStats(s)).toEqual({ exercises: 3, totalSets: 8, maxLoadPercent: 80, rest: { min: 60, max: 120 } });
+    expect(sessionStats(session([ex()]))).toEqual({ exercises: 1, totalSets: 0, maxLoadPercent: null, rest: null });
+  });
+
+  it('rótulo do descanso', () => {
+    expect(restLabel({ min: 90, max: 90 })).toBe('90 s');
+    expect(restLabel({ min: 60, max: 120 })).toBe('1 min–2 min');
+    expect(restLabel({ min: 45, max: 90 })).toBe('45 s–90 s');
+  });
+
+  it('data do dia: compartilhado pelo calendário do plano; individual só na semana de hoje', () => {
+    const shared = { scope: 'SHARED', startDate: '2026-10-05T00:00:00.000Z' } as TrainingPlan;
+    expect(planDayDate(shared, 1, 1, 1)?.toDateString()).toBe(new Date(2026, 9, 5).toDateString());
+    expect(planDayDate(shared, 2, 0, 1)?.toDateString()).toBe(new Date(2026, 9, 18).toDateString());
+    const ind = { scope: 'INDIVIDUAL', startDate: '2026-01-01' } as TrainingPlan;
+    const terca = new Date(2026, 9, 6, 15);
+    expect(planDayDate(ind, 3, 4, 3, terca)?.toDateString()).toBe(new Date(2026, 9, 8).toDateString());
+    expect(planDayDate(ind, 3, 1, 3, terca)?.toDateString()).toBe(new Date(2026, 9, 5).toDateString());
+    expect(planDayDate(ind, 2, 1, 3, terca)).toBeNull();
   });
 });
