@@ -1,6 +1,6 @@
 <div class="min-h-screen bg-surface-container-lowest text-on-surface flex flex-col">
   <header class="sticky top-0 z-40 bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/20">
-    <div class="h-16 px-4 md:px-8 max-w-5xl mx-auto flex items-center justify-between gap-3">
+    <div class="h-16 px-4 md:px-8 max-w-6xl mx-auto flex items-center justify-between gap-3">
       <div class="flex items-center gap-2">
         @if (backLink) {
           <a [routerLink]="backLink" aria-label="Voltar"
@@ -20,7 +20,7 @@
   </header>
 
   <main class="flex-1 w-full px-4 py-8 md:py-12">
-    <div class="relative w-full max-w-md mx-auto">
+    <div class="relative w-full mx-auto" [class.max-w-md]="!wide" [class.max-w-6xl]="wide">
       @if (watermark) {
         <div class="absolute inset-x-0 top-0 h-40 pointer-events-none select-none overflow-hidden opacity-[0.04] flex items-center justify-center" aria-hidden="true">
           <span class="font-headline font-black text-7xl tracking-tighter whitespace-nowrap">PULSERX</span>

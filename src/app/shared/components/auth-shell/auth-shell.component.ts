@@ -16,4 +16,6 @@ export class AuthShellComponent {
   @Input() backLink: string | null = null;
   /** Marca d'água "PULSERX" atrás do conteúdo (só no login). */
   @Input() watermark = false;
+  /** Coluna larga (texto longo com índice ao lado, ex.: Termo do Coach). Padrão: coluna estreita do formulário. */
+  @Input() wide = false;
 }

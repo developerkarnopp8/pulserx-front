@@ -5,6 +5,9 @@ describe('AuthShellComponent', () => {
     const c = new AuthShellComponent();
     expect(c.backLink).toBeNull();
     expect(c.watermark).toBe(false);
+    expect(c.wide).toBe(false);
+    c.wide = true;
+    expect(c.wide).toBe(true);
     c.backLink = '/login';
     c.watermark = true;
     expect(c.backLink).toBe('/login');
