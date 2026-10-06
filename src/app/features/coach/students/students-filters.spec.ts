@@ -177,3 +177,16 @@ describe('StudentsComponent.exportCsv', () => {
     expect(text).toContain('Ana ""Rocket"" Silva');
   });
 });
+
+describe('csvSafe — exportação sem fórmula', () => {
+  it('prefixa com aspa simples o que a planilha leria como fórmula', async () => {
+    const { csvSafe } = await import('./students.component');
+    expect(csvSafe('=HYPERLINK("http://x")')).toBe(`'=HYPERLINK("http://x")`);
+    expect(csvSafe('+5511')).toBe(`'+5511`);
+    expect(csvSafe('-1')).toBe(`'-1`);
+    expect(csvSafe('@SUM(A1)')).toBe(`'@SUM(A1)`);
+    expect(csvSafe('\tx')).toBe(`'\tx`);
+    expect(csvSafe('Ana Souza')).toBe('Ana Souza');
+    expect(csvSafe('')).toBe('');
+  });
+});

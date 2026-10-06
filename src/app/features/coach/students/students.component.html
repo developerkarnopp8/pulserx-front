@@ -3,8 +3,11 @@
   <!-- Header -->
   <header class="px-4 md:px-8 py-4 md:py-6 flex items-center justify-between flex-shrink-0 gap-3 flex-wrap">
     <div>
-      <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-1">Coach Dashboard</p>
-      <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface tracking-tighter leading-none">ALUNOS & ASSINATURAS</h2>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-primary-fixed" aria-hidden="true"></span>
+        <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">Gestão de atletas</p>
+      </div>
+      <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface uppercase tracking-tight leading-none">Alunos & assinaturas</h2>
       <p class="text-on-surface-variant text-sm mt-1">Performance, plano e status de assinatura dos seus atletas.</p>
     </div>
     <div class="flex items-center gap-2">
@@ -21,31 +24,44 @@
     </div>
   </header>
 
-  <!-- Stats bar (dado real: contagem por status de assinatura) -->
-  <div class="px-4 md:px-8 pb-4 grid grid-cols-2 md:grid-cols-4 gap-2 flex-shrink-0">
-    <div class="bg-surface-container-low rounded-md px-5 py-3 text-center">
-      <p class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none">{{ students().length }}</p>
-      <p class="text-outline text-[10px] font-headline uppercase tracking-widest mt-1">Total</p>
+  <!-- Números (contagem real por status de assinatura) -->
+  <div class="px-4 md:px-8 pb-4 grid grid-cols-2 md:grid-cols-4 gap-3 flex-shrink-0">
+    <div class="bg-surface-container-low rounded-md p-4 flex flex-col gap-1">
+      <p class="flex items-center justify-between font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+        Total <span class="material-symbols-outlined text-[18px] text-primary-fixed" aria-hidden="true">groups</span>
+      </p>
+      <p class="font-headline font-black text-4xl text-on-surface leading-none">{{ students().length }}</p>
+      <p class="text-outline text-[11px]">{{ noPlanCount() }} sem plano</p>
     </div>
-    <div class="bg-surface-container-low rounded-md px-5 py-3 text-center">
-      <p class="font-headline font-black text-3xl text-green-400 tracking-tighter leading-none">{{ activeCount() }}</p>
-      <p class="text-outline text-[10px] font-headline uppercase tracking-widest mt-1">Ativos</p>
+    <div class="bg-surface-container-low rounded-md p-4 flex flex-col gap-1">
+      <p class="flex items-center justify-between font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+        Ativos <span class="material-symbols-outlined text-[18px] text-green-400" aria-hidden="true">bolt</span>
+      </p>
+      <p class="font-headline font-black text-4xl text-green-400 leading-none">{{ activeCount() }}</p>
+      <p class="text-outline text-[11px]">{{ students().length ? ((activeCount() / students().length) * 100 | number: '1.0-0') : 0 }}% do total</p>
     </div>
-    <div class="bg-surface-container-low rounded-md px-5 py-3 text-center">
-      <p class="font-headline font-black text-3xl text-tertiary tracking-tighter leading-none">{{ trialingCount() }}</p>
-      <p class="text-outline text-[10px] font-headline uppercase tracking-widest mt-1">Em Teste</p>
+    <div class="bg-surface-container-low rounded-md p-4 flex flex-col gap-1">
+      <p class="flex items-center justify-between font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+        Em teste <span class="material-symbols-outlined text-[18px] text-tertiary" aria-hidden="true">timer</span>
+      </p>
+      <p class="font-headline font-black text-4xl text-tertiary leading-none">{{ trialingCount() }}</p>
+      <p class="text-outline text-[11px]">período de teste</p>
     </div>
-    <div class="bg-surface-container-low rounded-md px-5 py-3 text-center">
-      <p class="font-headline font-black text-3xl text-error tracking-tighter leading-none">{{ pastDueCount() }}</p>
-      <p class="text-outline text-[10px] font-headline uppercase tracking-widest mt-1">Inadimplentes</p>
+    <div class="bg-surface-container-low rounded-md p-4 flex flex-col gap-1">
+      <p class="flex items-center justify-between font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+        Inadimplentes <span class="material-symbols-outlined text-[18px] text-error" aria-hidden="true">warning</span>
+      </p>
+      <p class="font-headline font-black text-4xl text-error leading-none">{{ pastDueCount() }}</p>
+      <p class="text-outline text-[11px]">mensalidade vencida</p>
     </div>
   </div>
 
   <!-- Search -->
   <div class="px-4 md:px-8 pb-4 flex-shrink-0">
-    <div class="flex items-center gap-3 bg-surface-container-low rounded-md px-4 py-2.5 max-w-xs">
-      <span class="material-symbols-outlined text-outline text-[16px]">search</span>
-      <input
+    <div class="flex items-center gap-3 bg-surface-container-low rounded-sm px-4 min-h-[44px] max-w-sm focus-within:ring-1 focus-within:ring-primary-fixed">
+      <span class="material-symbols-outlined text-outline text-[18px]" aria-hidden="true">search</span>
+      <label for="busca-alunos" class="sr-only">Buscar aluno</label>
+      <input id="busca-alunos"
         type="search"
         placeholder="Buscar por nome ou e-mail..."
         (input)="search.set($any($event.target).value)"
@@ -56,14 +72,14 @@
   <!-- Filter tabs -->
   <div class="px-4 md:px-8 mb-4 flex gap-2 flex-shrink-0 overflow-x-auto">
     <button type="button" (click)="filterTab.set('all')"
-      class="px-3 py-1.5 rounded-sm text-[10px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
+      class="min-h-[40px] px-3 rounded-sm text-[11px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
       [class.bg-primary-fixed]="filterTab() === 'all'" [class.text-on-primary-fixed]="filterTab() === 'all'"
       [class.bg-surface-container]="filterTab() !== 'all'" [class.text-outline]="filterTab() !== 'all'">
       Todos ({{ students().length }})
     </button>
     @for (plan of planTabs(); track plan.id) {
       <button type="button" (click)="filterTab.set(plan.id)"
-        class="px-3 py-1.5 rounded-sm text-[10px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
+        class="min-h-[40px] px-3 rounded-sm text-[11px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
         [class.bg-primary-fixed]="filterTab() === plan.id" [class.text-on-primary-fixed]="filterTab() === plan.id"
         [class.bg-surface-container]="filterTab() !== plan.id" [class.text-outline]="filterTab() !== plan.id">
         {{ plan.name }} ({{ plan.count }})
@@ -71,7 +87,7 @@
     }
     @if (pastDueCount() > 0) {
       <button type="button" (click)="filterTab.set('PAST_DUE')"
-        class="px-3 py-1.5 rounded-sm text-[10px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
+        class="min-h-[40px] px-3 rounded-sm text-[11px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
         [class.bg-error]="filterTab() === 'PAST_DUE'" [class.text-on-error]="filterTab() === 'PAST_DUE'"
         [class.bg-surface-container]="filterTab() !== 'PAST_DUE'" [class.text-error]="filterTab() !== 'PAST_DUE'">
         Inadimplentes ({{ pastDueCount() }})
@@ -79,7 +95,7 @@
     }
     @if (trialingCount() > 0) {
       <button type="button" (click)="filterTab.set('TRIALING')"
-        class="px-3 py-1.5 rounded-sm text-[10px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
+        class="min-h-[40px] px-3 rounded-sm text-[11px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
         [class.bg-primary-fixed]="filterTab() === 'TRIALING'" [class.text-on-primary-fixed]="filterTab() === 'TRIALING'"
         [class.bg-surface-container]="filterTab() !== 'TRIALING'" [class.text-outline]="filterTab() !== 'TRIALING'">
         Período de Teste ({{ trialingCount() }})
@@ -87,7 +103,7 @@
     }
     @if (noPlanCount() > 0) {
       <button type="button" (click)="filterTab.set('no_plan')"
-        class="px-3 py-1.5 rounded-sm text-[10px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
+        class="min-h-[40px] px-3 rounded-sm text-[11px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
         [class.bg-primary-fixed]="filterTab() === 'no_plan'" [class.text-on-primary-fixed]="filterTab() === 'no_plan'"
         [class.bg-surface-container]="filterTab() !== 'no_plan'" [class.text-outline]="filterTab() !== 'no_plan'">
         Sem Plano ({{ noPlanCount() }})
@@ -136,10 +152,11 @@
                   {{ student.name }}
                   @if (pendingSkips()[student.id]; as count) {
                     <span class="min-w-[16px] h-4 px-1 rounded-full bg-error text-on-error text-[9px] font-bold flex items-center justify-center flex-shrink-0"
-                      title="Pulos pendentes">{{ count }}</span>
+                      title="Pulos pendentes" [attr.aria-label]="count + ' pulos pendentes'">{{ count }}</span>
                   }
                 </p>
                 <p class="text-outline text-xs truncate">{{ student.email }}</p>
+                @if (student.goal) { <p class="text-on-surface-variant text-[11px] truncate">{{ student.goal }}</p> }
               </div>
             </div>
 
@@ -170,31 +187,31 @@
               <div class="w-full bg-surface-container rounded-full h-1 mb-1">
                 <div class="bg-primary-fixed rounded-full h-1 transition-all" [style.width.%]="student.completionPercent ?? 0"></div>
               </div>
-              <p class="text-outline text-[10px] font-headline">{{ student.completionPercent ?? 0 }}%</p>
+              <p class="text-outline text-[10px] font-headline">{{ student.completionPercent ?? 0 }}% · Mês {{ student.currentMonth }} · Sem. {{ student.currentWeek }}</p>
             </div>
 
             <!-- Ações -->
             <div class="flex items-center gap-1">
-              <a [routerLink]="['/coach/plan-builder', student.id]" title="Ver plano de treino"
-                class="w-7 h-7 flex items-center justify-center text-outline hover:text-primary-fixed transition-colors rounded-sm hover:bg-primary-fixed/10">
-                <span class="material-symbols-outlined text-[16px]">fitness_center</span>
+              <a [routerLink]="['/coach/plan-builder', student.id]" title="Ver plano de treino" [attr.aria-label]="'Ver plano de ' + student.name"
+                class="w-9 h-9 flex items-center justify-center text-outline hover:text-primary-fixed transition-colors rounded-sm hover:bg-primary-fixed/10">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">fitness_center</span>
               </a>
-              <button type="button" (click)="openSubscriptionModal(student)" title="Assinatura"
-                class="w-7 h-7 flex items-center justify-center text-outline hover:text-on-surface transition-colors rounded-sm hover:bg-surface-container">
-                <span class="material-symbols-outlined text-[16px]">credit_card</span>
+              <button type="button" (click)="openSubscriptionModal(student)" title="Assinatura" [attr.aria-label]="'Assinatura de ' + student.name"
+                class="w-9 h-9 flex items-center justify-center text-outline hover:text-on-surface transition-colors rounded-sm hover:bg-surface-container">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">credit_card</span>
               </button>
-              <button type="button" (click)="openEditModal(student)" title="Editar objetivo"
-                class="w-7 h-7 flex items-center justify-center text-outline hover:text-on-surface transition-colors rounded-sm hover:bg-surface-container">
-                <span class="material-symbols-outlined text-[16px]">edit</span>
+              <button type="button" (click)="openEditModal(student)" title="Editar objetivo" [attr.aria-label]="'Editar objetivo de ' + student.name"
+                class="w-9 h-9 flex items-center justify-center text-outline hover:text-on-surface transition-colors rounded-sm hover:bg-surface-container">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">edit</span>
               </button>
               <button type="button" (click)="sendPasswordReset(student)" [disabled]="sendingResetId() === student.id"
                 title="Enviar link de nova senha" aria-label="Enviar link de nova senha"
-                class="w-7 h-7 flex items-center justify-center text-outline hover:text-on-surface transition-colors rounded-sm hover:bg-surface-container disabled:opacity-50">
-                <span class="material-symbols-outlined text-[16px]">lock_reset</span>
+                class="w-9 h-9 flex items-center justify-center text-outline hover:text-on-surface transition-colors rounded-sm hover:bg-surface-container disabled:opacity-50">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">lock_reset</span>
               </button>
               <button type="button" (click)="unlinkStudent(student)" title="Desvincular atleta" aria-label="Desvincular atleta"
-                class="w-7 h-7 flex items-center justify-center text-outline hover:text-error transition-colors rounded-sm hover:bg-error/10">
-                <span class="material-symbols-outlined text-[16px]">person_remove</span>
+                class="w-9 h-9 flex items-center justify-center text-outline hover:text-error transition-colors rounded-sm hover:bg-error/10">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">person_remove</span>
               </button>
             </div>
           </div>
@@ -215,8 +232,8 @@
           <h3 class="font-headline font-black text-xl text-on-surface tracking-tighter">Novo Atleta</h3>
           <p class="text-outline text-xs mt-0.5">Cria a conta de acesso do atleta ao app.</p>
         </div>
-        <button type="button" (click)="closeModal()"
-          class="w-8 h-8 rounded-sm bg-surface-container flex items-center justify-center text-outline hover:text-on-surface transition-colors">
+        <button type="button" (click)="closeModal()" aria-label="Fechar"
+          class="w-10 h-10 rounded-sm bg-surface-container flex items-center justify-center text-outline hover:text-on-surface transition-colors">
           <span class="material-symbols-outlined text-[18px]">close</span>
         </button>
       </div>
@@ -225,8 +242,8 @@
 
         <!-- Nome -->
         <div class="mb-3">
-          <label class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">Nome completo *</label>
-          <input formControlName="name" type="text" placeholder="Ex: Gustavo Karnopp"
+          <label for="novo-nome" class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">Nome completo *</label>
+          <input id="novo-nome" formControlName="name" type="text" placeholder="Ex: Gustavo Karnopp"
             class="w-full bg-surface-container text-on-surface placeholder:text-outline rounded-sm px-4 py-3 text-sm"/>
           @if (form.get('name')?.invalid && form.get('name')?.touched) {
             <p class="text-error text-xs mt-1">Nome obrigatório.</p>
@@ -235,8 +252,8 @@
 
         <!-- E-mail -->
         <div class="mb-3">
-          <label class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">E-mail *</label>
-          <input formControlName="email" type="email" placeholder="atleta@email.com"
+          <label for="novo-email" class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">E-mail *</label>
+          <input id="novo-email" formControlName="email" type="email" placeholder="atleta@email.com"
             class="w-full bg-surface-container text-on-surface placeholder:text-outline rounded-sm px-4 py-3 text-sm"/>
           @if (form.get('email')?.invalid && form.get('email')?.touched) {
             <p class="text-error text-xs mt-1">E-mail inválido.</p>
@@ -250,8 +267,8 @@
 
         <!-- Objetivo -->
         <div class="mb-5">
-          <label class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">Objetivo *</label>
-          <input formControlName="goal" type="text" placeholder="Ex: Competição CrossFit"
+          <label for="novo-objetivo" class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">Objetivo *</label>
+          <input id="novo-objetivo" formControlName="goal" type="text" placeholder="Ex: Competição CrossFit"
             class="w-full bg-surface-container text-on-surface placeholder:text-outline rounded-sm px-4 py-3 text-sm"/>
           @if (form.get('goal')?.invalid && form.get('goal')?.touched) {
             <p class="text-error text-xs mt-1">Objetivo obrigatório.</p>
@@ -293,8 +310,8 @@
           <h3 class="font-headline font-black text-xl text-on-surface tracking-tighter">Editar Atleta</h3>
           <p class="text-outline text-xs mt-0.5">Atualize o objetivo de treinamento.</p>
         </div>
-        <button type="button" (click)="closeModal()"
-          class="w-8 h-8 rounded-sm bg-surface-container flex items-center justify-center text-outline hover:text-on-surface transition-colors">
+        <button type="button" (click)="closeModal()" aria-label="Fechar"
+          class="w-10 h-10 rounded-sm bg-surface-container flex items-center justify-center text-outline hover:text-on-surface transition-colors">
           <span class="material-symbols-outlined text-[18px]">close</span>
         </button>
       </div>
@@ -303,8 +320,8 @@
 
         <!-- Objetivo -->
         <div class="mb-5">
-          <label class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">Objetivo *</label>
-          <input formControlName="goal" type="text" placeholder="Ex: Competição CrossFit"
+          <label for="editar-objetivo" class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">Objetivo *</label>
+          <input id="editar-objetivo" formControlName="goal" type="text" placeholder="Ex: Competição CrossFit"
             class="w-full bg-surface-container text-on-surface placeholder:text-outline rounded-sm px-4 py-3 text-sm"/>
           @if (editForm.get('goal')?.invalid && editForm.get('goal')?.touched) {
             <p class="text-error text-xs mt-1">Objetivo obrigatório.</p>
@@ -345,8 +362,8 @@
           <h3 class="font-headline font-black text-xl text-on-surface tracking-tighter">Assinatura</h3>
           <p class="text-outline text-xs mt-0.5">{{ subscriptionTarget()?.name }}</p>
         </div>
-        <button type="button" (click)="closeSubscriptionModal()"
-          class="w-8 h-8 rounded-sm bg-surface-container flex items-center justify-center text-outline hover:text-on-surface transition-colors">
+        <button type="button" (click)="closeSubscriptionModal()" aria-label="Fechar"
+          class="w-10 h-10 rounded-sm bg-surface-container flex items-center justify-center text-outline hover:text-on-surface transition-colors">
           <span class="material-symbols-outlined text-[18px]">close</span>
         </button>
       </div>
@@ -357,15 +374,15 @@
         @if (currentSubscription(); as sub) {
           <div class="bg-primary-fixed/10 border border-primary-fixed/20 rounded-sm px-4 py-3 mb-4">
             <p class="text-on-surface font-headline font-bold text-sm">{{ sub.plan.name }} · {{ fmtPrice(sub.plan.priceCents) }}/mês</p>
-            <p class="text-outline text-xs mt-0.5">Status: {{ sub.status }}</p>
+            <p class="text-outline text-xs mt-0.5">Status: {{ statusLabelMap[sub.status] }}</p>
           </div>
         } @else {
           <p class="text-on-surface-variant text-sm mb-4">Este aluno ainda não tem plano de assinatura.</p>
         }
 
         <div class="mb-4">
-          <label class="block text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-1.5">Plano</label>
-          <select [ngModel]="selectedPlanId()" (ngModelChange)="selectedPlanId.set($event)" [ngModelOptions]="{standalone: true}"
+          <label for="assinatura-plano" class="block text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-1.5">Plano</label>
+          <select id="assinatura-plano" [ngModel]="selectedPlanId()" (ngModelChange)="selectedPlanId.set($event)" [ngModelOptions]="{standalone: true}"
             class="w-full bg-surface-container text-on-surface rounded-sm px-4 py-3 text-sm min-h-[44px]">
             <option value="">Selecione um plano</option>
             @for (plan of subscriptionPlans(); track plan.id) {
