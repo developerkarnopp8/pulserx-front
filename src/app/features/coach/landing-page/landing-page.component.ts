@@ -229,6 +229,18 @@ export class LandingPageComponent implements OnInit {
     });
   }
 
+  /** Ícone de "copiado" por 2 s depois de copiar o link público. */
+  linkCopied = signal(false);
+
+  /** Copia o link público da página (falha da área de transferência só não mostra o "copiado"). */
+  copyPublicLink(slug: string): void {
+    const url = `${this.publicUrlOrigin}/c/${slug}`;
+    navigator.clipboard?.writeText(url).then(
+      () => { this.linkCopied.set(true); setTimeout(() => this.linkCopied.set(false), 2000); },
+      () => {},
+    );
+  }
+
   togglePublish(): void {
     const current = this.profile();
     if (!current) return;

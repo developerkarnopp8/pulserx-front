@@ -3,9 +3,30 @@
   <!-- Sidebar: conversations list -->
   <div class="w-full md:w-72 flex-shrink-0 border-r border-outline-variant/10 flex flex-col md:!flex"
        [class.hidden]="mobileView() === 'chat'">
-    <div class="px-5 py-4 border-b border-outline-variant/10 flex-shrink-0">
-      <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-0.5">Mensagens</p>
-      <p class="text-on-surface font-headline font-bold text-base">Conversas</p>
+    <div class="px-4 py-4 border-b border-outline-variant/10 flex-shrink-0 flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">Mensagens</p>
+          <h2 class="font-headline font-black text-lg text-on-surface uppercase leading-tight">Conversas com atletas</h2>
+        </div>
+        @if (totalUnread()) {
+          <span class="font-headline text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-sm bg-error/15 text-error">{{ totalUnread() }} não lida{{ totalUnread() === 1 ? '' : 's' }}</span>
+        }
+      </div>
+      <div class="grid grid-cols-2 gap-1 bg-surface-container-low rounded-sm p-1" role="group" aria-label="Filtrar conversas">
+        <button type="button" (click)="convFilter.set('all')" [attr.aria-pressed]="convFilter() === 'all'"
+          class="min-h-[36px] rounded-sm font-headline text-[11px] font-bold uppercase tracking-wider"
+          [class.bg-primary-fixed]="convFilter() === 'all'" [class.text-on-primary-fixed]="convFilter() === 'all'" [class.text-on-surface-variant]="convFilter() !== 'all'">Todas</button>
+        <button type="button" (click)="convFilter.set('unread')" [attr.aria-pressed]="convFilter() === 'unread'"
+          class="min-h-[36px] rounded-sm font-headline text-[11px] font-bold uppercase tracking-wider"
+          [class.bg-primary-fixed]="convFilter() === 'unread'" [class.text-on-primary-fixed]="convFilter() === 'unread'" [class.text-on-surface-variant]="convFilter() !== 'unread'">Não lidas</button>
+      </div>
+      <div class="flex items-center gap-2 bg-surface-container-low rounded-sm px-3 min-h-[40px] focus-within:ring-1 focus-within:ring-primary-fixed">
+        <span class="material-symbols-outlined text-outline text-[18px]" aria-hidden="true">person_search</span>
+        <label for="busca-conversa" class="sr-only">Buscar atleta</label>
+        <input id="busca-conversa" type="search" [value]="convSearch()" (input)="convSearch.set($any($event.target).value)" placeholder="Buscar atleta"
+          class="min-w-0 flex-1 bg-transparent text-on-surface placeholder:text-outline text-sm" />
+      </div>
     </div>
 
     <div class="flex-1 overflow-y-auto">
@@ -19,16 +40,17 @@
           <p class="text-on-surface-variant text-sm">Nenhuma conversa ainda.</p>
         </div>
       } @else {
-        @for (conv of conversations(); track conv.athleteId) {
+        @for (conv of filteredConversations(); track conv.athleteId) {
           <button type="button" (click)="openConversation(conv.athleteId, conv.athleteName)"
-            class="w-full flex items-center gap-3 px-4 py-3.5 border-b border-outline-variant/10 text-left transition-colors hover:bg-surface-container/50"
-            [class.bg-surface-container-low]="selectedId() === conv.athleteId">
-            <div class="w-9 h-9 rounded-full bg-primary-fixed/20 flex items-center justify-center text-sm font-headline font-black text-primary-fixed flex-shrink-0">
+            class="relative w-full flex items-center gap-3 px-4 py-3.5 border-b border-outline-variant/10 text-left transition-colors hover:bg-surface-container/50"
+            [class.bg-surface-container-low]="selectedId() === conv.athleteId" [attr.aria-current]="selectedId() === conv.athleteId ? 'true' : null">
+            @if (selectedId() === conv.athleteId) { <span class="absolute left-0 inset-y-0 w-1 bg-primary-fixed" aria-hidden="true"></span> }
+            <div class="w-10 h-10 rounded-sm bg-primary-fixed/15 flex items-center justify-center text-sm font-headline font-black text-primary-fixed flex-shrink-0">
               {{ conv.athleteName.charAt(0).toUpperCase() }}
             </div>
             <div class="flex-1 min-w-0">
               <p class="text-on-surface font-headline font-bold text-sm truncate">{{ conv.athleteName }}</p>
-              <p class="text-outline text-[11px] truncate">{{ conv.lastMessage }}</p>
+              <p class="text-[12px] truncate" [class.text-on-surface]="conv.unread > 0" [class.text-outline]="!conv.unread">{{ conv.lastMessage }}</p>
             </div>
             <div class="flex flex-col items-end gap-1 flex-shrink-0 self-start">
               <span class="text-outline text-[10px]">{{ formatTime(conv.lastAt) }}</span>
@@ -39,6 +61,8 @@
               }
             </div>
           </button>
+        } @empty {
+          <p class="text-on-surface-variant text-sm text-center px-6 py-10">Nenhuma conversa neste filtro.</p>
         }
       }
     </div>
@@ -55,12 +79,12 @@
             class="md:hidden w-8 h-8 -ml-1 flex items-center justify-center text-on-surface-variant hover:text-on-surface flex-shrink-0">
             <span class="material-symbols-outlined text-[22px]">arrow_back</span>
           </button>
-          <div class="w-9 h-9 rounded-full bg-primary-fixed/20 flex items-center justify-center text-sm font-headline font-black text-primary-fixed flex-shrink-0">
+          <div class="w-10 h-10 rounded-sm bg-primary-fixed/15 flex items-center justify-center text-sm font-headline font-black text-primary-fixed flex-shrink-0" aria-hidden="true">
             {{ selectedName().charAt(0).toUpperCase() }}
           </div>
-          <div>
-            <p class="text-on-surface font-headline font-bold text-sm">{{ selectedName() }}</p>
-            <p class="text-outline text-[10px]">Atleta · PulseRx</p>
+          <div class="min-w-0">
+            <p class="font-headline font-black text-base text-on-surface uppercase leading-tight truncate">{{ selectedName() }}</p>
+            <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Atleta · PulseRx</p>
           </div>
         </div>
       </div>
@@ -85,15 +109,21 @@
               @for (msg of group.messages; track msg.id) {
                 @if (msg.isSystem) {
                   <div class="flex justify-center my-1">
-                    <p class="text-outline text-[11px] italic bg-surface-container-low rounded-full px-3 py-1.5 text-center max-w-[85%]">
-                      {{ msg.content }}
-                    </p>
+                    <div class="w-full max-w-[90%] bg-surface-container-low rounded-md px-4 py-3 flex items-start gap-3 border-l-2 border-primary-fixed">
+                      <span class="material-symbols-outlined text-primary-fixed text-[20px] shrink-0" aria-hidden="true">notification_important</span>
+                      <div class="min-w-0 flex-1">
+                        <p class="flex items-center justify-between gap-2 font-headline text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                          Aviso automático <span class="font-normal text-outline">{{ formatTime(msg.createdAt) }}</span>
+                        </p>
+                        <p class="text-on-surface text-sm mt-0.5">{{ msg.content }}</p>
+                      </div>
+                    </div>
                   </div>
                 } @else {
                   <div class="flex"
                     [class.justify-end]="msg.fromId === myId()"
                     [class.justify-start]="msg.fromId !== myId()">
-                    <div class="max-w-[70%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed"
+                    <div class="max-w-[70%] px-4 py-2.5 rounded-md text-sm leading-relaxed whitespace-pre-line"
                       [class.bg-primary-fixed]="msg.fromId === myId()"
                       [class.text-on-primary-fixed]="msg.fromId === myId()"
                       [class.rounded-br-sm]="msg.fromId === myId()"
@@ -115,17 +145,18 @@
       <!-- Input -->
       <div class="px-4 py-3 flex-shrink-0 border-t border-outline-variant/10 flex justify-center">
         <div class="w-full max-w-2xl flex items-end gap-2">
-          <textarea
+          <label for="mensagem-coach" class="sr-only">Mensagem para o atleta</label>
+          <textarea id="mensagem-coach"
             [(ngModel)]="newMsg"
             (keydown)="onEnter($event)"
             [disabled]="sending()"
-            placeholder="Mensagem..."
+            placeholder="Mensagem para o atleta... (Enter envia, Shift+Enter quebra linha)"
             rows="1"
-            class="auto-grow flex-1 bg-surface-container text-on-surface placeholder:text-outline rounded-2xl px-4 py-3 text-sm resize-none max-h-28 outline-none transition-all">
+            class="auto-grow flex-1 bg-surface-container text-on-surface placeholder:text-outline rounded-sm focus:ring-1 focus:ring-primary-fixed px-4 py-3 text-sm resize-none max-h-28 outline-none transition-all">
           </textarea>
-          <button type="button" (click)="send()"
+          <button type="button" (click)="send()" aria-label="Enviar mensagem"
             [disabled]="!newMsg.trim() || sending()"
-            class="w-11 h-11 rounded-full bg-primary-fixed disabled:opacity-40 text-on-primary-fixed flex items-center justify-center flex-shrink-0 active:scale-95 transition-all">
+            class="w-12 h-12 rounded-sm bg-primary-fixed disabled:opacity-40 text-on-primary-fixed flex items-center justify-center flex-shrink-0 active:scale-95 transition-all">
             <span class="material-symbols-outlined text-[20px]">send</span>
           </button>
         </div>

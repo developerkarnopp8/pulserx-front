@@ -177,3 +177,13 @@ describe('CoachSubscriptionsComponent — carteira Asaas', () => {
   });
 });
 
+
+describe('CoachSubscriptionsComponent — contagem (Stitch mo11)', () => {
+  it('conta os planos ativos', () => {
+    const { component } = build({
+      getSubscriptionPlans: vi.fn().mockReturnValue(of([plan(), plan({ id: 'p2', active: true }), plan({ id: 'p3', active: true })])),
+    });
+    component.ngOnInit();
+    expect(component.activeCount()).toBe(2);
+  });
+});

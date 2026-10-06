@@ -61,14 +61,21 @@ export class LibraryComponent implements OnInit {
 
   form!: FormGroup;
 
-  /** Combina busca por texto + aba de categoria ativa. */
+  /** Origem: veio sozinho dos planos (autoImported) ou cadastrado à mão. */
+  origin = signal<'all' | 'auto' | 'manual'>('all');
+  autoCount = computed(() => this.items().filter(i => i.autoImported).length);
+  manualCount = computed(() => this.items().filter(i => !i.autoImported).length);
+
+  /** Combina busca por texto + aba de categoria ativa + origem. */
   filteredItems = computed(() => {
     const q = this.searchQuery().toLowerCase();
     const activeCat = this.activeCategory();
+    const origin = this.origin();
     return this.items().filter(i => {
       const matchesSearch = i.name.toLowerCase().includes(q) || (i.category ?? '').toLowerCase().includes(q);
       const matchesCategory = activeCat === 'all' || (i.category ?? 'Sem categoria') === activeCat;
-      return matchesSearch && matchesCategory;
+      const matchesOrigin = origin === 'all' || (origin === 'auto') === !!i.autoImported;
+      return matchesSearch && matchesCategory && matchesOrigin;
     });
   });
 

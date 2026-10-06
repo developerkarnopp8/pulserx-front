@@ -4,7 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { PublicCoachProfile } from '../../../core/models';
+import { PublicCoachProfile, TRAINING_CATEGORY_LABEL } from '../../../core/models';
 import { formatCents } from '../../../shared/utils/currency';
 import {
   apiMessage, checkoutErrorMessage, isEmailExists, isEmailNotVerified, isSafeCheckoutUrl, maskCpf,
@@ -12,6 +12,12 @@ import {
 
 type Step = 'account' | 'login' | 'verify' | 'payment';
 type PublicPlan = PublicCoachProfile['plans'][number];
+
+export interface StepView {
+  n: number;
+  label: string;
+  state: 'done' | 'current' | 'todo';
+}
 
 /**
  * Inscrição + pagamento a partir da landing do coach (`/c/:slug/assinar/:planId`).
@@ -37,6 +43,18 @@ export class PublicSignupComponent implements OnInit {
   infoMsg  = signal('');
   /** E-mail que precisa ser confirmado (passo "verify"). */
   pendingEmail = signal('');
+
+  readonly categoryLabel = TRAINING_CATEGORY_LABEL;
+
+  /** As 3 etapas do topo (dados → confirmar e-mail → pagamento/acesso), com a atual destacada. Login conta como etapa 1. */
+  steps(isFree: boolean): StepView[] {
+    const current = this.step() === 'payment' ? 3 : this.step() === 'verify' ? 2 : 1;
+    return [
+      { n: 1, label: 'Seus dados' },
+      { n: 2, label: 'Confirme o e-mail' },
+      { n: 3, label: isFree ? 'Acesso' : 'Pagamento' },
+    ].map(s => ({ ...s, state: s.n < current ? 'done' : s.n === current ? 'current' : 'todo' }));
+  }
 
   plan = computed<PublicPlan | null>(() => this.profile()?.plans.find(p => p.id === this.planId) ?? null);
   readonly fmtCents = formatCents;

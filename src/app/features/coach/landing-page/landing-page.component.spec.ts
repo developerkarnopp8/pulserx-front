@@ -469,3 +469,30 @@ describe('LandingPageComponent — garantia, suporte e textos da página', () =>
   });
 });
 
+
+describe('LandingPageComponent — copiar link (Stitch mo12)', () => {
+  afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
+
+  it('copia o link público e mostra "copiado" por 2 s', async () => {
+    vi.useFakeTimers();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+    const { component } = build();
+    component.copyPublicLink('luan-teste');
+    expect(writeText).toHaveBeenCalledWith(`${component.publicUrlOrigin}/c/luan-teste`);
+    await Promise.resolve();
+    expect(component.linkCopied()).toBe(true);
+    vi.advanceTimersByTime(2000);
+    expect(component.linkCopied()).toBe(false);
+  });
+
+  it('sem área de transferência (ou recusada): não quebra e não marca copiado', async () => {
+    vi.stubGlobal('navigator', { clipboard: { writeText: vi.fn().mockRejectedValue(new Error('negado')) } });
+    const { component } = build();
+    component.copyPublicLink('x');
+    await Promise.resolve(); await Promise.resolve();
+    expect(component.linkCopied()).toBe(false);
+    vi.stubGlobal('navigator', {});
+    expect(() => component.copyPublicLink('x')).not.toThrow();
+  });
+});

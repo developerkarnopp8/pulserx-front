@@ -167,3 +167,21 @@ describe('LibraryComponent — capa do exercício', () => {
     expect(component.items()[0].imageUrl).toBeNull();
   });
 });
+
+describe('LibraryComponent — origem (Stitch mo10)', () => {
+  it('filtra entre os que vieram dos planos e os manuais, com contagem', () => {
+    const { component } = build([
+      item({ id: 'a', autoImported: true }),
+      item({ id: 'b', autoImported: false }),
+      item({ id: 'c' }),
+    ]);
+    expect(component.autoCount()).toBe(1);
+    expect(component.manualCount()).toBe(2);
+    component.origin.set('auto');
+    expect(component.filteredItems().map(i => i.id)).toEqual(['a']);
+    component.origin.set('manual');
+    expect(component.filteredItems().map(i => i.id)).toEqual(['b', 'c']);
+    component.origin.set('all');
+    expect(component.filteredItems().length).toBe(3);
+  });
+});

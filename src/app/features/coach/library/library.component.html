@@ -3,17 +3,20 @@
   <!-- Header -->
   <header class="px-4 md:px-8 py-4 md:py-6 flex items-center justify-between flex-shrink-0 gap-3 flex-wrap">
     <div>
-      <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-1">Coach</p>
-      <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface tracking-tighter leading-none">BIBLIOTECA</h2>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-primary-fixed" aria-hidden="true"></span>
+        <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">Biblioteca técnica</p>
+      </div>
+      <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface uppercase tracking-tight leading-none">Exercícios & vídeos</h2>
       <p class="text-on-surface-variant text-sm mt-1">
         {{ activeTab() === 'exercises' ? 'Seus exercícios salvos para reutilizar nos planos.' : 'Calendário e evolução de cada aluno.' }}
       </p>
     </div>
     @if (activeTab() === 'exercises') {
       <button type="button" (click)="openAdd()"
-        class="flex items-center gap-2 bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-5 py-3 rounded-sm uppercase tracking-tighter text-xs transition-all">
-        <span class="material-symbols-outlined text-[16px]">add</span>
-        Novo Exercício
+        class="min-h-[44px] flex items-center gap-2 bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-5 rounded-sm uppercase tracking-wider text-xs transition-colors">
+        <span class="material-symbols-outlined text-[18px]" aria-hidden="true">add_box</span>
+        Novo exercício
       </button>
     }
   </header>
@@ -22,7 +25,7 @@
   <div class="px-4 md:px-8 mb-4 flex-shrink-0" role="tablist" aria-label="Seções da Biblioteca">
     <div class="flex gap-1 border-b border-outline-variant/20">
       <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'exercises'" (click)="selectTab('exercises')"
-        class="px-4 py-2.5 font-headline font-black text-xs uppercase tracking-tighter transition-colors border-b-2"
+        class="min-h-[44px] px-4 font-headline font-black text-xs uppercase tracking-wider transition-colors border-b-2"
         [class.text-primary-fixed]="activeTab() === 'exercises'"
         [class.border-primary-fixed]="activeTab() === 'exercises'"
         [class.text-outline]="activeTab() !== 'exercises'"
@@ -30,7 +33,7 @@
         Exercícios
       </button>
       <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'history'" (click)="selectTab('history')"
-        class="px-4 py-2.5 font-headline font-black text-xs uppercase tracking-tighter transition-colors border-b-2"
+        class="min-h-[44px] px-4 font-headline font-black text-xs uppercase tracking-wider transition-colors border-b-2"
         [class.text-primary-fixed]="activeTab() === 'history'"
         [class.border-primary-fixed]="activeTab() === 'history'"
         [class.text-outline]="activeTab() !== 'history'"
@@ -43,28 +46,39 @@
   @if (activeTab() === 'exercises') {
 
   <!-- Search -->
-  <div class="px-4 md:px-8 mb-4 flex-shrink-0">
-    <div class="relative">
-      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
-      <input type="text" placeholder="Buscar exercício ou categoria..."
+  <div class="px-4 md:px-8 mb-4 flex-shrink-0 flex flex-wrap items-center gap-3">
+    <div class="flex items-center gap-3 bg-surface-container-low rounded-sm px-4 min-h-[44px] w-full max-w-md focus-within:ring-1 focus-within:ring-primary-fixed">
+      <span class="material-symbols-outlined text-outline text-[18px]" aria-hidden="true">search</span>
+      <label for="busca-biblioteca" class="sr-only">Buscar exercício ou categoria</label>
+      <input id="busca-biblioteca" type="search" placeholder="Buscar exercício ou categoria..."
         [value]="searchQuery()"
         (input)="searchQuery.set($any($event.target).value)"
-        class="w-full bg-surface-container text-on-surface placeholder:text-outline rounded-sm pl-9 pr-4 py-2.5 text-sm max-w-md" />
+        class="min-w-0 flex-1 bg-transparent text-on-surface placeholder:text-outline text-sm" />
     </div>
+    @if (items().length > 0) {
+      <div class="flex items-center gap-1 bg-surface-container-low rounded-sm p-1" role="group" aria-label="Origem do exercício">
+        @for (o of [{v:'all',l:'Todos'},{v:'auto',l:'Dos planos (' + autoCount() + ')'},{v:'manual',l:'Manuais (' + manualCount() + ')'}]; track o.v) {
+          <button type="button" (click)="origin.set($any(o.v))" [attr.aria-pressed]="origin() === o.v"
+            class="min-h-[36px] px-3 rounded-sm font-headline text-[11px] font-bold uppercase tracking-wider transition-colors"
+            [class.bg-primary-fixed]="origin() === o.v" [class.text-on-primary-fixed]="origin() === o.v"
+            [class.text-on-surface-variant]="origin() !== o.v">{{ o.l }}</button>
+        }
+      </div>
+    }
   </div>
 
   <!-- Category tabs -->
   @if (items().length > 0) {
     <div class="px-4 md:px-8 mb-4 flex gap-2 flex-shrink-0 overflow-x-auto">
       <button type="button" (click)="activeCategory.set('all')"
-        class="px-3 py-1.5 rounded-sm text-[10px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
+        class="min-h-[40px] px-3 rounded-sm text-[11px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
         [class.bg-primary-fixed]="activeCategory() === 'all'" [class.text-on-primary-fixed]="activeCategory() === 'all'"
         [class.bg-surface-container]="activeCategory() !== 'all'" [class.text-outline]="activeCategory() !== 'all'">
         Todos ({{ items().length }})
       </button>
       @for (tab of categoryTabs(); track tab.name) {
         <button type="button" (click)="activeCategory.set(tab.name)"
-          class="px-3 py-1.5 rounded-sm text-[10px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
+          class="min-h-[40px] px-3 rounded-sm text-[11px] font-headline font-bold uppercase tracking-wider transition-all flex-shrink-0 whitespace-nowrap"
           [class.bg-primary-fixed]="activeCategory() === tab.name" [class.text-on-primary-fixed]="activeCategory() === tab.name"
           [class.bg-surface-container]="activeCategory() !== tab.name" [class.text-outline]="activeCategory() !== tab.name">
           {{ tab.name }} ({{ tab.count }})
@@ -120,34 +134,44 @@
               </span>
             }
 
-            <div class="p-4 flex flex-col gap-2 flex-1">
+            <div class="p-4 flex flex-col gap-3 flex-1">
               <div class="flex items-start justify-between gap-2">
                 <div class="flex-1 min-w-0">
-                  <p class="text-on-surface font-headline font-bold text-sm truncate">{{ item.name }}</p>
-                  <p class="text-on-surface-variant text-xs mt-0.5">{{ formatPreview(item) }}
-                    @if (item.loadPercent) {
-                      <span class="text-primary-fixed font-bold"> @ {{ item.loadPercent }}%</span>
-                    }
-                  </p>
+                  <span class="font-headline text-[10px] font-bold uppercase tracking-widest"
+                    [class.text-primary-fixed]="item.autoImported" [class.text-on-surface-variant]="!item.autoImported">
+                    {{ item.autoImported ? 'Dos seus planos' : 'Manual' }}
+                  </span>
+                  <h3 class="font-headline font-black text-base text-on-surface uppercase leading-tight">{{ item.name }}</h3>
                 </div>
                 <div class="flex items-center gap-1 flex-shrink-0">
-                  <button type="button" (click)="openEdit(item)" title="Editar"
-                    class="w-6 h-6 flex items-center justify-center text-outline hover:text-on-surface transition-colors rounded-sm hover:bg-surface-container">
-                    <span class="material-symbols-outlined text-[16px]">edit</span>
+                  <button type="button" (click)="openEdit(item)" title="Editar" [attr.aria-label]="'Editar ' + item.name"
+                    class="w-9 h-9 flex items-center justify-center text-outline hover:text-on-surface transition-colors rounded-sm hover:bg-surface-container">
+                    <span class="material-symbols-outlined text-[18px]" aria-hidden="true">edit</span>
                   </button>
-                  <button type="button" (click)="delete(item)" title="Remover"
-                    class="w-6 h-6 flex items-center justify-center text-outline hover:text-error transition-colors rounded-sm hover:bg-error/10">
-                    <span class="material-symbols-outlined text-[16px]">delete</span>
+                  <button type="button" (click)="delete(item)" title="Remover" [attr.aria-label]="'Remover ' + item.name"
+                    class="w-9 h-9 flex items-center justify-center text-outline hover:text-error transition-colors rounded-sm hover:bg-error/10">
+                    <span class="material-symbols-outlined text-[18px]" aria-hidden="true">delete</span>
                   </button>
                 </div>
               </div>
+              @if (formatPreview(item) || item.restSeconds || item.loadPercent) {
+                <div class="grid grid-cols-3 gap-2">
+                  <div class="bg-surface-container rounded-sm px-2 py-1.5">
+                    <p class="font-headline text-[9px] font-bold uppercase tracking-widest text-on-surface-variant">Séries × reps</p>
+                    <p class="font-headline font-black text-sm text-on-surface truncate">{{ formatPreview(item) || '—' }}</p>
+                  </div>
+                  <div class="bg-surface-container rounded-sm px-2 py-1.5">
+                    <p class="font-headline text-[9px] font-bold uppercase tracking-widest text-on-surface-variant">Descanso</p>
+                    <p class="font-headline font-black text-sm text-on-surface">{{ item.restSeconds ? item.restSeconds + 's' : '—' }}</p>
+                  </div>
+                  <div class="bg-surface-container rounded-sm px-2 py-1.5">
+                    <p class="font-headline text-[9px] font-bold uppercase tracking-widest text-on-surface-variant">Carga alvo</p>
+                    <p class="font-headline font-black text-sm" [class.text-primary-fixed]="item.loadPercent" [class.text-on-surface]="!item.loadPercent">{{ item.loadPercent ? item.loadPercent + '%' : '—' }}</p>
+                  </div>
+                </div>
+              }
               @if (item.notes) {
                 <p class="text-outline text-xs italic border-l-2 border-primary-fixed/30 pl-2">{{ item.notes }}</p>
-              }
-              @if (item.restSeconds) {
-                <p class="text-outline text-[10px] font-headline uppercase tracking-wider">
-                  Descanso: {{ item.restSeconds }}s
-                </p>
               }
             </div>
           </div>
