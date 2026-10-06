@@ -12,6 +12,14 @@ import { confirmDialog } from '../../../shared/components/confirm-dialog/confirm
 
 type ModalMode = 'add' | 'edit';
 
+/**
+ * Célula de CSV segura: texto que começa com = + - @ (ou tab/CR) vira fórmula no Excel/Sheets — um aluno chamado
+ * "=HYPERLINK(...)" executaria ao abrir. Prefixar com ' faz a planilha tratar como texto.
+ */
+export function csvSafe(value: string): string {
+  return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+}
+
 /** Aba de filtro: status da assinatura, "sem plano", ou o id de um plano específico. */
 type FilterTab = 'all' | 'no_plan' | 'TRIALING' | 'PAST_DUE';
 
@@ -348,7 +356,7 @@ export class StudentsComponent implements OnInit {
       this.formatDate(s.subscription?.renewsAt ?? null),
     ]);
     const csv = [header, ...rows]
-      .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .map(row => row.map(cell => `"${csvSafe(String(cell)).replace(/"/g, '""')}"`).join(','))
       .join('\n');
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
