@@ -98,6 +98,11 @@ export const routes: Routes = [
         path: 'landing-page',
         loadComponent: () =>
           import('./features/coach/landing-page/landing-page.component').then(m => m.LandingPageComponent)
+      },
+      {
+        path: 'ajuda',
+        loadComponent: () =>
+          import('./features/help/coach-manual.component').then(m => m.CoachManualComponent)
       }
     ]
   },
@@ -212,6 +217,12 @@ export const routes: Routes = [
     ]
   },
 
+  // Manual do coach, versão clara para imprimir (o PDF sai dela). Público: não tem dado de ninguém.
+  {
+    path: 'manual-coach',
+    loadComponent: () => import('./features/help/coach-manual.component').then(m => m.CoachManualComponent),
+    data: { printable: true },
+  },
   // Landing page pública do coach — sem guard, sem shell, qualquer visitante acessa.
   {
     path: 'c/:slug',

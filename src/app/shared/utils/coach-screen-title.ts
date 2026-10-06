@@ -9,6 +9,7 @@ const TITLES: [prefix: string, title: string][] = [
   ['/coach/financial', 'Financeiro'],
   ['/coach/subscriptions', 'Assinaturas'],
   ['/coach/landing-page', 'Minha Página'],
+  ['/coach/ajuda', 'Ajuda'],
 ];
 
 export function coachScreenTitle(url: string): string {

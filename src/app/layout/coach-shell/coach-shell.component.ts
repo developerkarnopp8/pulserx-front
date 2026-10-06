@@ -51,6 +51,7 @@ export class CoachShellComponent implements OnInit {
     { label: 'Financeiro', route: '/coach/financial', icon: 'payments'  },
     { label: 'Assinaturas', route: '/coach/subscriptions', icon: 'workspace_premium' },
     { label: 'Minha Página', route: '/coach/landing-page', icon: 'storefront' },
+    { label: 'Ajuda', route: '/coach/ajuda', icon: 'help' },
   ];
 
   form!: FormGroup;
