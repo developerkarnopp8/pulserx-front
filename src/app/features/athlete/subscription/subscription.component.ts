@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
 import {
@@ -15,7 +16,7 @@ import { cardBrandLabel } from '../../../shared/utils/card-brand';
 @Component({
   selector: 'app-athlete-subscription',
   standalone: true,
-  imports: [CommonModule, DeleteAccountComponent],
+  imports: [CommonModule, RouterLink, DeleteAccountComponent],
   templateUrl: './subscription.component.html',
   styleUrl: './subscription.component.scss',
 })

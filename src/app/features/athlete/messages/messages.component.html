@@ -1,68 +1,69 @@
 <div class="flex flex-col h-full animate-fade-in">
 
-  <!-- Header -->
-  <div class="px-5 pt-4 pb-3 flex-shrink-0 border-b border-outline-variant/10">
-    <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-0.5">Mensagens</p>
-    <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-full bg-primary-fixed/20 flex items-center justify-center text-sm font-headline font-black text-primary-fixed flex-shrink-0">
-        {{ coachName().charAt(0).toUpperCase() }}
-      </div>
-      <div>
-        <p class="text-on-surface font-headline font-bold text-sm">{{ coachName() }}</p>
-        <p class="text-outline text-[10px]">Coach · PulseRx</p>
-      </div>
+  <!-- Coach -->
+  <div class="px-5 py-3 flex-shrink-0 border-b border-outline-variant/10 flex items-center gap-3">
+    <div class="relative w-11 h-11 rounded-sm bg-primary-fixed/15 flex items-center justify-center font-headline font-black text-lg text-primary-fixed shrink-0" aria-hidden="true">
+      {{ coachName().charAt(0).toUpperCase() }}
+    </div>
+    <div class="min-w-0">
+      <p class="font-headline font-black text-base text-on-surface uppercase leading-tight truncate">{{ coachName() }}</p>
+      <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Seu coach · PulseRx</p>
     </div>
   </div>
 
   @if (auth.currentUser()?.healthConsent !== true) {
-    <p role="note" class="mx-4 mt-3 px-3 py-2 rounded-sm bg-surface-container text-on-surface-variant text-xs">
+    <p role="note" class="mx-4 mt-3 px-3 py-2 rounded-sm bg-surface-container text-on-surface-variant text-xs flex items-start gap-2">
+      <span class="material-symbols-outlined text-[16px]" aria-hidden="true">info</span>
       Você optou por não compartilhar dados de saúde. Evite enviar informações sobre lesões ou condições de saúde por
       aqui (dá para mudar no Perfil).
     </p>
   }
 
-  <!-- Messages -->
-  <div class="flex-1 overflow-y-auto px-4 py-3 space-y-1">
+  <!-- Conversa -->
+  <div class="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-2" aria-live="polite">
 
     @if (loading()) {
       <div class="flex items-center justify-center h-full">
-        <span class="material-symbols-outlined text-outline text-[32px] animate-pulse">chat</span>
+        <span class="material-symbols-outlined text-outline text-[32px] animate-pulse" aria-label="Carregando">chat</span>
       </div>
     } @else if (messages().length === 0) {
       <div class="flex flex-col items-center justify-center h-full gap-3 text-center px-6">
-        <span class="material-symbols-outlined text-outline text-[48px]">chat_bubble</span>
-        <p class="text-on-surface font-headline font-bold">Nenhuma mensagem ainda</p>
+        <span class="material-symbols-outlined text-outline text-[48px]" aria-hidden="true">chat_bubble</span>
+        <p class="font-headline font-black text-on-surface uppercase">Nenhuma mensagem ainda</p>
         <p class="text-on-surface-variant text-sm">Envie uma mensagem para seu coach.</p>
       </div>
     } @else {
       @for (group of groupedMessages(); track group.date) {
-        <!-- Date divider -->
-        <div class="flex items-center gap-2 py-2">
+        <div class="flex items-center gap-2 py-2" role="separator">
           <div class="flex-1 h-px bg-outline-variant/10"></div>
-          <span class="text-outline text-[10px] font-headline uppercase tracking-widest px-2">{{ group.date }}</span>
+          <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-outline px-2">{{ group.date }}</span>
           <div class="flex-1 h-px bg-outline-variant/10"></div>
         </div>
 
         @for (msg of group.messages; track msg.id) {
           @if (msg.isSystem) {
-            <div class="flex justify-center my-1">
-              <p class="text-outline text-[11px] italic bg-surface-container-low rounded-full px-3 py-1.5 text-center max-w-[85%]">
-                {{ msg.content }}
-              </p>
+            <div class="self-center w-full max-w-[90%] bg-surface-container-low rounded-md px-4 py-3 flex items-start gap-3 border-l-2 border-primary-fixed">
+              <span class="material-symbols-outlined text-primary-fixed text-[20px] shrink-0" aria-hidden="true">notifications</span>
+              <div class="min-w-0 flex-1">
+                <p class="flex items-center justify-between gap-2 font-headline text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                  Aviso automático <span class="text-outline font-normal">{{ formatTime(msg.createdAt) }}</span>
+                </p>
+                <p class="text-on-surface text-sm mt-0.5">{{ msg.content }}</p>
+              </div>
+            </div>
+          } @else if (msg.fromId === myId()) {
+            <div class="self-end max-w-[80%] px-4 py-2.5 rounded-md rounded-br-sm bg-primary-fixed text-on-primary-fixed text-sm leading-relaxed">
+              <p class="whitespace-pre-line">{{ msg.content }}</p>
+              <p class="text-[10px] mt-1 opacity-70 text-right">{{ formatTime(msg.createdAt) }}</p>
             </div>
           } @else {
-            <div class="flex"
-              [class.justify-end]="msg.fromId === myId()"
-              [class.justify-start]="msg.fromId !== myId()">
-              <div class="max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed"
-                [class.bg-primary-fixed]="msg.fromId === myId()"
-                [class.text-on-primary-fixed]="msg.fromId === myId()"
-                [class.rounded-br-sm]="msg.fromId === myId()"
-                [class.bg-surface-container-low]="msg.fromId !== myId()"
-                [class.text-on-surface]="msg.fromId !== myId()"
-                [class.rounded-bl-sm]="msg.fromId !== myId()">
-                <p>{{ msg.content }}</p>
-                <p class="text-[10px] mt-1 opacity-60 text-right">{{ formatTime(msg.createdAt) }}</p>
+            <div class="self-start flex items-end gap-2 max-w-[85%]">
+              <span class="w-7 h-7 rounded-sm bg-surface-container-high flex items-center justify-center font-headline font-black text-[11px] text-primary-fixed shrink-0" aria-hidden="true">
+                {{ coachName().charAt(0).toUpperCase() }}
+              </span>
+              <div class="px-4 py-2.5 rounded-md rounded-bl-sm bg-surface-container-low text-on-surface text-sm leading-relaxed">
+                <p class="whitespace-pre-line">{{ msg.content }}</p>
+                <p class="text-[10px] mt-1 text-outline text-right">{{ formatTime(msg.createdAt) }}</p>
               </div>
             </div>
           }
@@ -73,21 +74,22 @@
 
   </div>
 
-  <!-- Input -->
-  <div class="px-4 py-3 flex-shrink-0 border-t border-outline-variant/10 flex items-end gap-2">
-    <textarea
+  <!-- Escrever -->
+  <div class="px-4 py-3 flex-shrink-0 border-t border-outline-variant/10 flex items-end gap-2 bg-surface-container-lowest">
+    <label for="nova-mensagem" class="sr-only">Mensagem para o coach</label>
+    <textarea id="nova-mensagem"
       [(ngModel)]="newMsg"
       (keydown)="onEnter($event)"
       [disabled]="sending() || !coachId()"
-      placeholder="Mensagem..."
+      placeholder="Mensagem para o coach..."
       rows="1"
-      class="flex-1 bg-surface-container text-on-surface placeholder:text-outline rounded-2xl px-4 py-3 text-sm resize-none max-h-28 outline-none transition-all"
+      class="flex-1 bg-surface-container text-on-surface placeholder:text-outline rounded-sm px-4 py-3 text-sm resize-none max-h-28 outline-none focus:ring-1 focus:ring-primary-fixed transition-all"
       style="field-sizing: content">
     </textarea>
-    <button type="button" (click)="send()"
+    <button type="button" (click)="send()" aria-label="Enviar mensagem"
       [disabled]="!newMsg.trim() || sending() || !coachId()"
-      class="w-11 h-11 rounded-full bg-primary-fixed disabled:opacity-40 text-on-primary-fixed flex items-center justify-center flex-shrink-0 active:scale-95 transition-all">
-      <span class="material-symbols-outlined text-[20px]">send</span>
+      class="w-12 h-12 rounded-sm bg-primary-fixed disabled:opacity-40 text-on-primary-fixed flex items-center justify-center shrink-0 active:scale-95 transition-all">
+      <span class="material-symbols-outlined text-[22px]" aria-hidden="true">send</span>
     </button>
   </div>
 
