@@ -4,22 +4,23 @@
   <header class="px-4 md:px-8 py-4 md:py-5 flex items-center justify-between flex-shrink-0 gap-3 flex-wrap">
     <div class="flex items-center gap-4">
       <div>
-        <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-0.5">
+        <p class="flex items-center gap-2 font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed mb-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-primary-fixed shrink-0" aria-hidden="true"></span>
           @if (isShared && plan(); as sharedPlan) {
             Plano compartilhado · {{ categoryLabel[sharedPlan.category] }} — vale para todos os alunos com este plano
           } @else {
-            Plano de Treino
+            Periodização individual
           }
         </p>
         @if (loading()) {
           <div class="h-4 w-40 bg-surface-container rounded-sm animate-pulse"></div>
         } @else {
-          <p class="text-on-surface font-headline font-bold text-base">{{ plan()?.title ?? 'Sem plano ativo' }}</p>
+          <h2 class="font-headline font-black text-2xl text-on-surface uppercase leading-none tracking-tight">{{ plan()?.title ?? 'Sem plano ativo' }}</h2>
         }
       </div>
       @if (plan()) {
-        <button type="button" (click)="showCalendarModal.set(true)"
-          class="flex items-center gap-2 text-on-surface-variant hover:text-on-surface transition-colors">
+        <button type="button" (click)="showCalendarModal.set(true)" aria-label="Abrir calendário do plano"
+          class="min-h-[44px] px-3 rounded-sm bg-surface-container-low flex items-center gap-2 text-on-surface-variant hover:text-on-surface transition-colors">
           <span class="material-symbols-outlined text-[16px]">calendar_month</span>
           <span class="text-sm font-headline">Semana {{ (currentWeek()?.weekNumber ?? 1) }}</span>
         </button>
@@ -40,17 +41,17 @@
       }
       @if (plan() && !isShared) {
         <button type="button" (click)="exportCurrentMonthPdf()"
-          class="px-4 py-2 rounded-sm border border-outline-variant/30 text-on-surface-variant hover:text-on-surface hover:border-outline font-headline text-xs uppercase tracking-wider transition-all flex items-center gap-1.5">
+          class="min-h-[44px] px-4 rounded-sm border border-outline-variant/30 text-on-surface-variant hover:text-on-surface hover:border-outline font-headline text-xs uppercase tracking-wider transition-all flex items-center gap-1.5">
           <span class="material-symbols-outlined text-[14px]">picture_as_pdf</span>
           Exportar Mês
         </button>
       }
       <button type="button" (click)="saveDraft()" [disabled]="!plan()"
-        class="px-4 py-2 rounded-sm border border-outline-variant/30 text-on-surface-variant hover:text-on-surface hover:border-outline font-headline text-xs uppercase tracking-wider transition-all disabled:opacity-40">
+        class="min-h-[44px] px-4 rounded-sm border border-outline-variant/30 text-on-surface-variant hover:text-on-surface hover:border-outline font-headline text-xs uppercase tracking-wider transition-all disabled:opacity-40">
         Salvar Rascunho
       </button>
       <button type="button" (click)="publish()" [disabled]="!plan() || plan()!.published || publishing()"
-        class="px-4 py-2 rounded-sm bg-primary-fixed hover:bg-primary-dim disabled:opacity-40 text-on-primary-fixed font-headline font-black text-xs uppercase tracking-tighter transition-all flex items-center gap-1.5">
+        class="min-h-[44px] px-4 rounded-sm bg-primary-fixed hover:bg-primary-dim disabled:opacity-40 text-on-primary-fixed font-headline font-black text-xs uppercase tracking-tighter transition-all flex items-center gap-1.5">
         @if (publishing()) {
           <span class="material-symbols-outlined text-[14px]">progress_activity</span>
         }
@@ -111,8 +112,8 @@
           </span>
         </button>
         <div class="flex items-center gap-3 flex-shrink-0">
-          <button type="button" (click)="openMovementForm()" title="Cadastrar novo movimento"
-            class="text-outline hover:text-primary-fixed transition-colors">
+          <button type="button" (click)="openMovementForm()" title="Cadastrar novo movimento" aria-label="Cadastrar novo movimento"
+            class="w-9 h-9 flex items-center justify-center text-outline hover:text-primary-fixed transition-colors">
             <span class="material-symbols-outlined text-[18px]">add_circle</span>
           </button>
           <button type="button" (click)="showPRSection.set(!showPRSection())">
@@ -299,13 +300,14 @@
       @for (week of plan()!.weeks; track week.id; let i = $index) {
         <button type="button"
           (click)="selectedWeek.set(i)"
-          class="w-auto md:w-full text-center md:text-left px-4 py-2.5 mb-0 md:mb-1 flex-shrink-0 whitespace-nowrap rounded-sm text-xs font-headline font-bold uppercase tracking-wider transition-all"
+          [attr.aria-pressed]="selectedWeek() === i"
+          class="w-auto md:w-full min-h-[44px] text-center md:text-left px-4 mb-0 md:mb-1 flex-shrink-0 whitespace-nowrap rounded-sm text-xs font-headline font-bold uppercase tracking-wider transition-all"
           [class.bg-primary-fixed]="selectedWeek() === i"
           [class.text-on-primary-fixed]="selectedWeek() === i"
           [class.text-outline]="selectedWeek() !== i"
           [class.hover:bg-surface-container-low]="selectedWeek() !== i"
           [class.hover:text-on-surface-variant]="selectedWeek() !== i">
-          Semana {{ week.weekNumber }}
+          Sem {{ week.weekNumber.toString().padStart(2, '0') }}
         </button>
       }
     </aside>
@@ -322,8 +324,8 @@
               {{ day.dayOfWeek }}
             </h3>
             <div class="flex-1 h-px bg-outline-variant/10"></div>
-            <button type="button" (click)="openAddSession(day.id)"
-              class="flex items-center gap-1 text-[10px] font-headline font-bold text-outline hover:text-primary-fixed uppercase tracking-wider transition-colors">
+            <button type="button" (click)="openAddSession(day.id)" [attr.aria-label]="'Adicionar sessão em ' + day.dayOfWeek"
+              class="min-h-[44px] px-2 flex items-center gap-1 text-[11px] font-headline font-bold text-outline hover:text-primary-fixed uppercase tracking-wider transition-colors">
               <span class="material-symbols-outlined text-[14px]">add</span>
               Sessão
             </button>
@@ -341,7 +343,7 @@
                   <select formControlName="type" title="Tipo de sessão"
                     class="bg-surface-container text-on-surface rounded-sm px-3 py-2 text-sm appearance-none cursor-pointer">
                     @for (t of sessionTypes; track t) {
-                      <option [value]="t">{{ t }}</option>
+                      <option [value]="t">{{ typeLabel[t] }}</option>
                     }
                   </select>
                 </div>
@@ -374,14 +376,14 @@
                 <div class="flex items-center justify-between gap-3 pl-3 pr-2 py-2.5 cursor-pointer" (click)="toggleSession(session.id)">
                   <div class="flex-1 min-w-0">
                     <span class="block text-[9px] font-headline font-bold uppercase tracking-widest mb-0.5" [class]="getTypeTextColor(session.type)">
-                      {{ session.type }}
+                      {{ typeLabel[session.type] }}
                     </span>
                     <span class="block text-on-surface text-base font-headline font-bold truncate">{{ session.name }}</span>
                   </div>
                   <div class="flex items-center gap-1.5 flex-shrink-0">
                     <span class="text-outline text-[10px] font-headline">{{ session.exercises.length }} exerc.</span>
-                    <button type="button" (click)="deleteSession(session.id); $event.stopPropagation()"
-                      class="w-7 h-7 flex items-center justify-center text-outline hover:text-error transition-colors rounded-sm hover:bg-error/10"
+                    <button type="button" (click)="deleteSession(session.id); $event.stopPropagation()" [attr.aria-label]="'Remover sessão ' + session.name"
+                      class="w-9 h-9 flex items-center justify-center text-outline hover:text-error transition-colors rounded-sm hover:bg-error/10"
                       title="Remover sessão">
                       <span class="material-symbols-outlined text-[16px]">delete</span>
                     </button>
@@ -444,7 +446,8 @@
                           <div class="flex items-center gap-1 flex-shrink-0">
                             @if (ex.youtubeUrl) {
                               <button type="button" (click)="toggleVideo(ex.id)"
-                                class="w-6 h-6 flex items-center justify-center transition-colors"
+                                [attr.aria-label]="'Vídeo de ' + ex.name" [attr.aria-expanded]="expandedVideoId() === ex.id"
+                                class="w-9 h-9 flex items-center justify-center transition-colors"
                                 [class.text-primary-fixed]="expandedVideoId() === ex.id"
                                 [class.text-outline]="expandedVideoId() !== ex.id"
                                 [class.hover:text-primary]="expandedVideoId() !== ex.id"
@@ -452,13 +455,13 @@
                                 <span class="material-symbols-outlined text-[18px]">play_circle</span>
                               </button>
                             }
-                            <button type="button" (click)="openEditExercise(ex, session.id)"
-                              class="w-6 h-6 flex items-center justify-center text-outline hover:text-on-surface transition-colors rounded-sm hover:bg-surface-container"
+                            <button type="button" (click)="openEditExercise(ex, session.id)" [attr.aria-label]="'Editar ' + ex.name"
+                              class="w-9 h-9 flex items-center justify-center text-outline hover:text-on-surface transition-colors rounded-sm hover:bg-surface-container"
                               title="Editar exercício">
                               <span class="material-symbols-outlined text-[16px]">edit</span>
                             </button>
-                            <button type="button" (click)="deleteExercise(ex, session.id)"
-                              class="w-6 h-6 flex items-center justify-center text-outline hover:text-error transition-colors rounded-sm hover:bg-error/10"
+                            <button type="button" (click)="deleteExercise(ex, session.id)" [attr.aria-label]="'Remover ' + ex.name"
+                              class="w-9 h-9 flex items-center justify-center text-outline hover:text-error transition-colors rounded-sm hover:bg-error/10"
                               title="Remover exercício">
                               <span class="material-symbols-outlined text-[16px]">delete</span>
                             </button>

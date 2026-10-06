@@ -80,6 +80,12 @@ export class PlansComponent implements OnInit {
     });
   }
 
+  /** Semanas e sessões cadastradas no plano (o que já está montado no construtor). */
+  planCounts(plan: TrainingPlan): { weeks: number; sessions: number } {
+    const sessions = plan.weeks.reduce((n, w) => n + w.days.reduce((m, d) => m + d.sessions.length, 0), 0);
+    return { weeks: plan.weeks.length, sessions };
+  }
+
   getInitials(name: string): string {
     return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
   }

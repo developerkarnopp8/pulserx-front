@@ -1,154 +1,182 @@
 <div class="flex flex-col h-full overflow-hidden animate-fade-in">
 
-  <!-- Header -->
-  <header class="px-4 md:px-8 py-4 md:py-6 flex-shrink-0">
-    <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-1">Coach Dashboard</p>
-    <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface tracking-tighter leading-none">PLANOS DE TREINO</h2>
-    <p class="text-on-surface-variant text-sm mt-1">Planos compartilhados (Core e LPO) valem para todos os alunos com o plano; o de Performance é individual, por atleta.</p>
+  <!-- Título -->
+  <header class="px-4 md:px-8 py-5 md:py-6 flex-shrink-0 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-primary-fixed" aria-hidden="true"></span>
+        <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">Periodização</p>
+      </div>
+      <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface uppercase tracking-tight leading-none">Planos de treino</h2>
+      <p class="text-on-surface-variant text-sm mt-2 max-w-2xl">Planos compartilhados (Core e LPO) valem para todos os alunos com o plano; o de Performance é individual, por atleta.</p>
+    </div>
+    <button type="button" (click)="showSharedForm.set(!showSharedForm())" [attr.aria-expanded]="showSharedForm()"
+      class="min-h-[44px] flex items-center gap-2 bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-4 rounded-sm uppercase tracking-wider text-xs transition-colors">
+      <span class="material-symbols-outlined text-[18px]" aria-hidden="true">{{ showSharedForm() ? 'close' : 'alt_route' }}</span>
+      {{ showSharedForm() ? 'Cancelar' : 'Novo compartilhado' }}
+    </button>
   </header>
 
-  <!-- Content -->
-  <div class="flex-1 px-4 md:px-8 pb-8 overflow-y-auto">
+  <div class="flex-1 px-4 md:px-8 pb-8 overflow-y-auto flex flex-col gap-8">
 
-    <!-- Planos compartilhados (Core / LPO) -->
-    <section class="mb-8" aria-labelledby="shared-plans-title">
-      <div class="flex items-center justify-between gap-3 mb-3 flex-wrap">
-        <h3 id="shared-plans-title" class="font-headline font-black text-sm text-on-surface uppercase tracking-widest">Planos compartilhados</h3>
-        <button type="button" (click)="showSharedForm.set(!showSharedForm())"
-          class="flex items-center gap-2 bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-4 py-2.5 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px]">
-          <span class="material-symbols-outlined text-[16px]">{{ showSharedForm() ? 'close' : 'add' }}</span>
-          {{ showSharedForm() ? 'Cancelar' : 'Novo plano compartilhado' }}
+    <!-- Novo plano compartilhado -->
+    @if (showSharedForm()) {
+      <form [formGroup]="sharedForm" (ngSubmit)="createShared()"
+        class="relative bg-surface-container-low rounded-md p-5 flex flex-col gap-4 overflow-hidden animate-fade-in" aria-labelledby="titulo-novo-compartilhado">
+        <span class="absolute top-0 inset-x-0 h-1 bg-primary-fixed" aria-hidden="true"></span>
+        <h3 id="titulo-novo-compartilhado" class="font-headline font-black text-lg text-on-surface uppercase">Criar plano compartilhado</h3>
+        <fieldset class="flex flex-col gap-2">
+          <legend class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Categoria do programa</legend>
+          <div class="grid grid-cols-2 gap-2 max-w-md">
+            @for (cat of sharedCategories; track cat) {
+              <label class="min-h-[48px] flex items-center justify-center gap-2 rounded-sm border cursor-pointer font-headline text-xs font-bold uppercase tracking-wider transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-fixed"
+                [class.border-primary-fixed]="sharedForm.value.category === cat" [class.bg-primary-fixed]="sharedForm.value.category === cat"
+                [class.text-on-primary-fixed]="sharedForm.value.category === cat"
+                [class.border-outline-variant/30]="sharedForm.value.category !== cat" [class.text-on-surface-variant]="sharedForm.value.category !== cat">
+                <input type="radio" formControlName="category" [value]="cat" class="sr-only" />
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">{{ cat === 'LPO' ? 'fitness_center' : 'sports_gymnastics' }}</span>
+                {{ categoryLabel[cat] }}
+              </label>
+            }
+          </div>
+        </fieldset>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <label class="flex flex-col gap-1 md:col-span-2">
+            <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Título</span>
+            <input type="text" formControlName="title" maxlength="120" placeholder="Ex.: Core — Outubro"
+              class="bg-surface-container rounded-sm px-3 text-sm text-on-surface min-h-[44px]" />
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Mês</span>
+            <input type="number" formControlName="month" min="1"
+              class="bg-surface-container rounded-sm px-3 text-sm text-on-surface min-h-[44px]" />
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Início (semana 1)</span>
+            <input type="date" formControlName="startDate"
+              class="bg-surface-container rounded-sm px-3 text-sm text-on-surface min-h-[44px]" />
+          </label>
+        </div>
+        <p class="text-on-surface-variant text-xs">A data de início vale para todos os alunos: o plano compartilhado tem calendário próprio.</p>
+        <button type="submit" [disabled]="creatingShared()"
+          class="self-start min-h-[48px] flex items-center gap-2 bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black px-6 rounded-sm uppercase tracking-wider text-xs transition-colors">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">post_add</span>
+          {{ creatingShared() ? 'Criando…' : 'Criar e abrir no construtor' }}
         </button>
+      </form>
+    }
+
+    <!-- Compartilhados -->
+    <section class="flex flex-col gap-3" aria-labelledby="shared-plans-title">
+      <div>
+        <h3 id="shared-plans-title" class="font-headline font-black text-sm text-on-surface uppercase tracking-widest">Planos compartilhados</h3>
+        <p class="text-on-surface-variant text-xs mt-0.5">Todos os alunos com Core ou LPO na assinatura recebem a mesma grade.</p>
       </div>
 
-      @if (showSharedForm()) {
-        <form [formGroup]="sharedForm" (ngSubmit)="createShared()"
-          class="bg-surface-container-low rounded-md p-4 mb-4 grid grid-cols-1 md:grid-cols-4 gap-3 animate-fade-in">
-          <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
-            Categoria
-            <select formControlName="category"
-              class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]">
-              @for (cat of sharedCategories; track cat) {
-                <option [value]="cat">{{ categoryLabel[cat] }}</option>
-              }
-            </select>
-          </label>
-          <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline md:col-span-2">
-            Título
-            <input type="text" formControlName="title" maxlength="120" placeholder="Ex.: Core — Outubro"
-              class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
-          </label>
-          <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
-            Mês
-            <input type="number" formControlName="month" min="1"
-              class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
-          </label>
-          <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline md:col-span-2">
-            Início (semana 1 — vale para todos os alunos)
-            <input type="date" formControlName="startDate"
-              class="bg-surface-container rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal min-h-[44px]" />
-          </label>
-          <div class="md:col-span-2 flex items-end">
-            <button type="submit" [disabled]="creatingShared()"
-              class="w-full md:w-auto bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black px-6 py-2.5 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px]">
-              {{ creatingShared() ? 'Criando...' : 'Criar e editar' }}
-            </button>
-          </div>
-        </form>
-      }
-
       @if (sharedError()) {
-        <p role="alert" class="text-error text-sm mb-3">{{ sharedError() }}</p>
+        <p role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-3 text-error text-sm">{{ sharedError() }}</p>
       }
 
       @if (sharedLoading()) {
-        <div class="h-16 bg-surface-container-low rounded-md animate-pulse"></div>
+        <div class="h-24 bg-surface-container-low rounded-md animate-pulse"></div>
       } @else if (sharedPlans().length === 0) {
-        <p class="text-on-surface-variant text-sm">Nenhum plano compartilhado ainda. Crie um Core ou LPO para publicar o mesmo treino a todos os alunos com o plano.</p>
+        <p class="bg-surface-container-low rounded-md text-on-surface-variant text-sm p-5">Nenhum plano compartilhado ainda. Crie um Core ou LPO para publicar o mesmo treino a todos os alunos com o plano.</p>
       } @else {
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           @for (plan of sharedPlans(); track plan.id) {
-            <a [routerLink]="['/coach/plan-builder/shared', plan.id]"
-              class="bg-surface-container-low hover:bg-surface-container rounded-md p-4 flex items-center justify-between gap-3 transition-colors">
-              <div class="min-w-0">
-                <p class="text-[10px] font-headline uppercase tracking-widest text-primary-fixed">{{ categoryLabel[plan.category] }}</p>
-                <p class="text-on-surface font-headline font-bold text-sm truncate">{{ plan.title }}</p>
-                <p class="text-outline text-xs">Mês {{ plan.month }} · {{ plan.published ? 'Publicado' : 'Rascunho' }}</p>
+            <article class="relative bg-surface-container-low rounded-md p-5 flex flex-col gap-3 overflow-hidden">
+              <span class="absolute left-0 inset-y-0 w-1" [class.bg-primary-fixed]="plan.published" [class.bg-outline]="!plan.published" aria-hidden="true"></span>
+              <div class="flex items-center justify-between gap-2">
+                <span class="inline-flex items-center gap-1.5 font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">
+                  <span class="material-symbols-outlined text-[16px]" aria-hidden="true">{{ plan.category === 'LPO' ? 'fitness_center' : 'sports_gymnastics' }}</span>
+                  {{ categoryLabel[plan.category] }}
+                </span>
+                <span class="font-headline text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm"
+                  [class.bg-primary-fixed/15]="plan.published" [class.text-primary-fixed]="plan.published"
+                  [class.bg-surface-container]="!plan.published" [class.text-on-surface-variant]="!plan.published">
+                  {{ plan.published ? 'Publicado' : 'Rascunho' }}
+                </span>
               </div>
-              <span class="material-symbols-outlined text-outline text-[18px]">edit</span>
-            </a>
+              <h4 class="font-headline font-black text-lg text-on-surface uppercase leading-tight">{{ plan.title }}</h4>
+              <p class="flex items-center gap-1 text-on-surface-variant text-xs">
+                <span class="material-symbols-outlined text-[16px]" aria-hidden="true">calendar_month</span>
+                Mês {{ plan.month }} · início {{ plan.startDate | date: 'dd/MM/yyyy' : 'UTC' }}
+              </p>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="bg-surface-container rounded-sm px-3 py-2">
+                  <p class="font-headline text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Semanas</p>
+                  <p class="font-headline font-black text-xl text-on-surface leading-tight">{{ planCounts(plan).weeks }}</p>
+                </div>
+                <div class="bg-surface-container rounded-sm px-3 py-2">
+                  <p class="font-headline text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Sessões</p>
+                  <p class="font-headline font-black text-xl text-on-surface leading-tight">{{ planCounts(plan).sessions }}</p>
+                </div>
+              </div>
+              <a [routerLink]="['/coach/plan-builder/shared', plan.id]"
+                class="min-h-[44px] rounded-sm bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-headline text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">calendar_view_week</span> Editar grade
+              </a>
+            </article>
           }
         </div>
       }
     </section>
 
-    <h3 class="font-headline font-black text-sm text-on-surface uppercase tracking-widest mb-3">Planos individuais</h3>
-
-    @if (loading()) {
-      <div class="flex items-center justify-center h-40">
-        <span class="material-symbols-outlined text-outline text-[40px] animate-pulse-subtle">fitness_center</span>
+    <!-- Individuais -->
+    <section class="flex flex-col gap-3" aria-labelledby="individual-plans-title">
+      <div>
+        <h3 id="individual-plans-title" class="font-headline font-black text-sm text-on-surface uppercase tracking-widest">Planos individuais · Performance</h3>
+        <p class="text-on-surface-variant text-xs mt-0.5">Um plano por atleta, montado no construtor.</p>
       </div>
-    } @else if (students().length === 0) {
-      <div class="flex flex-col items-center justify-center h-40 gap-3">
-        <span class="material-symbols-outlined text-outline text-[48px]">group_off</span>
-        <p class="text-on-surface-variant text-sm font-headline">Nenhum atleta cadastrado ainda.</p>
-        <a routerLink="/coach/students"
-          class="flex items-center gap-2 bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-5 py-3 rounded-sm uppercase tracking-tighter text-xs transition-all">
-          <span class="material-symbols-outlined text-[16px]">person_add</span>
-          Adicionar Atleta
-        </a>
-      </div>
-    } @else {
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        @for (student of students(); track student.id) {
-          <div class="bg-surface-container-low rounded-md overflow-hidden hover:bg-surface-container transition-colors">
 
-            <!-- Card top -->
-            <div class="p-5 border-b border-outline-variant/10">
-              <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-sm bg-primary-fixed/20 text-primary-fixed flex items-center justify-center font-headline font-black text-sm flex-shrink-0">
+      @if (loading()) {
+        <div class="h-24 bg-surface-container-low rounded-md animate-pulse"></div>
+      } @else if (students().length === 0) {
+        <div class="bg-surface-container-low rounded-md p-6 flex flex-col items-center text-center gap-3">
+          <span class="material-symbols-outlined text-outline text-[40px]" aria-hidden="true">group_off</span>
+          <p class="text-on-surface-variant text-sm">Nenhum atleta cadastrado ainda.</p>
+          <a routerLink="/coach/students"
+            class="min-h-[44px] flex items-center gap-2 bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-5 rounded-sm uppercase tracking-wider text-xs transition-colors">
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">person_add</span>
+            Adicionar atleta
+          </a>
+        </div>
+      } @else {
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          @for (student of students(); track student.id) {
+            <article class="bg-surface-container-low rounded-md p-5 flex flex-col gap-3">
+              <div class="flex items-center gap-3">
+                <span class="w-10 h-10 rounded-sm bg-primary-fixed/15 text-primary-fixed flex items-center justify-center font-headline font-black text-sm shrink-0" aria-hidden="true">
                   {{ getInitials(student.name) }}
-                </div>
+                </span>
                 <div class="min-w-0">
-                  <p class="text-on-surface font-headline font-bold text-sm truncate">{{ student.name }}</p>
-                  <p class="text-outline text-xs truncate">{{ student.goal }}</p>
+                  <h4 class="font-headline font-black text-base text-on-surface uppercase leading-tight truncate">{{ student.name }}</h4>
+                  @if (student.goal) { <p class="text-on-surface-variant text-xs truncate">{{ student.goal }}</p> }
                 </div>
               </div>
-
-              <!-- Progress -->
-              <div class="w-full bg-surface-container rounded-full h-0.5 mb-1.5">
-                <div class="bg-primary-fixed rounded-full h-0.5 transition-all"
-                  [style.width.%]="student.completionPercent ?? 0"></div>
-              </div>
-              <div class="flex justify-between text-[10px] font-headline">
-                <span class="text-outline uppercase tracking-wider" title="% de exercícios com registro no plano do mês atual">Progresso do Mês</span>
-                <span class="text-on-surface-variant font-bold">{{ student.completionPercent ?? 0 }}%</span>
-              </div>
-            </div>
-
-            <!-- Card bottom: stats + CTA -->
-            <div class="px-5 py-4 flex items-center justify-between">
-              <div class="flex gap-4 text-xs">
-                <div>
-                  <p class="text-outline font-headline uppercase tracking-wider text-[9px]">Semana</p>
-                  <p class="text-on-surface font-headline font-black text-base">{{ student.currentWeek }}</p>
+              <div class="grid grid-cols-3 gap-2">
+                <div class="bg-surface-container rounded-sm px-3 py-2">
+                  <p class="font-headline text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Mês</p>
+                  <p class="font-headline font-black text-xl text-on-surface leading-tight">{{ student.currentMonth }}</p>
                 </div>
-                <div>
-                  <p class="text-outline font-headline uppercase tracking-wider text-[9px]">Mês</p>
-                  <p class="text-on-surface font-headline font-black text-base">{{ student.currentMonth }}</p>
+                <div class="bg-surface-container rounded-sm px-3 py-2">
+                  <p class="font-headline text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Semana</p>
+                  <p class="font-headline font-black text-xl text-on-surface leading-tight">{{ student.currentWeek }}</p>
+                </div>
+                <div class="bg-surface-container rounded-sm px-3 py-2" title="% de exercícios com registro no plano do mês atual">
+                  <p class="font-headline text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Feito</p>
+                  <p class="font-headline font-black text-xl text-primary-fixed leading-tight">{{ student.completionPercent ?? 0 }}%</p>
                 </div>
               </div>
               <a [routerLink]="['/coach/plan-builder', student.id]"
-                class="flex items-center gap-2 bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-4 py-2.5 rounded-sm uppercase tracking-tighter text-xs transition-all">
-                <span class="material-symbols-outlined text-[14px]">edit</span>
-                Editar Plano
+                class="min-h-[44px] rounded-sm bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors">
+                Abrir construtor <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span>
               </a>
-            </div>
-
-          </div>
-        }
-      </div>
-    }
+            </article>
+          }
+        </div>
+      }
+    </section>
 
   </div>
 </div>

@@ -100,3 +100,18 @@ describe('PlansComponent — planos compartilhados', () => {
     expect(component.creatingShared()).toBe(false);
   });
 });
+
+describe('PlansComponent — números do plano (Stitch mo09)', () => {
+  it('conta semanas e sessões cadastradas', () => {
+    const { component } = build();
+    const plan = sharedPlan({ weeks: [
+      { id: 'w1', weekNumber: 1, days: [
+        { id: 'd1', dayOfWeek: 'Segunda', dayIndex: 1, sessions: [{} as any, {} as any] },
+        { id: 'd2', dayOfWeek: 'Terça', dayIndex: 2, sessions: [{} as any] },
+      ] },
+      { id: 'w2', weekNumber: 2, days: [] },
+    ] });
+    expect(component.planCounts(plan)).toEqual({ weeks: 2, sessions: 3 });
+    expect(component.planCounts(sharedPlan())).toEqual({ weeks: 0, sessions: 0 });
+  });
+});
