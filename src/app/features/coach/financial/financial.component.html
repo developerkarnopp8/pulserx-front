@@ -3,8 +3,10 @@
   <!-- Header -->
   <header class="px-4 md:px-8 py-4 md:py-6 flex items-center justify-between flex-shrink-0 gap-3 flex-wrap">
     <div>
-      <p class="text-primary-fixed font-condensed font-bold text-xs uppercase tracking-[0.2em] mb-1">Relatório do mês</p>
-      <h2 class="font-condensed font-extrabold text-4xl md:text-5xl text-on-surface uppercase leading-none tracking-tight">Financeiro</h2>
+      <p class="flex items-center gap-2 text-primary-fixed font-condensed font-bold text-xs uppercase tracking-[0.2em] mb-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-primary-fixed" aria-hidden="true"></span> Split & repasse · relatório do mês
+      </p>
+      <h2 class="font-condensed font-extrabold text-4xl md:text-5xl text-on-surface uppercase leading-none tracking-tight">Gestão financeira</h2>
       <p class="text-on-surface-variant text-sm mt-2">Quanto entrou, quanto ficou com o Asaas e com a AEVON, e quanto é seu.</p>
     </div>
     <button type="button" (click)="openModal()"
@@ -327,16 +329,16 @@
             <!-- Ações -->
             <div class="flex items-center gap-1">
               @if (payment.status !== 'paid') {
-                <button type="button" (click)="markPaid(payment)"
-                  class="w-7 h-7 flex items-center justify-center text-outline hover:text-green-400 transition-colors rounded-sm hover:bg-green-500/10"
+                <button type="button" (click)="markPaid(payment)" aria-label="Marcar como pago"
+                  class="w-9 h-9 flex items-center justify-center text-outline hover:text-green-400 transition-colors rounded-sm hover:bg-green-500/10"
                   title="Marcar como pago">
-                  <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">check_circle</span>
                 </button>
               }
-              <button type="button" (click)="deletePayment(payment)"
-                class="w-7 h-7 flex items-center justify-center text-outline hover:text-error transition-colors rounded-sm hover:bg-error/10"
+              <button type="button" (click)="deletePayment(payment)" aria-label="Remover cobrança"
+                class="w-9 h-9 flex items-center justify-center text-outline hover:text-error transition-colors rounded-sm hover:bg-error/10"
                 title="Remover">
-                <span class="material-symbols-outlined text-[16px]">delete</span>
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">delete</span>
               </button>
             </div>
 
@@ -360,8 +362,8 @@
           <h3 class="font-headline font-black text-xl text-on-surface tracking-tighter">Nova Cobrança</h3>
           <p class="text-outline text-xs mt-0.5">Registre um pagamento para um atleta.</p>
         </div>
-        <button type="button" (click)="closeModal()"
-          class="w-8 h-8 rounded-sm bg-surface-container flex items-center justify-center text-outline hover:text-on-surface transition-colors">
+        <button type="button" (click)="closeModal()" aria-label="Fechar"
+          class="w-10 h-10 rounded-sm bg-surface-container flex items-center justify-center text-outline hover:text-on-surface transition-colors">
           <span class="material-symbols-outlined text-[18px]">close</span>
         </button>
       </div>

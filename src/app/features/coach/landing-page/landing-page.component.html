@@ -1,8 +1,11 @@
 <div class="flex flex-col h-full overflow-hidden animate-fade-in">
 
   <header class="px-4 md:px-8 py-4 md:py-6 flex-shrink-0">
-    <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-1">Coach Dashboard</p>
-    <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface tracking-tighter leading-none">MINHA PÁGINA</h2>
+    <div class="flex items-center gap-2 mb-1">
+      <span class="w-1.5 h-1.5 rounded-full bg-primary-fixed" aria-hidden="true"></span>
+      <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">Editor do perfil público</p>
+    </div>
+    <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface uppercase tracking-tight leading-none">Minha página</h2>
     <p class="text-on-surface-variant text-sm mt-1">Uma página pública com seu banner, sua bio, depoimentos e FAQ — quem visitar pode mandar contato, sem precisar criar conta.</p>
   </header>
 
@@ -20,22 +23,39 @@
       }
 
       @if (profile(); as p) {
-        <div class="bg-surface-container-low rounded-md p-4 mb-5 flex items-center justify-between gap-3 flex-wrap">
-          <div class="min-w-0">
-            <p class="text-[10px] font-headline uppercase tracking-widest text-outline mb-1">Link público</p>
-            <p class="text-on-surface text-sm truncate">{{ publicUrlOrigin }}/c/{{ p.slug }}</p>
+        <section class="relative bg-surface-container-low rounded-md p-5 mb-4 flex flex-col gap-3 overflow-hidden" aria-label="Publicação">
+          <span class="absolute top-0 inset-x-0 h-1" [class.bg-primary-fixed]="p.published" [class.bg-outline]="!p.published" aria-hidden="true"></span>
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <span class="inline-flex items-center gap-1.5 font-headline text-[11px] font-bold uppercase tracking-widest"
+              [class.text-primary-fixed]="p.published" [class.text-on-surface-variant]="!p.published">
+              <span class="material-symbols-outlined text-[18px]" aria-hidden="true">{{ p.published ? 'public' : 'public_off' }}</span>
+              {{ p.published ? 'Página publicada' : 'Página não publicada' }}
+            </span>
+            <button type="button" (click)="togglePublish()" [disabled]="publishing()"
+              class="font-headline font-black px-4 rounded-sm uppercase tracking-wider text-xs transition-colors min-h-[44px] disabled:opacity-60 flex items-center gap-2"
+              [class.bg-primary-fixed]="!p.published" [class.text-on-primary-fixed]="!p.published"
+              [class.bg-surface-container]="p.published" [class.text-on-surface]="p.published">
+              <span class="material-symbols-outlined text-[18px]" aria-hidden="true">{{ p.published ? 'visibility_off' : 'rocket_launch' }}</span>
+              {{ publishing() ? '...' : (p.published ? 'Despublicar' : 'Publicar') }}
+            </button>
           </div>
-          <button type="button" (click)="togglePublish()" [disabled]="publishing()"
-            class="font-headline font-black px-4 py-2.5 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px] disabled:opacity-60"
-            [class.bg-primary-fixed]="!p.published" [class.text-on-primary-fixed]="!p.published"
-            [class.bg-surface-container]="p.published" [class.text-on-surface]="p.published">
-            {{ publishing() ? '...' : (p.published ? 'Despublicar' : 'Publicar') }}
-          </button>
-        </div>
+          <div class="flex items-center gap-2 bg-surface-container rounded-sm pl-3 min-h-[44px]">
+            <span class="material-symbols-outlined text-[18px] text-outline" aria-hidden="true">link</span>
+            <span class="flex-1 min-w-0 text-on-surface text-sm truncate">{{ publicUrlOrigin }}/c/{{ p.slug }}</span>
+            <button type="button" (click)="copyPublicLink(p.slug)" aria-label="Copiar link da página"
+              class="w-11 h-11 flex items-center justify-center text-on-surface-variant hover:text-on-surface">
+              <span class="material-symbols-outlined text-[18px]" aria-hidden="true">{{ linkCopied() ? 'check' : 'content_copy' }}</span>
+            </button>
+          </div>
+          <a [href]="'/c/' + p.slug" target="_blank" rel="noopener"
+            class="self-start min-h-[44px] inline-flex items-center gap-1 text-primary-fixed font-headline text-xs font-bold uppercase tracking-widest">
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">open_in_new</span> Ver como visitante
+          </a>
+        </section>
       }
 
       <!-- Banner + Foto -->
-      <section class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <section class="bg-surface-container-low rounded-md p-5 mb-4 grid grid-cols-1 md:grid-cols-2 gap-4" aria-label="Imagens da página">
         <div>
           <p class="text-[10px] font-headline uppercase tracking-widest text-outline mb-2">Banner (hero)</p>
           @if (profile()?.bannerUrl) {
@@ -64,8 +84,15 @@
         </div>
       </section>
 
-      <!-- Formulário principal -->
       <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-4 mb-10">
+        <section class="bg-surface-container-low rounded-md p-5 flex flex-col gap-4" aria-labelledby="secao-01">
+          <div class="flex items-start gap-3">
+            <span class="font-headline font-black text-2xl text-primary-fixed leading-none w-8 shrink-0" aria-hidden="true">01</span>
+            <div>
+              <h3 id="secao-01" class="font-headline font-black text-base text-on-surface uppercase leading-tight">Endereço público</h3>
+              <p class="text-on-surface-variant text-xs mt-0.5">O link que você divulga. Mudar o endereço quebra links já compartilhados.</p>
+            </div>
+          </div>
         <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
           Endereço da página (letras minúsculas, números e hífen)
           <input type="text" formControlName="slug" placeholder="ex.: luan-treinador"
@@ -75,6 +102,15 @@
           }
         </label>
 
+        </section>
+        <section class="bg-surface-container-low rounded-md p-5 flex flex-col gap-4" aria-labelledby="secao-02">
+          <div class="flex items-start gap-3">
+            <span class="font-headline font-black text-2xl text-primary-fixed leading-none w-8 shrink-0" aria-hidden="true">02</span>
+            <div>
+              <h3 id="secao-02" class="font-headline font-black text-base text-on-surface uppercase leading-tight">Primeira impressão</h3>
+              <p class="text-on-surface-variant text-xs mt-0.5">Frase de destaque e parágrafo do topo da página (o banner fica no quadro acima).</p>
+            </div>
+          </div>
         <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
           Frase de destaque (hero) — opcional, senão usa o texto padrão
           <input type="text" formControlName="headline" maxlength="200"
@@ -86,6 +122,15 @@
             class="bg-surface-container-low rounded-sm px-3 py-2.5 text-sm text-on-surface normal-case tracking-normal"></textarea>
         </label>
 
+        </section>
+        <section class="bg-surface-container-low rounded-md p-5 flex flex-col gap-4" aria-labelledby="secao-03">
+          <div class="flex items-start gap-3">
+            <span class="font-headline font-black text-2xl text-primary-fixed leading-none w-8 shrink-0" aria-hidden="true">03</span>
+            <div>
+              <h3 id="secao-03" class="font-headline font-black text-base text-on-surface uppercase leading-tight">Sobre você</h3>
+              <p class="text-on-surface-variant text-xs mt-0.5">Bio, citação e credenciais.</p>
+            </div>
+          </div>
         <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
           Sobre você
           <textarea formControlName="bio" rows="4" maxlength="1000" placeholder="Conte sobre sua metodologia, experiência..."
@@ -115,6 +160,19 @@
           </label>
         </div>
 
+        </section>
+        <section class="bg-surface-container-low rounded-md p-5 flex flex-col gap-4" aria-labelledby="secao-04">
+          <div class="flex items-start gap-3">
+            <span class="font-headline font-black text-2xl text-primary-fixed leading-none w-8 shrink-0" aria-hidden="true">04</span>
+            <div>
+              <h3 id="secao-04" class="font-headline font-black text-base text-on-surface uppercase leading-tight">Números que você declara</h3>
+              <p class="text-on-surface-variant text-xs mt-0.5">Opcionais.</p>
+            </div>
+          </div>
+          <p class="flex items-start gap-2 bg-surface-container rounded-sm px-3 py-2 text-on-surface-variant text-xs">
+            <span class="material-symbols-outlined text-[16px] text-tertiary" aria-hidden="true">warning</span>
+            Esses números são declarados por você e aparecem na sua página: use só valores que você consegue comprovar.
+          </p>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
             NPS (0-100) — opcional
@@ -128,6 +186,15 @@
           </label>
         </div>
 
+        </section>
+        <section class="bg-surface-container-low rounded-md p-5 flex flex-col gap-4" aria-labelledby="secao-05">
+          <div class="flex items-start gap-3">
+            <span class="font-headline font-black text-2xl text-primary-fixed leading-none w-8 shrink-0" aria-hidden="true">05</span>
+            <div>
+              <h3 id="secao-05" class="font-headline font-black text-base text-on-surface uppercase leading-tight">Contato e vídeo</h3>
+              <p class="text-on-surface-variant text-xs mt-0.5">WhatsApp para os interessados e vídeo de apresentação.</p>
+            </div>
+          </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
             WhatsApp (com DDI/DDD, só números)
@@ -141,9 +208,16 @@
           </label>
         </div>
 
-        <!-- Garantia e suporte -->
-        <fieldset class="border border-outline-variant/15 rounded-md p-4 flex flex-col gap-3">
-          <legend class="px-1 text-[10px] font-headline uppercase tracking-widest text-on-surface-variant">Garantia e suporte</legend>
+        </section>
+        <section class="bg-surface-container-low rounded-md p-5 flex flex-col gap-4" aria-labelledby="secao-06">
+          <div class="flex items-start gap-3">
+            <span class="font-headline font-black text-2xl text-primary-fixed leading-none w-8 shrink-0" aria-hidden="true">06</span>
+            <div>
+              <h3 id="secao-06" class="font-headline font-black text-base text-on-surface uppercase leading-tight">Garantia e suporte</h3>
+              <p class="text-on-surface-variant text-xs mt-0.5">O que você oferece além do arrependimento de 7 dias da lei.</p>
+            </div>
+          </div>
+        <div class="flex flex-col gap-3">
           <p class="text-outline text-xs">O arrependimento de 7 dias já é garantido por lei a todo aluno. Preencha a garantia só se você oferece mais que isso.</p>
           <div class="grid grid-cols-1 md:grid-cols-[160px_1fr] gap-3">
             <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
@@ -175,11 +249,18 @@
           @if (form.get('supportEmail')?.invalid && form.get('supportEmail')?.touched) {
             <p class="text-error text-xs">Informe um e-mail válido.</p>
           }
-        </fieldset>
+        </div>
 
-        <!-- Textos da página (vazio = texto padrão, mostrado como exemplo) -->
-        <fieldset class="border border-outline-variant/15 rounded-md p-4 flex flex-col gap-3">
-          <legend class="px-1 text-[10px] font-headline uppercase tracking-widest text-on-surface-variant">Textos da página</legend>
+        </section>
+        <section class="bg-surface-container-low rounded-md p-5 flex flex-col gap-4" aria-labelledby="secao-07">
+          <div class="flex items-start gap-3">
+            <span class="font-headline font-black text-2xl text-primary-fixed leading-none w-8 shrink-0" aria-hidden="true">07</span>
+            <div>
+              <h3 id="secao-07" class="font-headline font-black text-base text-on-surface uppercase leading-tight">Textos da página</h3>
+              <p class="text-on-surface-variant text-xs mt-0.5">Títulos e cards do "Como funciona".</p>
+            </div>
+          </div>
+        <div class="flex flex-col gap-3">
           <p class="text-outline text-xs">Deixe em branco para usar o texto padrão (aparece como exemplo no campo).</p>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <label class="flex flex-col gap-1 text-[10px] font-headline uppercase tracking-widest text-outline">
@@ -220,19 +301,23 @@
               </div>
             }
           </div>
-        </fieldset>
+        </div>
 
+        </section>
+        <div class="sticky bottom-0 bg-surface/95 backdrop-blur py-3">
         <button type="submit" [disabled]="saving()"
-          class="self-start bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black px-6 py-2.5 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px]">
-          {{ saving() ? 'Salvando...' : 'Salvar' }}
+          class="w-full md:w-auto flex items-center justify-center gap-2 bg-primary-fixed hover:bg-primary-dim disabled:opacity-60 text-on-primary-fixed font-headline font-black px-6 py-2.5 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px]">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">save</span>
+          {{ saving() ? 'Salvando...' : 'Salvar alterações' }}
         </button>
+        </div>
       </form>
 
       @if (profile(); as p2) {
         <!-- Depoimentos -->
         <section class="mb-10">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="font-headline font-black text-sm text-on-surface uppercase tracking-widest">Depoimentos</h3>
+            <h3 class="flex items-center gap-3 font-headline font-black text-base text-on-surface uppercase"><span class="text-primary-fixed text-2xl" aria-hidden="true">08</span> Depoimentos ({{ testimonials().length }})</h3>
             <button type="button" (click)="showTestimonialForm() ? cancelTestimonialForm() : openNewTestimonialForm()"
               class="flex items-center gap-2 bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-4 py-2 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px]">
               {{ showTestimonialForm() ? 'Cancelar' : '+ Novo depoimento' }}
@@ -281,10 +366,10 @@
                   @if (t.authorRole) { <p class="text-outline text-xs mb-1">{{ t.authorRole }}</p> }
                   <p class="text-on-surface-variant text-sm mb-2">{{ t.content }}</p>
                   <div class="flex items-center justify-between">
-                    <span class="text-primary-fixed text-xs">{{ '★'.repeat(t.rating) }}</span>
+                    <span class="text-primary-fixed text-xs" [attr.aria-label]="'Nota ' + t.rating + ' de 5'">{{ '★'.repeat(t.rating) }}</span>
                     <div class="flex gap-3">
-                      <button type="button" (click)="editTestimonial(t)" class="text-outline text-xs underline">Editar</button>
-                      <button type="button" (click)="removeTestimonial(t.id)" class="text-error text-xs underline">Remover</button>
+                      <button type="button" (click)="editTestimonial(t)" class="min-h-[44px] px-2 text-on-surface-variant text-xs font-headline font-bold uppercase tracking-wider">Editar</button>
+                      <button type="button" (click)="removeTestimonial(t.id)" class="min-h-[44px] px-2 text-error text-xs font-headline font-bold uppercase tracking-wider">Remover</button>
                     </div>
                   </div>
                 </div>
@@ -296,7 +381,7 @@
         <!-- FAQ -->
         <section class="mb-10">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="font-headline font-black text-sm text-on-surface uppercase tracking-widest">Perguntas frequentes</h3>
+            <h3 class="flex items-center gap-3 font-headline font-black text-base text-on-surface uppercase"><span class="text-primary-fixed text-2xl" aria-hidden="true">09</span> Perguntas frequentes ({{ faqItems().length }})</h3>
             <button type="button" (click)="showFaqForm() ? cancelFaqForm() : openNewFaqForm()"
               class="flex items-center gap-2 bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black px-4 py-2 rounded-sm uppercase tracking-tighter text-xs transition-all min-h-[44px]">
               {{ showFaqForm() ? 'Cancelar' : '+ Nova pergunta' }}
@@ -331,8 +416,8 @@
                   <p class="text-on-surface font-headline font-bold text-sm mb-1">{{ f.question }}</p>
                   <p class="text-on-surface-variant text-sm mb-2">{{ f.answer }}</p>
                   <div class="flex gap-3">
-                    <button type="button" (click)="editFaqItem(f)" class="text-outline text-xs underline">Editar</button>
-                    <button type="button" (click)="removeFaqItem(f.id)" class="text-error text-xs underline">Remover</button>
+                    <button type="button" (click)="editFaqItem(f)" class="min-h-[44px] px-2 text-on-surface-variant text-xs font-headline font-bold uppercase tracking-wider">Editar</button>
+                    <button type="button" (click)="removeFaqItem(f.id)" class="min-h-[44px] px-2 text-error text-xs font-headline font-bold uppercase tracking-wider">Remover</button>
                   </div>
                 </div>
               }

@@ -36,6 +36,16 @@ export class CoachMessagesComponent implements OnInit, OnDestroy, AfterViewCheck
 
   myId = computed(() => this.auth.currentUser()?.id ?? '');
 
+  /** Filtro da lista: todas ou só as com mensagem não lida; busca por nome do atleta. */
+  convFilter = signal<'all' | 'unread'>('all');
+  convSearch = signal('');
+  totalUnread = computed(() => this.conversations().reduce((n, c) => n + c.unread, 0));
+  filteredConversations = computed(() => {
+    const q = this.convSearch().trim().toLowerCase();
+    return this.conversations().filter(c =>
+      (this.convFilter() === 'all' || c.unread > 0) && (!q || c.athleteName.toLowerCase().includes(q)));
+  });
+
   private destroy$ = new Subject<void>();
 
   constructor(

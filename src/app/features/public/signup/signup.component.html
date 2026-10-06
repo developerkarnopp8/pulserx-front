@@ -5,7 +5,12 @@
       <span class="material-symbols-outlined text-[20px]" aria-hidden="true">arrow_back</span>
       Voltar à página{{ profile()?.coachName ? ' de ' + profile()!.coachName : '' }}
     </a>
-    <span class="font-condensed font-extrabold text-xl uppercase tracking-wide">PulseRx</span>
+    <span class="flex items-center gap-3">
+      <span class="hidden sm:inline-flex items-center gap-1 font-condensed font-bold text-[11px] uppercase tracking-widest text-on-surface-variant">
+        <span class="material-symbols-outlined text-[16px] text-primary-fixed" aria-hidden="true">lock</span> Assinatura segura
+      </span>
+      <span class="font-condensed font-extrabold text-xl uppercase tracking-wide">Pulse<span class="text-primary-fixed">Rx</span></span>
+    </span>
   </header>
 
   <main class="flex-1 w-full max-w-5xl mx-auto px-5 md:px-10 py-8 md:py-12">
@@ -23,10 +28,22 @@
 
         <!-- Formulário do passo atual -->
         <section class="bg-surface-container-low border border-outline-variant/10 rounded-xl p-6 md:p-8">
-          <ol class="flex items-center gap-2 mb-6 text-[11px] font-condensed font-bold uppercase tracking-widest" aria-label="Etapas">
-            <li [class.text-primary-fixed]="step() !== 'payment'" [class.text-outline]="step() === 'payment'">1 · Sua conta</li>
-            <li class="text-outline" aria-hidden="true">›</li>
-            <li [class.text-primary-fixed]="step() === 'payment'" [class.text-outline]="step() !== 'payment'">2 · {{ p.isFree ? 'Acesso' : 'Pagamento' }}</li>
+          <ol class="grid grid-cols-3 gap-2 mb-6" aria-label="Etapas">
+            @for (st of steps(p.isFree); track st.n) {
+              <li class="flex flex-col gap-1.5" [attr.aria-current]="st.state === 'current' ? 'step' : null">
+                <span class="h-1 rounded-full" [class.bg-primary-fixed]="st.state !== 'todo'" [class.bg-surface-container-highest]="st.state === 'todo'" aria-hidden="true"></span>
+                <span class="flex items-center gap-1.5 font-condensed font-bold text-[11px] uppercase tracking-widest"
+                  [class.text-primary-fixed]="st.state === 'current'" [class.text-on-surface]="st.state === 'done'" [class.text-outline]="st.state === 'todo'">
+                  <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0"
+                    [class.bg-primary-fixed]="st.state !== 'todo'" [class.text-on-primary-fixed]="st.state !== 'todo'"
+                    [class.bg-surface-container-highest]="st.state === 'todo'" aria-hidden="true">
+                    @if (st.state === 'done') { <span class="material-symbols-outlined text-[14px]">check</span> } @else { {{ st.n }} }
+                  </span>
+                  {{ st.label }}
+                  <span class="sr-only">{{ st.state === 'done' ? '(concluída)' : st.state === 'current' ? '(etapa atual)' : '' }}</span>
+                </span>
+              </li>
+            }
           </ol>
 
           @if (errorMsg()) {
@@ -128,7 +145,21 @@
                 Olá{{ auth.currentUser()?.name ? ', ' + auth.currentUser()!.name.split(' ')[0] : '' }}! A cobrança é mensal e você escolhe como pagar:
                 <strong class="text-on-surface">PIX, boleto ou cartão de crédito</strong>. O CPF é exigido pelo meio de pagamento para emitir a cobrança.
               </p>
-              <label for="pay-cpf" class="block text-on-surface-variant text-xs font-semibold mb-1.5">CPF</label>
+              <ul class="grid grid-cols-3 gap-2 mb-5" aria-label="Formas de pagamento aceitas na página do Asaas">
+                <li class="bg-surface-container rounded-lg p-3 flex flex-col items-center gap-1 text-center">
+                  <span class="material-symbols-outlined text-[24px] text-primary-fixed" aria-hidden="true">qr_code_2</span>
+                  <span class="font-condensed font-bold text-xs uppercase tracking-wider">PIX</span>
+                </li>
+                <li class="bg-surface-container rounded-lg p-3 flex flex-col items-center gap-1 text-center">
+                  <span class="material-symbols-outlined text-[24px] text-primary-fixed" aria-hidden="true">receipt_long</span>
+                  <span class="font-condensed font-bold text-xs uppercase tracking-wider">Boleto</span>
+                </li>
+                <li class="bg-surface-container rounded-lg p-3 flex flex-col items-center gap-1 text-center">
+                  <span class="material-symbols-outlined text-[24px] text-primary-fixed" aria-hidden="true">credit_card</span>
+                  <span class="font-condensed font-bold text-xs uppercase tracking-wider">Cartão</span>
+                </li>
+              </ul>
+              <label for="pay-cpf" class="block text-on-surface-variant text-xs font-semibold mb-1.5">CPF do titular</label>
               <input id="pay-cpf" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00"
                 [value]="cpf()" (input)="onCpfInput($any($event.target).value)"
                 class="w-full min-h-[48px] bg-surface-container text-on-surface rounded-lg px-4 text-sm mb-5" />
@@ -147,8 +178,17 @@
 
         <!-- Resumo do plano -->
         <aside class="bg-surface-container-low border border-outline-variant/10 rounded-xl p-6 md:sticky md:top-6">
-          <p class="text-on-surface-variant font-condensed font-bold text-xs uppercase tracking-[0.2em]">Seu plano</p>
+          <p class="flex items-center gap-2 text-primary-fixed font-condensed font-bold text-xs uppercase tracking-[0.2em]">
+            <span class="w-1.5 h-1.5 rounded-full bg-primary-fixed" aria-hidden="true"></span> Plano selecionado
+          </p>
           <h2 class="font-condensed font-extrabold text-2xl uppercase mt-1">{{ p.name }}</h2>
+          @if (p.categories.length) {
+            <div class="flex flex-wrap gap-1.5 mt-2">
+              @for (cat of p.categories; track cat) {
+                <span class="font-condensed font-bold text-[11px] uppercase tracking-wider bg-surface-container text-on-surface-variant px-2 py-1 rounded">{{ categoryLabel[cat] }}</span>
+              }
+            </div>
+          }
           @if (p.description) {
             <p class="text-on-surface-variant text-sm mt-1">{{ p.description }}</p>
           }

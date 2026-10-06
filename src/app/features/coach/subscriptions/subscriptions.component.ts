@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
@@ -17,6 +17,8 @@ type ModalMode = 'add' | 'edit';
 })
 export class CoachSubscriptionsComponent implements OnInit {
   plans      = signal<SubscriptionPlan[]>([]);
+  /** Planos ativos (os que dá para atribuir a alunos). */
+  activeCount = computed(() => this.plans().filter(p => p.active).length);
   loading    = signal(true);
   errorMsg   = signal('');
 

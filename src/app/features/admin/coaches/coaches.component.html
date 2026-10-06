@@ -3,13 +3,16 @@
   <!-- Header -->
   <div class="flex items-center justify-between mb-6">
     <div>
-      <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-1">Admin</p>
-      <h2 class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none">Coaches</h2>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-primary-fixed" aria-hidden="true"></span>
+        <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">Admin · plataforma AEVON</p>
+      </div>
+      <h2 class="font-headline font-black text-2xl md:text-3xl text-on-surface uppercase tracking-tight leading-none">Gestão de coaches</h2>
     </div>
     <button type="button" (click)="openModal()"
-      class="bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black text-xs uppercase tracking-tighter px-5 py-3 rounded-sm flex items-center gap-2 transition-all">
-      <span class="material-symbols-outlined text-[18px]">add</span>
-      Novo Coach
+      class="min-h-[44px] bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black text-xs uppercase tracking-wider px-5 rounded-sm flex items-center gap-2 transition-colors">
+      <span class="material-symbols-outlined text-[18px]" aria-hidden="true">person_add</span>
+      Novo coach
     </button>
   </div>
 
@@ -17,20 +20,20 @@
   @if (coaches().length > 0) {
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
       <div class="bg-surface-container-low rounded-md p-4">
-        <p class="text-outline text-[9px] font-headline uppercase tracking-widest mb-1">Alunos (todos os coaches)</p>
-        <p class="font-headline font-black text-xl text-on-surface">{{ platformTotals().studentCount }}</p>
+        <p class="text-on-surface-variant text-[11px] font-headline font-bold uppercase tracking-widest mb-1">Alunos (todos os coaches)</p>
+        <p class="font-headline font-black text-2xl text-on-surface">{{ platformTotals().studentCount }}</p>
       </div>
       <div class="bg-surface-container-low rounded-md p-4">
-        <p class="text-outline text-[9px] font-headline uppercase tracking-widest mb-1">Recebido (pago, real)</p>
-        <p class="font-headline font-black text-xl text-on-surface">{{ fmtReais(platformTotals().totalPaid) }}</p>
+        <p class="text-on-surface-variant text-[11px] font-headline font-bold uppercase tracking-widest mb-1">Recebido (pago, real)</p>
+        <p class="font-headline font-black text-2xl text-on-surface">{{ fmtReais(platformTotals().totalPaid) }}</p>
       </div>
       <div class="bg-surface-container-low rounded-md p-4">
-        <p class="text-outline text-[9px] font-headline uppercase tracking-widest mb-1">Repasse da plataforma</p>
-        <p class="font-headline font-black text-xl text-primary-fixed">{{ fmtReais(platformTotals().platformCut) }}</p>
+        <p class="text-on-surface-variant text-[11px] font-headline font-bold uppercase tracking-widest mb-1">Repasse da plataforma</p>
+        <p class="font-headline font-black text-2xl text-primary-fixed">{{ fmtReais(platformTotals().platformCut) }}</p>
       </div>
       <div class="bg-surface-container-low rounded-md p-4">
-        <p class="text-outline text-[9px] font-headline uppercase tracking-widest mb-1">Repasse dos coaches</p>
-        <p class="font-headline font-black text-xl text-on-surface">{{ fmtReais(platformTotals().coachCut) }}</p>
+        <p class="text-on-surface-variant text-[11px] font-headline font-bold uppercase tracking-widest mb-1">Repasse dos coaches</p>
+        <p class="font-headline font-black text-2xl text-on-surface">{{ fmtReais(platformTotals().coachCut) }}</p>
       </div>
     </div>
   }
@@ -217,8 +220,8 @@
 
         <div class="flex items-center justify-between mb-5">
           <h3 class="font-headline font-black text-xl text-on-surface tracking-tighter">Novo Coach</h3>
-          <button type="button" (click)="closeModal()"
-            class="w-8 h-8 rounded-sm bg-surface-container flex items-center justify-center text-outline hover:text-on-surface transition-colors">
+          <button aria-label="Fechar" type="button" (click)="closeModal()"
+            class="w-10 h-10 rounded-sm bg-surface-container flex items-center justify-center text-outline hover:text-on-surface transition-colors">
             <span class="material-symbols-outlined text-[18px]">close</span>
           </button>
         </div>

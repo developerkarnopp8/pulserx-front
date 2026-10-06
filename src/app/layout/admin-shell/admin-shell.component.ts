@@ -1,13 +1,13 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationsBellComponent } from '../../shared/components/notifications-bell/notifications-bell.component';
 
 @Component({
   selector: 'app-admin-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, NotificationsBellComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, NotificationsBellComponent],
   templateUrl: './admin-shell.component.html',
   styleUrl: './admin-shell.component.scss',
 })

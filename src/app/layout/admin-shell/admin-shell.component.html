@@ -5,20 +5,20 @@
   <aside class="hidden md:flex w-64 h-screen flex-shrink-0 border-r border-outline-variant/10 bg-background flex-col py-8">
     <div class="px-6 mb-8 flex items-start justify-between">
       <div>
-        <h1 class="text-xl font-bold text-on-surface font-headline">Admin</h1>
-        <p class="text-[10px] text-primary-fixed tracking-widest uppercase font-headline mt-0.5">PulseRx</p>
+        <p class="font-headline font-black text-xl uppercase tracking-tight"><span class="text-on-surface">Pulse</span><span class="text-primary-fixed">Rx</span></p>
+        <p class="text-[11px] text-on-surface-variant tracking-widest uppercase font-headline font-bold mt-0.5">Root admin</p>
       </div>
       <app-notifications-bell align="start" />
     </div>
 
     <nav class="flex-1 px-4 flex flex-col gap-1">
-      <a routerLink="/admin/coaches"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-headline text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors">
+      <a routerLink="/admin/coaches" routerLinkActive="!text-primary-fixed bg-primary-fixed/10" ariaCurrentWhenActive="page"
+        class="min-h-[44px] flex items-center gap-3 px-3 rounded-sm text-sm font-headline text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors">
         <span class="material-symbols-outlined text-[20px]">group</span>
         Coaches
       </a>
-      <a routerLink="/admin/financeiro"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-headline text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors">
+      <a routerLink="/admin/financeiro" routerLinkActive="!text-primary-fixed bg-primary-fixed/10" ariaCurrentWhenActive="page"
+        class="min-h-[44px] flex items-center gap-3 px-3 rounded-sm text-sm font-headline text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors">
         <span class="material-symbols-outlined text-[20px]">payments</span>
         Financeiro
       </a>
@@ -35,8 +35,8 @@
 
   <!-- Header fixo (mobile, <768px) -->
   <header class="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3 bg-background border-b border-outline-variant/10">
-    <button type="button" (click)="toggleMobileMenu()"
-      class="w-9 h-9 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors">
+    <button type="button" (click)="toggleMobileMenu()" aria-label="Abrir menu"
+      class="w-11 h-11 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors">
       <span class="material-symbols-outlined text-[24px]">menu</span>
     </button>
     <h1 class="text-base font-bold text-on-surface font-headline">Admin <span class="text-primary-fixed">PulseRx</span></h1>
@@ -54,12 +54,12 @@
         </div>
 
         <nav class="flex-1 px-4 flex flex-col gap-1">
-          <a routerLink="/admin/coaches" (click)="closeMobileMenu()"
+          <a routerLink="/admin/coaches" routerLinkActive="!text-primary-fixed bg-primary-fixed/10" ariaCurrentWhenActive="page" (click)="closeMobileMenu()"
             class="flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-headline text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors">
             <span class="material-symbols-outlined text-[20px]">group</span>
             Coaches
           </a>
-          <a routerLink="/admin/financeiro" (click)="closeMobileMenu()"
+          <a routerLink="/admin/financeiro" routerLinkActive="!text-primary-fixed bg-primary-fixed/10" ariaCurrentWhenActive="page" (click)="closeMobileMenu()"
             class="flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-headline text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors">
             <span class="material-symbols-outlined text-[20px]">payments</span>
             Financeiro

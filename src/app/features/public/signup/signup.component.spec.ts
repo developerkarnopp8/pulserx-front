@@ -252,3 +252,20 @@ describe('PublicSignupComponent — pagamento', () => {
     }
   });
 });
+
+describe('SignupComponent — etapas do topo (Stitch mo16)', () => {
+  it('dados → confirmar e-mail → pagamento, com a atual destacada; Free termina em "Acesso"', () => {
+    const { component } = build();
+    const states = () => component.steps(false).map(s => s.state);
+    component.step.set('account');
+    expect(states()).toEqual(['current', 'todo', 'todo']);
+    component.step.set('login');
+    expect(states()).toEqual(['current', 'todo', 'todo']);
+    component.step.set('verify');
+    expect(states()).toEqual(['done', 'current', 'todo']);
+    component.step.set('payment');
+    expect(states()).toEqual(['done', 'done', 'current']);
+    expect(component.steps(false)[2].label).toBe('Pagamento');
+    expect(component.steps(true)[2].label).toBe('Acesso');
+  });
+});
