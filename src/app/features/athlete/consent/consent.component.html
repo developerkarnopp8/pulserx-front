@@ -1,15 +1,37 @@
-<main class="min-h-screen bg-surface px-5 py-8 flex justify-center">
-  <div class="w-full max-w-lg flex flex-col gap-5 animate-fade-in">
+<app-auth-shell>
+  <div class="flex flex-col gap-5 animate-fade-in">
     <div>
-      <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-1">Antes de continuar</p>
-      <h1 class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none">Seus dados, suas escolhas</h1>
+      <div class="flex items-center gap-2 mb-2">
+        <span class="w-2 h-2 rounded-full bg-primary-fixed" aria-hidden="true"></span>
+        <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">Privacidade · LGPD</p>
+      </div>
+      <h1 class="font-headline font-black text-3xl uppercase leading-none tracking-tight text-on-surface">
+        Antes de <span class="text-primary-fixed">continuar</span>
+      </h1>
+      <p class="text-on-surface-variant text-sm mt-3">Duas respostas rápidas e você segue para o seu treino.</p>
     </div>
 
     @if (loading()) {
       <div class="h-64 bg-surface-container-low rounded-md animate-pulse" aria-busy="true" aria-label="Carregando"></div>
     } @else {
-      <section class="bg-surface-container-low rounded-md p-5 flex flex-col gap-3" aria-labelledby="titulo-termos">
-        <h2 id="titulo-termos" class="font-headline font-black text-lg text-on-surface">Termos de Uso e Privacidade</h2>
+      <div class="flex items-center justify-between gap-3 bg-surface-container-low rounded-md px-4 py-3" aria-live="polite">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary-fixed text-[20px]" aria-hidden="true">verified_user</span>
+          <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Respostas</span>
+        </div>
+        <span class="font-headline text-[11px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm bg-surface-container"
+          [class.text-primary-fixed]="answered === 2" [class.text-on-surface-variant]="answered !== 2">
+          {{ answered }} de 2
+        </span>
+      </div>
+
+      <section class="relative bg-surface-container-low rounded-md p-5 flex flex-col gap-3 overflow-hidden" aria-labelledby="titulo-termos">
+        <span class="absolute left-0 inset-y-0 w-1 bg-primary-fixed" aria-hidden="true"></span>
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary-fixed text-[18px]" aria-hidden="true">gavel</span>
+          <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">Obrigatório</span>
+        </div>
+        <h2 id="titulo-termos" class="font-headline font-black text-lg uppercase text-on-surface">Termos de Uso e Política de Privacidade</h2>
         <p class="text-on-surface-variant text-sm">
           @if (status()?.termsAccepted) {
             Você já aceitou a versão atual.
@@ -17,34 +39,68 @@
             Atualizamos os nossos textos (ou você ainda não tinha aceitado). Leia e confirme para seguir usando o app.
           }
         </p>
-        <label class="flex items-start gap-3 text-sm text-on-surface cursor-pointer min-h-[44px]">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <a routerLink="/termos" target="_blank"
+            class="flex items-center justify-between gap-2 px-3 min-h-[44px] bg-surface-container rounded-sm text-on-surface hover:text-primary-fixed transition-colors">
+            <span class="font-headline text-[11px] font-bold uppercase tracking-widest">Ler Termos de Uso</span>
+            <span class="material-symbols-outlined text-[16px]" aria-hidden="true">open_in_new</span>
+          </a>
+          <a routerLink="/privacidade" target="_blank"
+            class="flex items-center justify-between gap-2 px-3 min-h-[44px] bg-surface-container rounded-sm text-on-surface hover:text-primary-fixed transition-colors">
+            <span class="font-headline text-[11px] font-bold uppercase tracking-widest">Ler Política de Privacidade</span>
+            <span class="material-symbols-outlined text-[16px]" aria-hidden="true">open_in_new</span>
+          </a>
+        </div>
+        <label class="flex items-start gap-3 p-3 bg-surface-container-lowest rounded-sm cursor-pointer min-h-[44px]">
           <input type="checkbox" [checked]="acceptTerms()" (change)="acceptTerms.set($any($event.target).checked)"
-            class="mt-1 w-5 h-5 accent-[var(--color-primary-fixed)] flex-shrink-0" />
-          <span>
-            Li e aceito os <a routerLink="/termos" target="_blank" class="text-primary-fixed underline">Termos de Uso</a>
-            e a <a routerLink="/privacidade" target="_blank" class="text-primary-fixed underline">Política de Privacidade</a>.
+            class="mt-0.5 w-5 h-5 accent-[var(--color-primary-fixed)] flex-shrink-0" />
+          <span class="flex flex-col">
+            <span class="text-sm text-on-surface">Li e aceito os Termos de Uso e a Política de Privacidade</span>
+            <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed mt-0.5">Necessário para usar o app</span>
           </span>
         </label>
       </section>
 
-      <section class="bg-surface-container-low rounded-md p-5 flex flex-col gap-3" aria-labelledby="titulo-saude">
-        <h2 id="titulo-saude" class="font-headline font-black text-lg text-on-surface">Dados de saúde (opcional)</h2>
+      <section class="relative bg-surface-container-low rounded-md p-5 flex flex-col gap-3 overflow-hidden" aria-labelledby="titulo-saude">
+        <span class="absolute left-0 inset-y-0 w-1 bg-tertiary" aria-hidden="true"></span>
+        <div class="flex items-center gap-2 self-start px-2 py-0.5 bg-surface-container rounded-sm">
+          <span class="material-symbols-outlined text-tertiary text-[16px]" aria-hidden="true">ecg_heart</span>
+          <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-tertiary">Opcional · dado de saúde (LGPD)</span>
+        </div>
+        <h2 id="titulo-saude" class="font-headline font-black text-lg uppercase text-on-surface">Dados de saúde</h2>
         <p class="text-on-surface-variant text-sm">
-          Ao pular um treino, você pode contar ao seu treinador que foi por <strong>lesão ou dor</strong> e escrever uma
-          observação. Pela LGPD, isso é dado de saúde e só é registrado com a sua autorização. Sem ela, você usa o app
-          normalmente — só essas opções não aparecem. Você pode mudar a qualquer momento no Perfil.
+          Ao pular um treino, você pode contar ao seu treinador que foi por <strong class="text-on-surface">lesão ou dor</strong>
+          e escrever uma observação. Pela LGPD, isso é dado de saúde e só é registrado com a sua autorização.
         </p>
         <fieldset class="flex flex-col gap-2">
           <legend class="sr-only">Autoriza o compartilhamento de dados de saúde?</legend>
-          <label class="flex items-center gap-3 text-sm text-on-surface cursor-pointer min-h-[44px]">
-            <input type="radio" name="saude" [checked]="health() === true" (change)="health.set(true)" class="w-5 h-5" />
-            Sim, autorizo registrar e compartilhar com meu treinador
+          <label class="flex items-start gap-3 p-4 rounded-md bg-surface-container cursor-pointer border transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-fixed"
+            [class.border-primary-fixed]="health() === true" [class.border-transparent]="health() !== true">
+            <input type="radio" name="saude" [checked]="health() === true" (change)="health.set(true)" class="sr-only" />
+            <span class="w-9 h-9 rounded-full bg-surface-container-highest flex items-center justify-center text-primary-fixed shrink-0" aria-hidden="true">
+              <span class="material-symbols-outlined text-[20px]">favorite</span>
+            </span>
+            <span class="flex flex-col">
+              <span class="font-headline font-bold text-on-surface">Sim, autorizo</span>
+              <span class="text-on-surface-variant text-sm mt-0.5">Registrar e compartilhar com meu treinador o motivo "lesão / dor" e as observações.</span>
+            </span>
           </label>
-          <label class="flex items-center gap-3 text-sm text-on-surface cursor-pointer min-h-[44px]">
-            <input type="radio" name="saude" [checked]="health() === false" (change)="health.set(false)" class="w-5 h-5" />
-            Não autorizo
+          <label class="flex items-start gap-3 p-4 rounded-md bg-surface-container cursor-pointer border transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-fixed"
+            [class.border-primary-fixed]="health() === false" [class.border-transparent]="health() !== false">
+            <input type="radio" name="saude" [checked]="health() === false" (change)="health.set(false)" class="sr-only" />
+            <span class="w-9 h-9 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant shrink-0" aria-hidden="true">
+              <span class="material-symbols-outlined text-[20px]">lock</span>
+            </span>
+            <span class="flex flex-col">
+              <span class="font-headline font-bold text-on-surface">Não autorizo</span>
+              <span class="text-on-surface-variant text-sm mt-0.5">Você usa o app normalmente — só essas opções não aparecem.</span>
+            </span>
           </label>
         </fieldset>
+        <p class="flex items-start gap-2 text-on-surface-variant text-xs">
+          <span class="material-symbols-outlined text-[16px]" aria-hidden="true">info</span>
+          Você pode mudar essa escolha a qualquer momento no Perfil.
+        </p>
       </section>
 
       @if (errorMsg()) {
@@ -52,10 +108,14 @@
       }
 
       <button type="button" (click)="submit()" [disabled]="!canSubmit"
-        class="w-full min-h-[52px] rounded-lg bg-primary-fixed disabled:opacity-40 text-on-primary-fixed font-headline font-black text-sm uppercase tracking-wider">
-        {{ busy() ? 'Salvando...' : 'Continuar' }}
+        class="w-full min-h-[52px] rounded-sm bg-primary-fixed hover:bg-primary-dim disabled:opacity-40 text-on-primary-fixed font-headline font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-colors">
+        {{ busy() ? 'Salvando…' : 'Continuar' }}
+        @if (!busy()) { <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span> }
       </button>
+      @if (!canSubmit && !busy()) {
+        <p class="text-center text-on-surface-variant text-xs -mt-2">Aceite os termos e responda sobre os dados de saúde para continuar.</p>
+      }
       <button type="button" (click)="auth.logout()" class="text-on-surface-variant text-sm underline min-h-[44px]">Sair</button>
     }
   </div>
-</main>
+</app-auth-shell>

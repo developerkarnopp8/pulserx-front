@@ -4,6 +4,7 @@ import { ConsentStatus } from '../../../core/models';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { apiMessage } from '../../../shared/utils/signup-flow';
+import { AuthShellComponent } from '../../../shared/components/auth-shell/auth-shell.component';
 
 /**
  * Tela do próximo login do aluno (LGPD, decisões do dono 2026-09-30): aceite dos Termos/Política na versão atual
@@ -12,7 +13,7 @@ import { apiMessage } from '../../../shared/utils/signup-flow';
 @Component({
   selector: 'app-consent',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, AuthShellComponent],
   templateUrl: './consent.component.html',
 })
 export class ConsentComponent implements OnInit {
@@ -42,6 +43,11 @@ export class ConsentComponent implements OnInit {
         this.errorMsg.set(apiMessage(err, 'Não foi possível carregar. Tente de novo.'));
       },
     });
+  }
+
+  /** Quantas das 2 respostas já foram dadas (aceite dos termos + escolha sobre saúde), para o contador da tela. */
+  get answered(): number {
+    return (this.acceptTerms() ? 1 : 0) + (this.health() !== null ? 1 : 0);
   }
 
   get canSubmit(): boolean {
