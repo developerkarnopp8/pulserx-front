@@ -1,174 +1,200 @@
-@if (session()) {
-<div class="px-5 py-4 animate-fade-in pb-8">
+@if (session(); as s) {
+<div class="px-5 py-4 flex flex-col gap-5 animate-fade-in pb-8">
 
-  <!-- Back + title -->
-  <div class="flex items-center gap-3 mb-6">
+  <!-- Voltar + título -->
+  <div class="flex flex-col gap-3">
     <a routerLink="/athlete/home"
-      class="w-9 h-9 rounded-sm bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors">
-      <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+      class="self-start min-h-[44px] -ml-1 inline-flex items-center gap-1 text-on-surface-variant hover:text-on-surface font-headline text-xs font-bold uppercase tracking-widest">
+      <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_back</span>
+      Voltar ao início
     </a>
-    <div>
-      <p class="text-outline text-[10px] font-headline uppercase tracking-widest">Sessão do Dia</p>
-      <h2 class="font-headline font-black text-xl text-on-surface leading-tight tracking-tighter">{{ session()!.name }}</h2>
-    </div>
+    <span class="inline-flex items-center gap-1.5 font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">
+      <span class="material-symbols-outlined text-[16px]" aria-hidden="true">{{ typeIcon[s.type] }}</span>
+      {{ typeLabel[s.type] }}
+    </span>
+    <h2 class="font-headline font-black text-3xl text-on-surface uppercase leading-none tracking-tight">{{ s.name }}</h2>
   </div>
 
-  <!-- Stats bento -->
-  <div class="grid grid-cols-2 gap-3 mb-5">
-    <div class="bg-surface-container-low rounded-md p-4">
-      <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-1">Exercícios</p>
-      <p class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none">
-        {{ session()!.exercises.length.toString().padStart(2,'0') }}
-      </p>
+  <!-- Números da prescrição -->
+  @if (stats(); as st) {
+    <div class="grid grid-cols-2 gap-2">
+      <div class="bg-surface-container-low rounded-md p-3">
+        <p class="flex items-center gap-1 text-on-surface-variant font-headline text-[11px] font-bold uppercase tracking-widest">
+          <span class="material-symbols-outlined text-[14px]" aria-hidden="true">format_list_numbered</span> Exercícios
+        </p>
+        <p class="font-headline font-black text-3xl text-on-surface leading-none mt-1">{{ st.exercises }}</p>
+      </div>
+      <div class="bg-surface-container-low rounded-md p-3">
+        <p class="flex items-center gap-1 text-on-surface-variant font-headline text-[11px] font-bold uppercase tracking-widest">
+          <span class="material-symbols-outlined text-[14px]" aria-hidden="true">stacks</span> Séries
+        </p>
+        <p class="font-headline font-black text-3xl text-on-surface leading-none mt-1">{{ st.totalSets || '—' }}</p>
+      </div>
+      <div class="bg-surface-container-low rounded-md p-3">
+        <p class="flex items-center gap-1 text-on-surface-variant font-headline text-[11px] font-bold uppercase tracking-widest">
+          <span class="material-symbols-outlined text-[14px]" aria-hidden="true">local_fire_department</span> Carga máx.
+        </p>
+        <p class="font-headline font-black text-3xl leading-none mt-1"
+          [class.text-primary-fixed]="st.maxLoadPercent" [class.text-on-surface]="!st.maxLoadPercent">
+          {{ st.maxLoadPercent ? st.maxLoadPercent + '%' : '—' }}
+        </p>
+        @if (st.maxLoadPercent) { <p class="text-outline text-[11px] mt-0.5">do seu 1RM</p> }
+      </div>
+      <div class="bg-surface-container-low rounded-md p-3">
+        <p class="flex items-center gap-1 text-on-surface-variant font-headline text-[11px] font-bold uppercase tracking-widest">
+          <span class="material-symbols-outlined text-[14px]" aria-hidden="true">hourglass_empty</span> Descanso
+        </p>
+        <p class="font-headline font-black text-xl text-on-surface leading-none mt-2">{{ st.rest ? restLabel(st.rest) : '—' }}</p>
+      </div>
     </div>
-    <div class="bg-surface-container-low rounded-md p-4">
-      <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-1">Intensidade</p>
-      <p class="font-headline font-black text-3xl text-primary-fixed tracking-tighter leading-none">Alta</p>
-    </div>
-    <div class="bg-surface-container-low rounded-md p-4">
-      <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-1">Duração Est.</p>
-      <p class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none">60<span class="text-base font-normal text-on-surface-variant">min</span></p>
-    </div>
-    <div class="bg-surface-container-low rounded-md p-4">
-      <p class="text-outline text-[10px] font-headline uppercase tracking-widest mb-1">Volume</p>
-      <p class="font-headline font-black text-3xl text-on-surface tracking-tighter leading-none">Alto</p>
-    </div>
+  }
+
+  <!-- Recado do coach -->
+  @if (coachNote(); as note) {
+    <section class="relative bg-surface-container-low rounded-md p-4 flex gap-3 overflow-hidden" aria-labelledby="titulo-notas-coach">
+      <span class="absolute left-0 inset-y-0 w-1 bg-primary-fixed" aria-hidden="true"></span>
+      <span class="material-symbols-outlined text-primary-fixed text-[22px] shrink-0" aria-hidden="true">sports</span>
+      <div class="flex flex-col gap-1">
+        <h3 id="titulo-notas-coach" class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Notas do coach</h3>
+        <p class="text-on-surface text-sm italic">“{{ note }}”</p>
+      </div>
+    </section>
+  }
+
+  <!-- Iniciar / pular -->
+  <div class="flex flex-col gap-2">
+    <a [routerLink]="['/athlete/active', s.id]"
+      class="min-h-[52px] rounded-sm bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-colors">
+      <span class="material-symbols-outlined text-[20px]" aria-hidden="true">play_circle</span>
+      Iniciar treino
+    </a>
+    <button type="button" (click)="openSkipSession()" [disabled]="s.status !== 'none'"
+      class="min-h-[44px] rounded-sm border border-outline-variant/30 text-on-surface-variant font-headline text-xs uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed">
+      @if (s.status === 'postponed') {
+        Sessão postergada
+      } @else if (s.status === 'abandoned') {
+        Sessão abandonada
+      } @else {
+        Pular sessão
+      }
+    </button>
   </div>
-
-  <!-- Start CTA -->
-  <a [routerLink]="['/athlete/active', session()!.id]"
-    class="flex items-center justify-center gap-2 w-full bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black py-4 rounded-sm uppercase tracking-tighter mb-3 transition-all text-sm">
-    <span class="material-symbols-outlined text-[18px]">play_arrow</span>
-    Iniciar Modo Treino
-  </a>
-
-  <button type="button" (click)="openSkipSession()"
-    [disabled]="session()!.status !== 'none'"
-    class="w-full py-3 rounded-sm border border-outline-variant/30 text-on-surface-variant font-headline text-xs uppercase tracking-wider transition-all mb-6 disabled:opacity-40 disabled:cursor-not-allowed">
-    @if (session()!.status === 'postponed') {
-      Sessão postergada
-    } @else if (session()!.status === 'abandoned') {
-      Sessão abandonada
-    } @else {
-      Pular sessão
-    }
-  </button>
 
   <app-skip-reason-modal
     [open]="skipModalOpen()"
     (confirmed)="onSkipConfirmed($event)"
     (cancelled)="onSkipCancelled()" />
 
-  <!-- Toast de erro -->
   @if (skipError()) {
-    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] animate-slide-up px-5 w-full max-w-md">
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] animate-slide-up px-5 w-full max-w-md" role="alert">
       <div class="bg-error/10 border border-error/30 text-error font-headline text-sm px-5 py-3 rounded-sm shadow-xl flex items-center gap-2">
-        <span class="material-symbols-outlined text-[18px]">error</span>
+        <span class="material-symbols-outlined text-[18px]" aria-hidden="true">error</span>
         {{ skipError() }}
       </div>
     </div>
   }
 
-  <!-- Exercise List -->
-  <h3 class="text-on-surface font-headline font-black text-xs uppercase tracking-widest mb-3">Exercícios</h3>
+  <!-- Sequência de execução -->
+  <section class="flex flex-col gap-3" aria-labelledby="titulo-sequencia">
+    <div class="flex items-center justify-between">
+      <h3 id="titulo-sequencia" class="font-headline font-black text-sm text-on-surface uppercase tracking-widest">Sequência de execução</h3>
+      <span class="text-on-surface-variant text-xs">{{ s.exercises.length }} exercícios</span>
+    </div>
 
-  @for (ex of session()!.exercises; track ex.id) {
-    <div class="bg-surface-container-low rounded-md mb-3 overflow-hidden">
-      <div class="p-4">
-
-        <div class="flex items-start justify-between gap-3">
-          <div class="flex-1">
-            <div class="flex items-center gap-2 mb-1.5">
-              @if (ex.youtubeUrl) {
-                <button type="button" (click)="toggleVideo(ex.id)"
-                  [attr.aria-expanded]="expandedVideoId() === ex.id"
-                  [attr.aria-label]="'Ver demonstração de ' + ex.name"
-                  class="text-primary-fixed hover:text-primary transition-colors">
-                  <span class="material-symbols-outlined text-[18px]">{{ expandedVideoId() === ex.id ? 'expand_less' : 'play_circle' }}</span>
-                </button>
-              }
-              <h3 class="text-on-surface font-headline font-bold text-sm">{{ ex.name }}</h3>
-            </div>
-            <div class="flex flex-wrap gap-3 text-xs">
-              @if (ex.sets) {
-                <span class="text-on-surface-variant font-headline">{{ ex.sets }} séries</span>
-              }
-              @if (ex.reps) {
-                <span class="text-on-surface-variant font-headline">{{ ex.reps }} reps</span>
-              }
-              @if (ex.loadPercent) {
-                <span class="text-primary-fixed font-headline font-bold">{{ ex.loadPercent }}% RM</span>
-              }
-              @if (ex.duration) {
-                <span class="text-on-surface-variant font-headline">{{ ex.duration }}</span>
-              }
-            </div>
+    @for (ex of s.exercises; track ex.id; let i = $index) {
+      <article class="bg-surface-container-low rounded-md p-4 flex flex-col gap-3">
+        <div class="flex items-start gap-3">
+          <span class="font-headline font-black text-2xl leading-none w-8 shrink-0"
+            [class.text-primary-fixed]="!ex.completed" [class.text-outline]="ex.completed" aria-hidden="true">{{ (i + 1).toString().padStart(2, '0') }}</span>
+          <div class="flex-1 min-w-0">
+            <h4 class="font-headline font-black text-base text-on-surface uppercase leading-tight">{{ ex.name }}</h4>
+            @if (ex.restSeconds) {
+              <p class="flex items-center gap-1 text-on-surface-variant text-xs mt-1">
+                <span class="material-symbols-outlined text-[14px]" aria-hidden="true">timer</span> Descanso {{ formatTime(ex.restSeconds) }}
+              </p>
+            }
           </div>
-
-          <!-- Checkbox -->
           <button type="button" (click)="toggleExercise(ex)"
-            class="w-7 h-7 rounded-sm border flex items-center justify-center flex-shrink-0 transition-all"
-            [class.bg-primary-fixed]="ex.completed"
-            [class.border-primary-fixed]="ex.completed"
-            [class.border-outline-variant]="!ex.completed">
+            [attr.aria-label]="(ex.completed ? 'Desmarcar ' : 'Marcar como feito: ') + ex.name" [attr.aria-pressed]="ex.completed"
+            class="w-11 h-11 rounded-sm border flex items-center justify-center shrink-0 transition-colors"
+            [class.bg-primary-fixed]="ex.completed" [class.border-primary-fixed]="ex.completed" [class.border-outline-variant]="!ex.completed">
             @if (ex.completed) {
-              <span class="material-symbols-outlined text-on-primary-fixed text-[16px]">check</span>
+              <span class="material-symbols-outlined text-on-primary-fixed text-[18px]" aria-hidden="true">check</span>
             }
           </button>
         </div>
 
-        @if (ex.youtubeUrl && expandedVideoId() === ex.id) {
-          <div class="mt-3">
-            <app-youtube-embed [url]="ex.youtubeUrl" />
+        @if (ex.sets || ex.reps || ex.loadPercent || ex.duration) {
+          <div class="grid grid-cols-3 gap-2">
+            @if (ex.sets) {
+              <div class="bg-surface-container rounded-sm px-3 py-2">
+                <p class="text-on-surface-variant font-headline text-[10px] font-bold uppercase tracking-widest">Séries</p>
+                <p class="font-headline font-black text-lg text-on-surface leading-tight">{{ ex.sets }}</p>
+              </div>
+            }
+            @if (ex.reps || ex.duration) {
+              <div class="bg-surface-container rounded-sm px-3 py-2 min-w-0">
+                <p class="text-on-surface-variant font-headline text-[10px] font-bold uppercase tracking-widest">{{ ex.reps ? 'Reps' : 'Tempo' }}</p>
+                <p class="font-headline font-black text-lg text-on-surface leading-tight break-words">{{ ex.reps || ex.duration }}</p>
+              </div>
+            }
+            @if (ex.loadPercent) {
+              <div class="bg-surface-container rounded-sm px-3 py-2">
+                <p class="text-on-surface-variant font-headline text-[10px] font-bold uppercase tracking-widest">Carga</p>
+                <p class="font-headline font-black text-lg text-primary-fixed leading-tight">{{ ex.loadPercent }}%</p>
+              </div>
+            }
           </div>
         }
 
-        <!-- Coach Notes callout -->
         @if (ex.coachNotes) {
-          <div class="mt-3 border-l-2 border-primary-fixed pl-3">
-            <p class="text-[10px] text-on-surface-variant font-headline font-bold uppercase tracking-widest mb-0.5">Notas do Coach</p>
-            <p class="text-on-surface text-xs leading-relaxed">{{ ex.coachNotes }}</p>
-          </div>
+          <p class="flex items-start gap-2 bg-surface-container rounded-sm px-3 py-2 text-on-surface text-xs leading-relaxed">
+            <span class="material-symbols-outlined text-primary-fixed text-[16px]" aria-hidden="true">info</span>
+            {{ ex.coachNotes }}
+          </p>
         }
 
-        <!-- Rest timer button -->
+        @if (ex.youtubeUrl) {
+          <button type="button" (click)="toggleVideo(ex.id)" [attr.aria-expanded]="expandedVideoId() === ex.id"
+            class="self-start min-h-[44px] inline-flex items-center gap-2 text-primary-fixed font-headline text-xs font-bold uppercase tracking-widest">
+            <span class="material-symbols-outlined text-[20px]" aria-hidden="true">{{ expandedVideoId() === ex.id ? 'expand_less' : 'smart_display' }}</span>
+            {{ expandedVideoId() === ex.id ? 'Esconder vídeo' : 'Ver técnica' }}
+          </button>
+          @if (expandedVideoId() === ex.id) {
+            <app-youtube-embed [url]="ex.youtubeUrl" />
+          }
+        }
+
         @if (ex.restSeconds && ex.restSeconds > 0) {
           <button type="button" (click)="startTimer(ex)"
-            class="mt-3 flex items-center gap-2 text-xs text-on-surface-variant hover:text-primary-fixed border border-outline-variant/30 hover:border-primary-fixed px-3 py-1.5 rounded-sm transition-all font-headline">
-            <span class="material-symbols-outlined text-[14px]">timer</span>
-            Descanso: {{ formatTime(ex.restSeconds) }}
+            class="self-start min-h-[44px] inline-flex items-center gap-2 px-3 rounded-sm border border-outline-variant/30 text-on-surface-variant hover:text-primary-fixed hover:border-primary-fixed font-headline text-xs uppercase tracking-wider transition-colors">
+            <span class="material-symbols-outlined text-[16px]" aria-hidden="true">timer</span>
+            Cronometrar descanso
           </button>
         }
-
-      </div>
-    </div>
-  }
+      </article>
+    }
+  </section>
 
 </div>
 }
 
-<!-- Rest Timer Modal -->
+<!-- Cronômetro de descanso -->
 @if (timerActive()) {
-  <div class="fixed inset-0 bg-black/95 flex items-center justify-center z-50 animate-fade-in">
+  <div class="fixed inset-0 bg-black/95 flex items-center justify-center z-50 animate-fade-in" role="dialog" aria-label="Descanso">
     <div class="text-center px-8 animate-slide-up">
-      <p class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest mb-2">Descanso</p>
+      <p class="text-on-surface-variant font-headline text-[11px] font-bold uppercase tracking-widest mb-2">Descanso</p>
       @if (timerExercise()) {
         <p class="text-on-surface-variant text-sm mb-6 font-headline">{{ timerExercise()!.name }}</p>
       }
-      <p class="font-headline font-black text-[96px] text-on-surface tracking-tighter leading-none timer-glow">
+      <p class="font-headline font-black text-[96px] text-on-surface tracking-tighter leading-none timer-glow" aria-live="off">
         {{ formatTime(timerSeconds()) }}
       </p>
-      <!-- Progress ring -->
-      <div class="relative w-48 h-48 mx-auto mt-6">
-        <svg class="w-48 h-48 -rotate-90" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="45" fill="none" stroke="#20201f" stroke-width="3"/>
-          <circle cx="50" cy="50" r="45" fill="none" stroke="#ff7948" stroke-width="3"
-            [attr.stroke-dasharray]="getTimerProgress() * 2.83 + ', 283'"
-            stroke-linecap="round"/>
-        </svg>
+      <div class="w-64 h-1.5 mx-auto mt-6 rounded-full bg-surface-container-highest overflow-hidden">
+        <div class="h-full bg-primary-fixed transition-all duration-1000" [style.width.%]="getTimerProgress()"></div>
       </div>
       <button type="button" (click)="closeTimer()"
-        class="mt-8 px-8 py-3 rounded-sm border border-outline-variant/30 text-on-surface-variant hover:text-on-surface hover:border-outline transition-all font-headline text-sm uppercase tracking-wider">
+        class="mt-8 min-h-[48px] px-8 rounded-sm border border-outline-variant/30 text-on-surface-variant hover:text-on-surface hover:border-outline font-headline text-sm uppercase tracking-wider">
         Cancelar
       </button>
     </div>

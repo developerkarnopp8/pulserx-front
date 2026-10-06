@@ -1,80 +1,151 @@
-<div class="px-5 py-4 animate-fade-in">
+<div class="px-5 py-4 flex flex-col gap-4 animate-fade-in">
 
-  <div class="mb-6">
-    <h2 class="font-headline font-black text-3xl text-on-surface leading-tight tracking-tighter">Meus Recordes</h2>
-    <p class="text-on-surface-variant text-sm mt-1">Seu histórico de PR/1RM por movimento.</p>
+  <div>
+    <div class="flex items-center gap-2 mb-1">
+      <span class="w-1.5 h-1.5 rounded-full bg-primary-fixed" aria-hidden="true"></span>
+      <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">PRs</p>
+    </div>
+    <h2 class="font-headline font-black text-3xl text-on-surface uppercase leading-none tracking-tight">Meus recordes</h2>
+    @if (!loading() && !errorMsg()) {
+      <p class="text-on-surface-variant text-sm mt-2">{{ recordedCount() }} {{ recordedCount() === 1 ? 'movimento com registro' : 'movimentos com registro' }}</p>
+    }
   </div>
 
   @if (loading()) {
     <div class="flex items-center justify-center h-40">
-      <span class="material-symbols-outlined text-outline text-[40px] animate-pulse-subtle">military_tech</span>
+      <span class="material-symbols-outlined text-outline text-[40px] animate-pulse-subtle" aria-label="Carregando">military_tech</span>
     </div>
   } @else {
-    @if (!errorMsg()) {
-      <!-- Busca + grupo + novo movimento -->
-      <div class="space-y-3 mb-5">
+    <!-- Recorde em destaque -->
+    @if (highlight(); as h) {
+      <section class="relative bg-surface-container-low rounded-md p-5 flex flex-col gap-4 overflow-hidden" aria-labelledby="titulo-destaque">
+        <span class="absolute top-0 inset-x-0 h-1 bg-primary-fixed" aria-hidden="true"></span>
+        <div class="flex items-center justify-between gap-2">
+          <span class="inline-flex items-center gap-1 font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">
+            <span class="material-symbols-outlined text-[16px]" aria-hidden="true">local_fire_department</span> Último recorde
+          </span>
+          <span class="text-on-surface-variant text-xs">{{ h.record.achievedAt | date: 'dd/MM/yyyy' }}</span>
+        </div>
         <div>
-          <label for="pr-search" class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">Pesquisar por nome</label>
-          <div class="relative">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]" aria-hidden="true">search</span>
-            <input id="pr-search" type="search" placeholder="Ex: Snatch"
-              [ngModel]="search()" (ngModelChange)="search.set($event)"
-              class="w-full min-h-[44px] bg-surface-container-low text-on-surface placeholder:text-outline rounded-md pl-10 pr-3 text-sm"/>
-          </div>
+          <h3 id="titulo-destaque" class="font-headline font-black text-2xl text-on-surface uppercase leading-none">{{ h.record.movement.name }}</h3>
+          <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mt-1">{{ h.record.movement.category }}</p>
         </div>
-        <div class="flex gap-2 items-end">
-          <div class="flex-1">
-            <label for="pr-group" class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">Selecione um grupo</label>
-            <select id="pr-group" [ngModel]="selectedCategory()" (ngModelChange)="selectedCategory.set($event)"
-              class="w-full min-h-[44px] bg-surface-container-low text-on-surface rounded-md px-3 text-sm">
-              <option [ngValue]="null">Todos</option>
-              @for (cat of availableCategories(); track cat) {
-                <option [ngValue]="cat">{{ cat }}</option>
+        <div class="flex items-end justify-between gap-3">
+          <p class="font-headline font-black text-5xl text-on-surface leading-none">{{ h.record.loadKg }} <span class="text-xl">kg</span></p>
+          @if (h.deltaKg) {
+            <p class="text-right">
+              <span class="flex items-center justify-end gap-1 text-primary-fixed font-headline font-bold text-sm">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">trending_up</span> +{{ h.deltaKg }} kg
+              </span>
+              <span class="text-on-surface-variant text-xs">sobre o recorde anterior</span>
+            </p>
+          }
+        </div>
+
+        @if (highlightAttempts().length > 1) {
+          <div class="flex flex-col gap-2">
+            <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Evolução · últimas {{ highlightAttempts().length }} tentativas</p>
+            <ol class="flex items-end gap-2 h-24" aria-label="Evolução da carga">
+              @for (r of highlightAttempts(); track r.id; let last = $last) {
+                <li class="flex-1 flex flex-col items-center justify-end gap-1 h-full">
+                  <span class="font-headline text-[10px] font-bold" [class.text-primary-fixed]="last" [class.text-on-surface-variant]="!last">{{ r.loadKg }}</span>
+                  <span class="w-full rounded-sm" [class.bg-primary-fixed]="last" [class.bg-surface-container-highest]="!last"
+                    [style.height.%]="((r.loadKg ?? 0) / highlightMax()) * 70"></span>
+                  <span class="sr-only">{{ r.loadKg }} kg em {{ r.achievedAt | date: 'dd/MM' }}</span>
+                </li>
               }
-            </select>
+            </ol>
           </div>
-          <button type="button" (click)="openNewMovement()"
-            class="min-h-[44px] px-3 rounded-md bg-primary-fixed/15 text-primary-fixed text-[10px] font-headline font-bold uppercase tracking-wider flex items-center gap-1 flex-shrink-0">
-            <span class="material-symbols-outlined text-[16px]" aria-hidden="true">add</span>
-            Novo movimento
+          <ul class="flex flex-col gap-1.5">
+            @for (r of highlightAttempts().slice().reverse().slice(0, 3); track r.id) {
+              <li class="flex items-center justify-between gap-3 bg-surface-container rounded-sm px-3 py-2">
+                <span class="min-w-0">
+                  <span class="block font-headline font-bold text-sm text-on-surface">{{ r.loadKg }} kg @if (r.reps) { × {{ r.reps }} }</span>
+                  @if (r.note) { <span class="block text-on-surface-variant text-xs truncate">{{ r.note }}</span> }
+                </span>
+                <span class="text-on-surface-variant text-xs shrink-0">{{ r.achievedAt | date: 'dd/MM' }}</span>
+              </li>
+            }
+          </ul>
+        }
+
+        <button type="button" (click)="openForm(h.record.movement)"
+          class="min-h-[48px] rounded-sm bg-primary-fixed hover:bg-primary-dim text-on-primary-fixed font-headline font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-colors">
+          <span class="material-symbols-outlined text-[20px]" aria-hidden="true">add_circle</span>
+          Registrar nova tentativa
+        </button>
+      </section>
+    }
+
+    @if (!errorMsg()) {
+      <!-- Busca + grupos -->
+      <div class="flex items-center gap-3 bg-surface-container-low rounded-sm px-4 min-h-[48px] focus-within:ring-1 focus-within:ring-primary-fixed">
+        <span class="material-symbols-outlined text-outline text-[20px] shrink-0" aria-hidden="true">search</span>
+        <label for="pr-search" class="sr-only">Pesquisar movimento</label>
+        <input id="pr-search" type="search" placeholder="Pesquisar movimento"
+          [ngModel]="search()" (ngModelChange)="search.set($event)"
+          class="min-w-0 flex-1 bg-transparent text-on-surface placeholder:text-outline text-sm"/>
+        @if (search()) {
+          <button type="button" (click)="search.set('')" aria-label="Limpar busca" class="w-11 h-11 -mr-3 flex items-center justify-center text-outline hover:text-on-surface">
+            <span class="material-symbols-outlined text-[20px]" aria-hidden="true">close</span>
           </button>
-        </div>
+        }
+      </div>
+      <div class="flex gap-2 overflow-x-auto no-scrollbar" role="group" aria-label="Filtrar por grupo">
+        <button type="button" (click)="selectedCategory.set(null)" [attr.aria-pressed]="selectedCategory() === null"
+          class="min-h-[44px] px-4 rounded-sm font-headline text-xs font-bold uppercase tracking-wider shrink-0 transition-colors"
+          [class.bg-primary-fixed]="selectedCategory() === null" [class.text-on-primary-fixed]="selectedCategory() === null"
+          [class.bg-surface-container-low]="selectedCategory() !== null" [class.text-on-surface-variant]="selectedCategory() !== null">
+          Todos ({{ movements().length }})
+        </button>
+        @for (cat of availableCategories(); track cat) {
+          <button type="button" (click)="selectedCategory.set(cat)" [attr.aria-pressed]="selectedCategory() === cat"
+            class="min-h-[44px] px-4 rounded-sm font-headline text-xs font-bold uppercase tracking-wider shrink-0 transition-colors"
+            [class.bg-primary-fixed]="selectedCategory() === cat" [class.text-on-primary-fixed]="selectedCategory() === cat"
+            [class.bg-surface-container-low]="selectedCategory() !== cat" [class.text-on-surface-variant]="selectedCategory() !== cat">
+            {{ cat }} ({{ categoryCounts().get(cat) ?? 0 }})
+          </button>
+        }
       </div>
     }
+
     @for (group of groupedMovements(); track group[0]) {
-      <div class="mb-3">
-        <button type="button" (click)="toggleCategory(group[0])"
-          class="w-full flex items-center gap-3 py-2 group">
-          <span class="material-symbols-outlined text-outline text-[18px] transition-transform"
+      <div>
+        <button type="button" (click)="toggleCategory(group[0])" [attr.aria-expanded]="isCategoryExpanded(group[0])"
+          class="w-full min-h-[44px] flex items-center gap-3 group">
+          <span class="material-symbols-outlined text-outline text-[18px] transition-transform" aria-hidden="true"
             [class.rotate-90]="isCategoryExpanded(group[0])">chevron_right</span>
-          <span class="text-[10px] font-headline font-black uppercase tracking-widest text-outline group-hover:text-on-surface transition-colors">{{ group[0] }}</span>
-          <div class="flex-1 h-px bg-outline-variant/10"></div>
-          <span class="text-outline text-[10px]">{{ group[1].length }}</span>
+          <span class="font-headline text-[11px] font-black uppercase tracking-widest text-on-surface-variant group-hover:text-on-surface transition-colors">{{ group[0] }}</span>
+          <span class="flex-1 h-px bg-outline-variant/10" aria-hidden="true"></span>
+          <span class="text-outline text-[11px]">{{ group[1].length }}</span>
         </button>
 
         @if (isCategoryExpanded(group[0])) {
-          <div class="grid grid-cols-1 gap-2 mt-2 animate-fade-in">
+          <div class="flex flex-col gap-2 mt-1 animate-fade-in">
             @for (item of group[1]; track item.movement.id) {
               <div class="bg-surface-container-low rounded-md p-4 flex items-center justify-between gap-3">
                 <div class="flex-1 min-w-0">
-                  <p class="text-on-surface font-headline font-bold text-sm truncate">{{ item.movement.name }}</p>
-                  @if (item.bestLoadKg || item.bestReps) {
-                    <p class="text-on-surface-variant text-xs mt-0.5">
-                      @if (item.bestLoadKg) { <span class="text-primary-fixed font-bold">{{ item.bestLoadKg }}kg</span> }
-                      @if (item.bestLoadKg && item.bestReps) { <span> · </span> }
-                      @if (item.bestReps) { <span class="text-primary-fixed font-bold">{{ item.bestReps }} reps</span> }
-                      @if (item.movement.id === justRecordedId()) {
-                        <span class="ml-2 text-[10px] bg-primary-fixed text-on-primary-fixed px-1.5 py-0.5 rounded-sm uppercase font-headline">Novo!</span>
-                      }
-                    </p>
+                  <p class="flex items-center gap-2 font-headline font-black text-sm text-on-surface uppercase truncate">
+                    <span class="truncate">{{ item.movement.name }}</span>
+                    @if (item.movement.id === justRecordedId()) {
+                      <span class="text-[10px] bg-primary-fixed text-on-primary-fixed px-1.5 py-0.5 rounded-sm uppercase font-headline shrink-0">Novo!</span>
+                    }
+                  </p>
+                  @if (item.lastAchievedAt) {
+                    <p class="text-on-surface-variant text-xs mt-0.5">Último registro {{ item.lastAchievedAt | date: 'dd/MM/yyyy' }}</p>
                   } @else {
                     <p class="text-outline text-xs mt-0.5">Nenhum registro ainda</p>
                   }
                 </div>
-                <button type="button" (click)="openForm(item.movement)"
-                  class="flex items-center gap-1 text-[10px] font-headline font-bold text-primary-fixed hover:bg-primary-fixed/10 px-3 py-2 rounded-sm uppercase tracking-wider transition-colors">
-                  <span class="material-symbols-outlined text-[14px]">add</span>
-                  Registrar
+                @if (item.bestLoadKg || item.bestReps) {
+                  <p class="text-right shrink-0">
+                    @if (item.bestLoadKg) { <span class="block font-headline font-black text-lg text-on-surface leading-none">{{ item.bestLoadKg }} <span class="text-xs">kg</span></span> }
+                    @if (item.bestReps) { <span class="block text-on-surface-variant text-xs">{{ item.bestReps }} reps</span> }
+                  </p>
+                }
+                <button type="button" (click)="openForm(item.movement)" [attr.aria-label]="'Registrar ' + item.movement.name"
+                  class="w-11 h-11 rounded-sm bg-primary-fixed/15 text-primary-fixed flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined text-[20px]" aria-hidden="true">add</span>
                 </button>
               </div>
             }
@@ -85,19 +156,23 @@
       @if (errorMsg()) {
         <div role="alert" class="bg-error/10 border border-error/30 rounded-sm px-4 py-3 text-error text-sm">{{ errorMsg() }}</div>
       } @else {
-        <!-- Nada no catálogo (ou nada que case com a busca): o próprio atleta pode cadastrar. -->
-        <div class="bg-surface-container-low rounded-md p-5 text-center">
-          <span class="material-symbols-outlined text-[32px] text-outline" aria-hidden="true">emoji_events</span>
-          <p class="text-on-surface text-sm font-semibold mt-2">
-            {{ isFiltering() ? 'Nenhum movimento encontrado' : 'Ainda não há movimentos para registrar' }}
-          </p>
-          <p class="text-on-surface-variant text-xs mt-1">Não achou o seu? Cadastre e ele fica só no seu catálogo.</p>
-          <button type="button" (click)="openNewMovement()"
-            class="mt-3 min-h-[44px] px-4 rounded-md bg-primary-fixed text-on-primary-fixed text-xs font-headline font-black uppercase tracking-tighter">
-            {{ search().trim() ? 'Cadastrar "' + search().trim() + '"' : 'Novo movimento' }}
-          </button>
-        </div>
+        <p class="bg-surface-container-low rounded-md text-on-surface-variant text-sm text-center py-6">
+          {{ isFiltering() ? 'Nenhum movimento encontrado.' : 'Ainda não há movimentos para registrar.' }}
+        </p>
       }
+    }
+
+    @if (!errorMsg()) {
+      <section class="bg-surface-container-low rounded-md p-5 flex flex-col items-center text-center gap-2 border border-dashed border-outline-variant/30" aria-labelledby="titulo-novo-mov">
+        <span class="material-symbols-outlined text-primary-fixed text-[28px]" aria-hidden="true">post_add</span>
+        <h4 id="titulo-novo-mov" class="font-headline font-black text-sm text-on-surface uppercase">Cadastrar novo movimento</h4>
+        <p class="text-on-surface-variant text-xs">Não achou o seu? Cadastre e ele fica salvo só no seu catálogo.</p>
+        <button type="button" (click)="openNewMovement()"
+          class="mt-1 min-h-[44px] px-4 rounded-sm bg-primary-fixed text-on-primary-fixed font-headline text-xs font-black uppercase tracking-wider flex items-center gap-1">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">add</span>
+          {{ search().trim() ? 'Cadastrar "' + search().trim() + '"' : 'Novo movimento' }}
+        </button>
+      </section>
     }
   }
 </div>
@@ -145,28 +220,28 @@
   <div class="fixed inset-0 bg-black/80 flex items-end sm:items-center justify-center z-[60] animate-fade-in"
     (click)="closeForm()">
     <div class="bg-surface-container-low rounded-t-md sm:rounded-md w-full sm:max-w-sm p-6 animate-slide-up"
-      (click)="$event.stopPropagation()">
+      role="dialog" aria-modal="true" aria-labelledby="pr-form-titulo" (click)="$event.stopPropagation()">
 
-      <h3 class="font-headline font-black text-lg text-on-surface tracking-tighter mb-1">{{ movement.name }}</h3>
-      <p class="text-on-surface-variant text-xs mb-4">Registrar nova tentativa</p>
+      <p class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary-fixed">Registrar tentativa</p>
+      <h3 id="pr-form-titulo" class="font-headline font-black text-xl text-on-surface uppercase leading-tight mb-4">{{ movement.name }}</h3>
 
       <div class="grid grid-cols-2 gap-3 mb-4">
         <div>
-          <label class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">Carga (kg)</label>
-          <input type="number" inputmode="decimal" placeholder="Ex: 100"
+          <label for="pr-carga" class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">Carga (kg)</label>
+          <input id="pr-carga" type="number" inputmode="decimal" placeholder="Ex: 100"
             [ngModel]="formLoadKg()" (ngModelChange)="formLoadKg.set($event)"
             class="w-full bg-surface-container text-on-surface placeholder:text-outline rounded-sm px-3 py-2.5 text-sm"/>
         </div>
         <div>
-          <label class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">Repetições</label>
-          <input type="number" inputmode="numeric" placeholder="Ex: 5"
+          <label for="pr-reps" class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">Repetições</label>
+          <input id="pr-reps" type="number" inputmode="numeric" placeholder="Ex: 5"
             [ngModel]="formReps()" (ngModelChange)="formReps.set($event)"
             class="w-full bg-surface-container text-on-surface placeholder:text-outline rounded-sm px-3 py-2.5 text-sm"/>
         </div>
       </div>
 
-      <label class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">Nota (opcional)</label>
-      <textarea rows="2" placeholder="Ex: com cinto, sem cinto..."
+      <label for="pr-nota" class="text-on-surface-variant text-[10px] font-headline uppercase tracking-widest block mb-1.5">Nota (opcional)</label>
+      <textarea id="pr-nota" rows="2" placeholder="Ex: com cinto, sem cinto..."
         [ngModel]="formNote()" (ngModelChange)="formNote.set($event)"
         class="w-full bg-surface-container text-on-surface placeholder:text-outline rounded-sm px-3 py-2.5 text-sm resize-none mb-4"></textarea>
 
