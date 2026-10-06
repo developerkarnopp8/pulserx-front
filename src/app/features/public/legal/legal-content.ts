@@ -106,6 +106,7 @@ export const LEGAL_DOCS: Record<LegalDocKey, LegalDoc> = {
         title: '1. Quem é responsável',
         paragraphs: [
           'A AEVON SOFTWARE é a controladora dos dados da plataforma (conta, assinatura e pagamento). O seu treinador também acessa os dados de treino que você registra, para acompanhar sua evolução e ajustar sua prescrição, e é responsável pelo uso que faz deles.',
+          'Para dar suporte e cuidar das cobranças, a equipe da AEVON SOFTWARE pode consultar, por treinador, o nome de cada aluno, o plano, a situação da assinatura e a data de entrada — nunca o seu e-mail, CPF, dados de saúde ou de treino. Cada consulta fica registrada (quem consultou e quando) e o registro é apagado após 12 meses.',
         ],
       },
       {

@@ -6,7 +6,7 @@ import {
   ExerciseLibraryItem, Payment, PaymentSummary, SkipReason, SkipDecision,
   Movement, PersonalRecord, AppNotification,
   WorkoutSessionRecord, SessionTimeSummary, SessionTimeDetail, CoachAvgDuration,
-  SubscriptionPlan, Subscription, MySubscription, MyGatewayPayment, MyPaymentStatus, MyPix, CoachWallet, CheckoutResult, CoachGatewayPayment, MonthlyBreakdown, CoachContract, PlatformSettings, FreeConfig, FinancialSummary,
+  SubscriptionPlan, Subscription, MySubscription, MyGatewayPayment, AdminCoachStudent, MyPaymentStatus, MyPix, CoachWallet, CheckoutResult, CoachGatewayPayment, MonthlyBreakdown, CoachContract, PlatformSettings, FreeConfig, FinancialSummary,
   CoachProfile, UpdateCoachProfileInput, PublicCoachProfile, CreateLeadInput, PublicSignupInput, PublicSignupResult,
   Testimonial, UpsertTestimonialInput, FaqItem, UpsertFaqItemInput,
   ConsentStatus, User, AthleteLookup, AdminFinancialOverview, CoachAlert, CoachSubscriptionSummary, CoachUsage,
@@ -709,6 +709,11 @@ export class ApiService {
   }
 
   // ── Admin: contrato do coach e configurações da plataforma ────────────────
+
+  /** Admin: alunos ativos do coach (nome, plano, situação, entrada). Cada consulta fica registrada no servidor. */
+  adminGetCoachStudents(coachId: string): Observable<AdminCoachStudent[]> {
+    return this.http.get<AdminCoachStudent[]>(`${this.base}/admin/coaches/${coachId}/students`);
+  }
 
   getCoachContract(coachId: string): Observable<CoachContract> {
     return this.http.get<CoachContract>(`${this.base}/admin/coaches/${coachId}/contract`);

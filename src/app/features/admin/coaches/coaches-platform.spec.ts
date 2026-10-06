@@ -27,6 +27,9 @@ function build(apiOver: Record<string, unknown> = {}) {
     getCoachContract: vi.fn().mockReturnValue(of({ coachId: 'coach-1', platformFeePercent: 20 })),
     setCoachContract: vi.fn().mockReturnValue(of({ coachId: 'coach-1', platformFeePercent: 25 })),
     setPlatformSettings: vi.fn().mockReturnValue(of(settings({ enforceSubscriptionAccess: true }))),
+    adminGetCoachStudents: vi.fn().mockReturnValue(of([
+      { name: 'Ana', joinedAt: '2026-09-01T00:00:00Z', planName: 'Core', status: 'ACTIVE' },
+    ])),
     ...apiOver,
   };
   const component = new CoachesComponent(api as any, new FormBuilder());
@@ -286,5 +289,51 @@ describe('CoachesComponent — detalhes (assinaturas e uso) e alertas', () => {
     expect(component.alertLabel.NO_WALLET).toBe('Sem carteira Asaas');
     expect(component.alertLabel.INVALID_WALLET).toBe('Carteira Asaas inválida');
     expect(component.alertLabel.PAGE_UNPUBLISHED).toBe('Página despublicada');
+  });
+});
+
+describe('CoachesComponent — alunos do coach (mínimo, só no clique)', () => {
+  it('não carrega sozinho ao abrir os detalhes; carrega no clique', () => {
+    const { component, api } = build();
+    component.toggleDetails(coach as any);
+    expect(api.adminGetCoachStudents).not.toHaveBeenCalled();
+    component.loadStudents(coach as any);
+    expect(api.adminGetCoachStudents).toHaveBeenCalledWith('coach-1');
+    expect(component.studentsCoachId()).toBe('coach-1');
+    expect(component.students()).toEqual([{ name: 'Ana', joinedAt: '2026-09-01T00:00:00Z', planName: 'Core', status: 'ACTIVE' }]);
+    expect(component.loadingStudents()).toBe(false);
+    expect(component.statusLabel.PAST_DUE).toBe('Pagamento em atraso');
+  });
+
+  it('abrir outro coach (ou fechar) esconde a lista — precisa clicar de novo', () => {
+    const { component } = build();
+    component.toggleDetails(coach as any);
+    component.loadStudents(coach as any);
+    component.toggleDetails(coach as any);
+    expect(component.studentsCoachId()).toBeNull();
+    expect(component.students()).toEqual([]);
+    component.toggleDetails({ ...coach, id: 'coach-2' } as any);
+    expect(component.studentsCoachId()).toBeNull();
+  });
+
+  it('reabrir o mesmo coach com a lista já carregada mantém a lista', () => {
+    const { component } = build();
+    component.toggleDetails(coach as any);
+    component.loadStudents(coach as any);
+    component.detailsId.set(null);
+    component.toggleDetails(coach as any);
+    expect(component.studentsCoachId()).toBe('coach-1');
+  });
+
+  it('erro: mensagem; clique repetido enquanto carrega é ignorado', () => {
+    const falha = build({ adminGetCoachStudents: vi.fn().mockReturnValue(throwError(() => ({ status: 500 }))) });
+    falha.component.loadStudents(coach as any);
+    expect(falha.component.studentsError()).toBe('Não foi possível carregar os alunos.');
+    expect(falha.component.studentsCoachId()).toBeNull();
+
+    const { component, api } = build();
+    component.loadingStudents.set(true);
+    component.loadStudents(coach as any);
+    expect(api.adminGetCoachStudents).not.toHaveBeenCalled();
   });
 });
