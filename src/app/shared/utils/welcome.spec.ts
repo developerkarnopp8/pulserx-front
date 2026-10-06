@@ -34,6 +34,9 @@ describe('boas-vindas do primeiro acesso', () => {
       expect(notificationState()).toBe('granted');
       delete (window as any).Notification;
       expect(notificationState()).toBe('unsupported');
+      // Propriedade existente mas vazia (outro código/teste a zerou): também sem suporte, nunca quebra.
+      (window as any).Notification = undefined;
+      expect(notificationState()).toBe('unsupported');
     } finally {
       (window as any).Notification = original;
       if (original === undefined) delete (window as any).Notification;

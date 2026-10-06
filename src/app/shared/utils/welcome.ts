@@ -30,6 +30,7 @@ export type NotificationState = 'granted' | 'denied' | 'default' | 'unsupported'
 
 /** Situação da permissão de notificação do navegador (o app já avisa novas mensagens e treinos por ela). */
 export function notificationState(): NotificationState {
-  if (typeof window === 'undefined' || !('Notification' in window)) return 'unsupported';
-  return Notification.permission as NotificationState;
+  const api = typeof window === 'undefined' ? undefined : (window as { Notification?: { permission?: string } }).Notification;
+  if (!api?.permission) return 'unsupported';
+  return api.permission as NotificationState;
 }
